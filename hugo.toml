@@ -3,8 +3,11 @@
 #  文档：https://gohugo.io/configuration/all/
 # ============================================================
 
-# 部署后请把 baseURL 改成你的正式域名（详见 README.md）
-baseURL = "https://map.example.com/"
+# 站点线上地址（GitHub Pages 项目页）。
+# 注意仓库名 Parlour 的大小写要与 GitHub 上完全一致；
+# 部署时 .github/workflows/hugo.yml 会用 actions/configure-pages 自动覆盖成真实地址，
+# 这里填对主要是为了让本地构建出的 canonical / sitemap 也正确。
+baseURL = "https://mysteriousamateurplayer.github.io/Parlour/"
 title = "MAP"
 theme = "map"
 
