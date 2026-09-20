@@ -691,14 +691,15 @@ function insertMarkdown(kind) {
 
 /* ================= 预览 ================= */
 async function preview(openThis) {
+  const base = (META && META.previewBase) || 'http://localhost:1313/';
   const s = await (await fetch('/api/preview-status')).json();
   if (!s.running) {
     setStatus('正在启动本地预览（第一次要几秒）…', 'info');
     await post('/api/preview-start');
-    await new Promise((r) => setTimeout(r, 3500));
+    await new Promise((r) => setTimeout(r, 4000));
   }
   const slug = EDITING_FILE ? EDITING_FILE.replace(/\.md$/, '') : '';
-  const url = openThis && slug ? `http://localhost:1313/${CURRENT.key}/${slug}/` : 'http://localhost:1313/';
+  const url = openThis && slug ? `${base}${CURRENT.key}/${slug}/` : base;
   window.open(url, '_blank');
   setStatus('已打开本地预览：' + url + '\n（若显示 404：这篇文章还是草稿，或预览刚启动还没好，等两秒刷新）', 'info');
 }

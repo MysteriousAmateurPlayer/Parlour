@@ -20,7 +20,7 @@
 
     <div class="header-tools">
       {{- if and site.Params.vault.enabled site.Params.vault.showInHeader $vaultPage }}
-      <a class="icon-btn icon-btn--vault" href="{{ $vaultPage.RelPermalink }}" title="{{ $vault.title }}入口" aria-label="{{ $vault.title }}入口">
+      <a class="icon-btn icon-btn--vault" href="{{ $vaultPage.RelPermalink }}" data-vault-open title="{{ $vault.title }}入口" aria-label="{{ $vault.title }}入口">
         {{- partial "icon.html" (dict "name" "lock" "class" "icon icon--sm") -}}
       </a>
       {{- end }}
@@ -45,7 +45,7 @@
         <a class="mobile-nav__link" href="{{ $item.href }}">{{ $item.title }}</a>
         {{- end }}
         {{- if and site.Params.vault.enabled $vaultPage }}
-        <a class="mobile-nav__link mobile-nav__link--vault" href="{{ $vaultPage.RelPermalink }}">
+        <a class="mobile-nav__link mobile-nav__link--vault" href="{{ $vaultPage.RelPermalink }}" data-vault-open>
           {{ partial "icon.html" (dict "name" "lock" "class" "icon icon--sm") }}<span>{{ $vault.title }}</span>
         </a>
         {{- end }}

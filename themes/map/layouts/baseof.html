@@ -11,6 +11,9 @@
     {{- block "main" . }}{{ end -}}
   </main>
   {{- partial "footer.html" . -}}
+  {{- if and site.Params.vault.enabled (ne .Section "vault") -}}
+  {{- partial "vault-modal.html" . -}}
+  {{- end -}}
   {{- partial "scripts.html" . -}}
 </body>
 </html>

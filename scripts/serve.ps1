@@ -26,11 +26,32 @@ if (Test-Path $local) {
   $hugo = $cmd.Source
 }
 
-$hugoArgs = @('server', '--source', $root, '--port', $Port, '--navigateToChanged', '--disableFastRender')
+# 本地预览的地址要和线上保持一致：baseURL 里带 /仓库名/ 时，本地也挂在同一个子路径下，
+# 否则页面里的资源（/仓库名/css/...）会 404。
+$basePath = '/'
+$cfg = Join-Path $root 'hugo.toml'
+if (Test-Path $cfg) {
+  $m = Select-String -Path $cfg -Pattern '^\s*baseURL\s*=\s*"([^"]+)"' | Select-Object -First 1
+  if ($m) {
+    try {
+      $uri = [System.Uri]$m.Matches[0].Groups[1].Value
+      if ($uri.AbsolutePath) { $basePath = $uri.AbsolutePath }
+    } catch { }
+  }
+}
+$previewUrl = "http://localhost:$Port$basePath"
+
+$hugoArgs = @(
+  'server',
+  '--source', $root,
+  '--port', $Port,
+  '--navigateToChanged',
+  '--disableFastRender'
+)
 if (-not $NoDrafts) { $hugoArgs += @('--buildDrafts', '--buildFuture') }
 
 Write-Host "Hugo  : $hugo" -ForegroundColor Cyan
-Write-Host "预览  : http://localhost:$Port/" -ForegroundColor Cyan
+Write-Host "预览  : $previewUrl" -ForegroundColor Cyan
 Write-Host ""
 
 & $hugo @hugoArgs

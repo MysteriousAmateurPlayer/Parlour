@@ -1,0 +1,47 @@
+{{- /* 里版问答弹窗：点首页场景里的星星/彩虹/潮汐时弹出，答对就进里版。
+       题目与答案哈希来自 hugo.toml 的 params.vault（也可以用 /vault/_index.md 覆盖）。
+       没有 JavaScript 时不会显示，那三个图标会直接跳转到里版门禁页。 */ -}}
+{{- $vault := site.Params.vault -}}
+{{- $section := site.GetPage "/vault" -}}
+{{- $gate := dict -}}
+{{- with $section }}{{ $gate = .Params.gate | default dict }}{{ end -}}
+{{- $hash := $gate.hash | default $vault.answerHash -}}
+{{- $question := $gate.question | default $vault.question -}}
+{{- $hint := $gate.hint | default $vault.hint -}}
+{{- $placeholder := $gate.placeholder | default "在此输入答案" -}}
+{{- $meta := partial "section-meta.html" "vault" -}}
+{{- $url := "" -}}
+{{- with $section }}{{ $url = .RelPermalink }}{{ end -}}
+{{- if not $url }}{{ $url = partial "link.html" "/vault/" }}{{ end -}}
+<div class="vault-modal" id="vault-modal" hidden
+     data-vault-config
+     data-hash="{{ $hash }}"
+     data-storage-key="map-vault-unlocked"
+     data-url="{{ $url }}">
+  <div class="vault-modal__backdrop" data-vault-close></div>
+
+  <div class="vault-modal__card" role="dialog" aria-modal="true" aria-labelledby="vault-modal-title">
+    <button class="vault-modal__close" type="button" data-vault-close aria-label="关闭" title="关闭">
+      {{- partial "icon.html" (dict "name" "close" "class" "icon icon--sm") -}}
+    </button>
+
+    <span class="gate__icon">{{ partial "icon.html" (dict "name" "lock") }}</span>
+    <p class="gate__kicker">{{ $meta.en | default "Vault" }}</p>
+    <h2 class="gate__title" id="vault-modal-title">{{ $meta.title | default "里版" }}</h2>
+    {{- with $meta.blurb }}<p class="vault-modal__blurb">{{ . }}</p>{{ end }}
+    {{- with $question }}<p class="gate__question">{{ . }}</p>{{ end }}
+
+    <form class="gate__form" data-vault-form novalidate>
+      <label class="sr-only" for="vault-modal-answer">答案</label>
+      <input class="gate__input" id="vault-modal-answer" name="answer" type="text"
+             placeholder="{{ $placeholder }}" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+      <button class="btn btn--primary" type="submit"><span>验证</span></button>
+    </form>
+
+    <p class="gate__msg" data-vault-msg role="status" aria-live="polite"></p>
+    {{- with $hint }}<p class="gate__hint">提示：{{ . }}</p>{{ end }}
+    <p class="vault-modal__alt">
+      也可以<a href="{{ $url }}">直接打开里版页</a>
+    </p>
+  </div>
+</div>

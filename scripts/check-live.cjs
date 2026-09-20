@@ -61,6 +61,9 @@ async function get(path, { timeout = 25000 } = {}) {
   line(home.text.includes('hero__name') ? 'PASS' : 'FAIL', '首页有主视觉（内容没丢）');
   // 卡片标题是数据驱动的（板块数量可能被改过），所以只验证卡片区与卡片本身存在
   line(home.text.includes('band--sections') && home.text.includes('card__title') ? 'PASS' : 'FAIL', '首页有版块卡片区');
+  // 里版入口现在是主视觉场景里的三个图标（点了弹问答），不再是单独的入口条
+  line(home.text.includes('hero__scene') && home.text.includes('scene-icon') ? 'PASS' : 'FAIL', '首页有场景（星空/地球/三个图标）');
+  line(home.text.includes('vault-modal') && home.text.includes('data-vault-open') ? 'PASS' : 'WARN', '首页带里版问答弹窗');
 
   const H = norm(home.text);
 

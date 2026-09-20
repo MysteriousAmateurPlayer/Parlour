@@ -65,6 +65,14 @@
   --shadow-lg: 0 28px 60px -32px rgba(34, 31, 28, 0.42);
   --grain-opacity: 0.05;
 
+  /* 首页场景（星野 + 地球）的配色 */
+  --scene-sky: #f2ece2;
+  --scene-earth-0: #e6dac6;
+  --scene-earth-1: #d8c9b1;
+  --scene-horizon: rgba(143, 58, 44, 0.5);
+  --scene-line: rgba(90, 78, 66, 0.5);
+  --scene-star: #8d857c;
+
   /* 代码高亮（明亮） */
   --code-bg: #f6f2ea;
   --code-border: #e4ddd2;
@@ -96,6 +104,14 @@
   --shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.7);
   --shadow-lg: 0 28px 60px -32px rgba(0, 0, 0, 0.8);
   --grain-opacity: 0.045;
+
+  /* 首页场景（星野 + 地球）的配色 */
+  --scene-sky: #1b1e23;
+  --scene-earth-0: #22262c;
+  --scene-earth-1: #171a1e;
+  --scene-horizon: rgba(208, 138, 116, 0.5);
+  --scene-line: rgba(180, 173, 162, 0.35);
+  --scene-star: #9aa1aa;
 
   --code-bg: #1f2126;
   --code-border: #2e3238;
@@ -359,7 +375,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   /* 一屏高，但在超高的显示器上设上限，避免主视觉被拉得过分空旷 */
   min-height: calc(100vh - var(--header-h));
   min-height: min(calc(100svh - var(--header-h)), var(--hero-max));
-  padding-block: clamp(4rem, 10vh, 8rem);
+  padding-block: clamp(1.75rem, 4vh, 3.5rem);
   text-align: center;
   overflow: hidden;
 }
@@ -383,7 +399,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  margin-bottom: 2.25rem;
+  margin-bottom: 1.5rem;
 }
 .hero__ornament-line {
   width: clamp(2rem, 8vw, 6rem);
@@ -408,7 +424,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 .hero__name {
-  font-size: clamp(3.2rem, 13vw, 7rem);
+  font-size: clamp(3rem, 12vw, 6.4rem);
   font-weight: 500;
   line-height: 1;
   letter-spacing: 0.16em;
@@ -429,7 +445,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 .hero__tagline {
-  margin-top: clamp(1.25rem, 3vw, 2rem);
+  margin-top: clamp(0.9rem, 2vw, 1.35rem);
   font-size: var(--step-1);
   color: var(--ink-soft);
   letter-spacing: 0.14em;
@@ -440,7 +456,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   align-items: center;
   justify-content: center;
   gap: 0.9rem;
-  margin-block: clamp(1.75rem, 4vw, 2.75rem);
+  margin-block: clamp(1.1rem, 2.4vw, 1.7rem);
 }
 .hero__divider-rule { width: clamp(2.5rem, 9vw, 5.5rem); height: 1px; background: var(--line-strong); }
 .hero__divider-gem {
@@ -709,33 +725,103 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .post-row__arrow { color: var(--ink-mute); justify-self: end; transition: transform 0.3s var(--ease), color 0.3s var(--ease); }
 .post-row__link:hover .post-row__arrow { transform: translateX(4px); color: var(--accent); }
 
-/* 里版入口条 */
-.vault-teaser {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  padding: 1.4rem clamp(1.25rem, 3vw, 2rem);
-  border: 1px dashed var(--line-strong);
-  border-radius: var(--radius);
-  background: transparent;
-  transition: border-color 0.4s var(--ease), background-color 0.4s var(--ease);
+/* --------------------------------------------------------------------------
+   06.5 首页主视觉的场景：星野 + 地球 + 三个里版入口
+   -------------------------------------------------------------------------- */
+.hero__scene {
+  position: relative;
+  width: 100%;
+  margin-top: auto;          /* 顶到主视觉底部 */
+  padding-top: clamp(1.25rem, 3vw, 2.75rem);
 }
-.vault-teaser:hover { border-color: var(--accent); background: var(--accent-soft); }
-.vault-teaser__icon { color: var(--ink-mute); }
-.vault-teaser:hover .vault-teaser__icon { color: var(--accent); }
-.vault-teaser__text { display: grid; gap: 0.15rem; min-width: 0; }
-.vault-teaser__title { font-size: var(--step-1); letter-spacing: 0.14em; }
-.vault-teaser__blurb { font-size: var(--step--1); color: var(--ink-mute); }
-.vault-teaser__cta {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: var(--font-sans);
-  font-size: var(--step--1);
-  letter-spacing: 0.12em;
-  color: var(--accent);
-  white-space: nowrap;
+
+/* 桌面端：按 viewBox 的比例完整显示（不会被裁），并限制最大宽度让弧线不过分扁平 */
+.scene {
+  display: block;
+  width: 100%;
+  max-width: 54rem;
+  margin-inline: auto;
+  aspect-ratio: 1600 / 460;
+  height: auto;
+}
+
+/* 窄屏：给一个更高的画框，让 SVG 裁掉两侧、保留中间三个图标与地球穹顶 */
+@media (max-width: 47.99rem) {
+  .scene {
+    max-width: none;
+    aspect-ratio: auto;
+    height: clamp(14rem, 44vw, 18rem);
+  }
+}
+
+/* 天空：从完全透明（露出主视觉底色）渐入纸色。
+   注意不能用 transparent —— 它是"透明黑"，插值时会经过灰色，出现一条脏灰带。 */
+.scene__sky-0 { stop-color: var(--scene-sky); stop-opacity: 0; }
+.scene__sky-1 { stop-color: var(--scene-sky); stop-opacity: 0.55; }
+.scene__sky-2 { stop-color: var(--scene-sky); stop-opacity: 1; }
+
+/* 地球：极缓的渐变，避免成为一块死色 */
+.scene__earth-0 { stop-color: var(--scene-earth-0); }
+.scene__earth-1 { stop-color: var(--scene-earth-1); }
+
+.scene__stars circle { fill: var(--scene-star); }
+
+.scene__earth { }
+.scene__atmos {
+  fill: none;
+  stroke: var(--scene-horizon);
+  stroke-width: 10;
+  opacity: 0.22;
+}
+.scene__horizon {
+  fill: none;
+  stroke: var(--scene-horizon);
+  stroke-width: 1;
+  opacity: 0.85;
+}
+.scene__band {
+  fill: none;
+  stroke: var(--scene-line);
+  stroke-width: 1;
+  opacity: 0.32;
+}
+.scene__band--faint { opacity: 0.18; }
+
+/* 三个小图标 */
+.scene-icon {
+  color: var(--ink-mute);
+  cursor: pointer;
+  transition: color 0.35s var(--ease);
+}
+.scene-icon__hit { fill: none; stroke: none; pointer-events: all; }
+.scene-icon__ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0.32;
+  transition: opacity 0.35s var(--ease), stroke-width 0.35s var(--ease);
+}
+.scene-icon__art {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.4s var(--ease);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.scene-icon:hover,
+.scene-icon:focus-visible { color: var(--accent); }
+.scene-icon:hover .scene-icon__ring,
+.scene-icon:focus-visible .scene-icon__ring { opacity: 0.95; stroke-width: 1.4; }
+.scene-icon:hover .scene-icon__art,
+.scene-icon:focus-visible .scene-icon__art { transform: scale(1.07); }
+.scene-icon:focus-visible { outline: none; }
+.scene-icon:focus-visible .scene-icon__ring { stroke-dasharray: 3 3; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-icon__art, .scene-icon__ring { transition: none; }
 }
 
 /* --------------------------------------------------------------------------
@@ -1400,6 +1486,86 @@ button, input, select, textarea { font: inherit; color: inherit; }
    12 里版与解谜入口
    -------------------------------------------------------------------------- */
 .vault { min-height: calc(100vh - var(--header-h)); }
+
+/* ---- 里版问答弹窗（点首页场景里的星星/彩虹/潮汐时出现） ---- */
+body.is-modal-open { overflow: hidden; }
+
+.vault-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 4vw, 2rem);
+}
+.vault-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--ink) 42%, transparent);
+  backdrop-filter: blur(3px);
+  animation: modalFade 0.3s var(--ease);
+}
+.vault-modal__card {
+  position: relative;
+  width: min(30rem, 100%);
+  max-height: 88vh;
+  overflow: auto;
+  padding: clamp(1.9rem, 5vw, 2.9rem);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  animation: modalRise 0.36s var(--ease);
+}
+.vault-modal__card::after {
+  content: "";
+  position: absolute;
+  inset: 0.55rem;
+  border: 1px solid var(--line);
+  pointer-events: none;
+}
+.vault-modal__card.is-shaking { animation: shake 0.45s var(--ease); }
+
+.vault-modal__close {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  z-index: 2;
+  display: inline-grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-mute);
+  cursor: pointer;
+  transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.vault-modal__close:hover { color: var(--accent); border-color: var(--line); }
+
+.vault-modal__blurb {
+  margin-top: 0.9rem;
+  font-size: var(--step--1);
+  color: var(--ink-mute);
+}
+.vault-modal__alt {
+  margin-top: 1.35rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-mute);
+}
+.vault-modal__alt a { color: var(--accent-ink); border-bottom: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+
+@keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalRise {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
 .gate {
   display: grid;
   grid-template-columns: minmax(0, 1fr);   /* 同上：别让门禁卡片撑破窄屏 */

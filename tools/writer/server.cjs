@@ -865,6 +865,21 @@ function hugoExe() {
   return fs.existsSync(local) ? local : 'hugo';
 }
 
+/** 本地预览的地址：跟线上一致地带上 baseURL 里的子路径（例如 http://localhost:1313/Parlour/） */
+function previewBase() {
+  let basePath = '/';
+  try {
+    const toml = fs.readFileSync(path.join(ROOT, 'hugo.toml'), 'utf8');
+    const m = toml.match(/^\s*baseURL\s*=\s*"([^"]+)"/m);
+    if (m) {
+      const u = new URL(m[1]);
+      if (u.pathname) basePath = u.pathname;
+    }
+  } catch (e) {}
+  if (!basePath.endsWith('/')) basePath += '/';
+  return `http://localhost:1313${basePath}`;
+}
+
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://127.0.0.1:${PORT}`);
   try {
@@ -882,6 +897,7 @@ const server = http.createServer(async (req, res) => {
           fields: s.fields.map((f) => ({ ...f, default: undefined }))
         })),
         icons: ICON_CHOICES,
+        previewBase: previewBase(),
         today: new Date().toISOString().slice(0, 10)
       });
     }
@@ -1039,13 +1055,13 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && u.pathname === '/api/preview-status') {
       return new Promise((resolve) => {
-        const r = http.get({ host: '127.0.0.1', port: 1313, path: '/', timeout: 1500 }, (resp) => {
+        const r = http.get({ host: '127.0.0.1', port: 1313, path: new URL(previewBase()).pathname, timeout: 1500 }, (resp) => {
           resp.resume();
-          json(res, 200, { running: true });
+          json(res, 200, { running: resp.statusCode === 200, url: previewBase() });
           resolve();
         });
-        r.on('timeout', () => { r.destroy(); json(res, 200, { running: false }); resolve(); });
-        r.on('error', () => { json(res, 200, { running: false }); resolve(); });
+        r.on('timeout', () => { r.destroy(); json(res, 200, { running: false, url: previewBase() }); resolve(); });
+        r.on('error', () => { json(res, 200, { running: false, url: previewBase() }); resolve(); });
       });
     }
 
@@ -1053,11 +1069,13 @@ const server = http.createServer(async (req, res) => {
       const localHugo = path.join(ROOT, '.tools', 'hugo', 'hugo.exe');
       const exe = fs.existsSync(localHugo) ? localHugo : 'hugo';
       const { spawn } = require('child_process');
-      const child = spawn(exe, ['server', '--source', ROOT, '--port', '1313', '--buildDrafts', '--buildFuture', '--navigateToChanged'], {
+      // 不加 --baseURL：让本地预览与线上一样挂在 baseURL 的子路径下，资源才不会 404
+      const child = spawn(exe, ['server', '--source', ROOT, '--port', '1313',
+        '--buildDrafts', '--buildFuture', '--navigateToChanged'], {
         detached: true, stdio: 'ignore', windowsHide: true
       });
       child.unref();
-      return json(res, 200, { ok: true, url: 'http://localhost:1313/' });
+      return json(res, 200, { ok: true, url: previewBase() });
     }
 
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
@@ -1106,5 +1124,6 @@ module.exports = {
   parseFrontMatter, dumpFrontMatter, parseYaml, buildPost, listPosts, CONTENT, ROOT,
   listSections, readSectionData, writeSectionData, saveSectionDisplay, createSection,
   deleteSection, trashPost, regeneratePagesYml,
-  readHome, saveHome, homeToFormValues, readSocials, saveSocials, readIntro, saveIntro, SITE_HOME_FIELDS
+  readHome, saveHome, homeToFormValues, readSocials, saveSocials, readIntro, saveIntro, SITE_HOME_FIELDS,
+  previewBase, hugoExe
 };

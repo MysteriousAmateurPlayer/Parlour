@@ -117,22 +117,8 @@
 </section>
 {{- end }}
 
-{{/* ---------- 5. 里版入口（低调；里版板块被删掉时自动隐藏） ---------- */}}
-{{- if and site.Params.vault.enabled (site.GetPage "/vault") }}
-{{- $vault := partial "section-meta.html" "vault" }}
-<section class="band band--vault" id="vault-entry">
-  <div class="wrap">
-    <a class="vault-teaser reveal" href="{{ (site.GetPage "/vault").RelPermalink }}" style="--accent: {{ $vault.accent }}">
-      <span class="vault-teaser__icon">{{ partial "icon.html" (dict "name" "lock") }}</span>
-      <span class="vault-teaser__text">
-        <span class="vault-teaser__title">{{ $vault.title }}</span>
-        <span class="vault-teaser__blurb">{{ $vault.blurb }}</span>
-      </span>
-      <span class="vault-teaser__cta">去解谜 {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}</span>
-    </a>
-  </div>
-</section>
-{{- end }}
+{{/* ---------- 里版入口现在是主视觉场景里的三个图标（星星 / 彩虹 / 潮汐），
+     点了弹问答，所以这里不再需要单独的入口条。 ---------- */}}
 
 {{/* ---------- 6. 首页 Markdown 正文（可选） ---------- */}}
 {{- with .Content }}

@@ -1,6 +1,12 @@
 {{- $js := resources.Get "js/site.js" | minify | fingerprint "sha512" -}}
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" crossorigin="anonymous" defer></script>
 
+{{- /* 里版问答弹窗：除了里版页自己（那里直接显示门禁），其它页面都加载 */ -}}
+{{- if and site.Params.vault.enabled (ne .Section "vault") }}
+{{- $vm := resources.Get "js/vault-modal.js" | minify | fingerprint "sha512" -}}
+<script src="{{ $vm.RelPermalink }}" integrity="{{ $vm.Data.Integrity }}" crossorigin="anonymous" defer></script>
+{{- end }}
+
 {{- if .Params.math }}
 {{- /* 数学页面：KaTeX 与自动渲染（顺序不能反，defer 按文档顺序执行） */ -}}
 <script src="{{ "vendor/katex/katex.min.js" | relURL }}" defer></script>
