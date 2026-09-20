@@ -83,6 +83,10 @@ content:
         label: "标签"
         type: string
         list: true
+      - name: series
+        label: "系列"
+        type: string
+        list: true
       - name: math
         label: "渲染数学公式（写 $公式$ 时必须勾）"
         type: boolean
@@ -122,6 +126,10 @@ content:
         type: string
       - name: tags
         label: "标签"
+        type: string
+        list: true
+      - name: series
+        label: "系列"
         type: string
         list: true
       - name: draft
@@ -168,6 +176,13 @@ content:
         label: "标签"
         type: string
         list: true
+      - name: series
+        label: "系列"
+        type: string
+        list: true
+      - name: source
+        label: "参考 / 来源"
+        type: string
       - name: ingredients
         label: "食材"
         type: object
@@ -187,6 +202,9 @@ content:
         label: "步骤"
         type: string
         list: true
+      - name: cover
+        label: "成品图（可留空）"
+        type: image
       - name: draft
         label: "草稿（勾着就不对外显示）"
         type: boolean
@@ -215,6 +233,10 @@ content:
         type: text
       - name: tags
         label: "标签"
+        type: string
+        list: true
+      - name: series
+        label: "系列"
         type: string
         list: true
       - name: toc
@@ -248,6 +270,10 @@ content:
         type: text
       - name: tags
         label: "标签"
+        type: string
+        list: true
+      - name: series
+        label: "系列"
         type: string
         list: true
       - name: cover

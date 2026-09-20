@@ -93,7 +93,8 @@
   <span class="sub">填表、写字、点发布 —— 不用碰任何代码</span>
   <span class="grow"></span>
   <button class="btn" id="btnViewWrite">✍ 写作</button>
-  <button class="btn" id="btnViewSections">⚙ 板块管理</button>
+  <button class="btn" id="btnViewSite">🏠 站点设置</button>
+  <button class="btn" id="btnViewSections">🗂 板块管理</button>
   <button class="btn" id="btnPreview">本地预览</button>
 </header>
 
@@ -109,6 +110,13 @@
     <div id="sideSections" style="display:none">
       <h2>板块管理</h2>
       <p style="font-size:13px;color:#8d857c;line-height:1.8">在这里改板块名字、颜色、顺序，或者新增、删除板块。改完记得点右边的「保存并发布」才会更新到线上。</p>
+    </div>
+    <div id="sideSite" style="display:none">
+      <h2>站点设置</h2>
+      <p style="font-size:13px;color:#8d857c;line-height:1.8">
+        这里改的是「首页」和「每个板块的介绍页」，以及页脚的联系方式。<br><br>
+        改完点右边的保存，再回到「✍ 写作」点一次 <b>保存并发布</b>，网站上就更新了。
+      </p>
     </div>
   </aside>
 
@@ -164,6 +172,59 @@
         · 图片会自动存到 <code>static/images/</code> 并写好地址，你不用管路径。<br>
         · 文章开头那几行（标题、日期、标签……）就是所谓的 front matter，你在上面填表，工具会帮你写对格式。<br>
         · 删掉的文章不会消失，会挪到本机的 <code>.tools/trash/</code> 里，想找回随时说。
+      </div>
+    </div>
+
+    <!-- ================= 站点设置视图 ================= -->
+    <div id="viewSite" style="display:none">
+      <h2>① 首页文案</h2>
+      <div class="notice">
+        这里对应首页从上到下的内容：最上面的名字与定位语、中间的「关于我」区块、下面的「最近的记录」。
+        按钮链接写 <code>/about/</code> 这种站内路径即可，网站会自动补全。
+      </div>
+      <div id="siteHomeForm"></div>
+      <div class="actions" style="margin:6px 0 30px">
+        <button class="btn primary" id="btnSaveHome">保存首页文案</button>
+      </div>
+
+      <h2>② 板块介绍页</h2>
+      <div class="notice">
+        每个板块自己那一页（例如点导航「弹幕与数学」进去的那一页）的大标题、副标题和开头那段介绍文字。
+        板块的<b>显示名</b>与<b>一句话介绍（首页卡片上那句）</b>在「🗂 板块管理」里改。
+      </div>
+      <div class="field">
+        <label>选择板块</label>
+        <select id="introSection"></select>
+      </div>
+      <div class="field">
+        <label>这一页的大标题</label>
+        <input type="text" id="introTitle" placeholder="留空则用板块显示名">
+      </div>
+      <div class="field">
+        <label>副标题 / 摘要</label>
+        <input type="text" id="introDesc" placeholder="留空则用板块的一句话介绍">
+      </div>
+      <div class="field">
+        <label>开头正文（Markdown，可留空）</label>
+        <textarea id="introBody" rows="6" placeholder="写在文章列表上方的那段话。空一行就是新的一段。"></textarea>
+        <div class="hint">支持 Markdown，也可以写站内链接如 <code>[数学](/math/)</code>。</div>
+      </div>
+      <div class="actions" style="margin-bottom:30px">
+        <button class="btn primary" id="btnSaveIntro">保存这一页</button>
+        <span style="font-size:13px;color:var(--ink-mute)" id="introExtra"></span>
+      </div>
+
+      <h2>③ 联系方式</h2>
+      <div class="notice">
+        显示在页脚和「自我介绍」页。图标可选：mail / github / twitter / bilibili / pixiv / rss / link。
+        网址以 <code>mailto:</code> 开头就是邮件；<code>/index.xml</code> 是本站 RSS。
+      </div>
+      <div style="overflow:auto">
+        <table class="sec" id="socialsTable"></table>
+      </div>
+      <div class="actions" style="margin:10px 0 30px">
+        <button class="btn" id="btnAddSocial">＋ 添加一行</button>
+        <button class="btn primary" id="btnSaveSocials">保存联系方式</button>
       </div>
     </div>
 
@@ -224,7 +285,13 @@ async function boot() {
   $('btnPreview').addEventListener('click', () => preview(false));
   $('btnOpenLocal').addEventListener('click', () => preview(true));
   $('btnViewWrite').addEventListener('click', () => switchView('write'));
+  $('btnViewSite').addEventListener('click', () => switchView('site'));
   $('btnViewSections').addEventListener('click', () => switchView('sections'));
+  $('btnSaveHome').addEventListener('click', saveSiteHome);
+  $('btnSaveIntro').addEventListener('click', saveIntroPage);
+  $('btnSaveSocials').addEventListener('click', saveSocialsTable);
+  $('btnAddSocial').addEventListener('click', () => { (SITE.socials = SITE.socials || []).push({ name: '', icon: 'link', url: '', text: '' }); renderSocialsTable(); });
+  $('introSection').addEventListener('change', loadIntroFields);
   $('btnUpload').addEventListener('click', () => { EDITING_FILE = EDITING_FILE; imageTargetField = null; $('fileInput').click(); });
   $('fileInput').addEventListener('change', () => uploadFiles($('fileInput').files));
   $('toolbar').addEventListener('click', (e) => {
@@ -235,6 +302,7 @@ async function boot() {
   bindImageDrop();
   if (META.sections.length) selectSection(META.sections[0].key);
   if (location.hash === '#sections') switchView('sections');
+  else if (location.hash === '#site') switchView('site');
 }
 
 async function loadMeta() {
@@ -250,10 +318,108 @@ async function loadMeta() {
 
 function switchView(v) {
   $('viewWrite').style.display = v === 'write' ? '' : 'none';
+  $('viewSite').style.display = v === 'site' ? '' : 'none';
   $('viewSections').style.display = v === 'sections' ? '' : 'none';
   $('sideWrite').style.display = v === 'write' ? '' : 'none';
+  $('sideSite').style.display = v === 'site' ? '' : 'none';
   $('sideSections').style.display = v === 'sections' ? '' : 'none';
   if (v === 'sections') renderSectionTable();
+  if (v === 'site') renderSite();
+}
+
+/* ================= 站点设置：首页文案 / 板块介绍页 / 联系方式 ================= */
+let SITE = null;
+
+async function renderSite(force) {
+  if (!SITE || force) SITE = await (await fetch('/api/site')).json();
+
+  // ---- 首页文案表单：按 group 分组渲染 ----
+  const groups = {};
+  for (const f of SITE.fields) (groups[f.group] = groups[f.group] || []).push(f);
+  $('siteHomeForm').innerHTML = Object.entries(groups).map(([g, fields]) => `
+    <h3 style="font:600 15px/1.4 var(--serif);margin:18px 0 10px">${esc(g)}</h3>
+    ${fields.map((f) => {
+      const v = SITE.homeValues[f.key] == null ? '' : SITE.homeValues[f.key];
+      const hint = f.hint ? `<div class="hint">${esc(f.hint)}</div>` : '';
+      let input;
+      if (f.type === 'text') input = `<textarea rows="2" data-site="${f.key}">${esc(v)}</textarea>`;
+      else if (f.type === 'lines') input = `<textarea rows="3" data-site="${f.key}">${esc(v)}</textarea>`;
+      else if (f.type === 'pairs') input = `<textarea rows="3" data-site="${f.key}">${esc(v)}</textarea>`;
+      else if (f.type === 'number') input = `<input type="number" data-site="${f.key}" value="${esc(v)}">`;
+      else if (f.type === 'image') {
+        input = `<div class="row"><input type="text" data-site="${f.key}" value="${esc(v)}" id="site-portrait" style="flex:1;min-width:200px" placeholder="/images/portrait.jpg">
+                 <button class="btn" onclick="pickImage('${f.key}')">上传</button></div>`;
+      } else input = `<input type="text" data-site="${f.key}" value="${esc(v)}">`;
+      return `<div class="field"><label>${esc(f.label)}</label>${input}${hint}</div>`;
+    }).join('')}
+  `).join('');
+
+  // ---- 板块介绍页 ----
+  $('introSection').innerHTML = SITE.sections.map((s) => `<option value="${s.key}">${esc(s.title)}（/${s.key}/）</option>`).join('');
+  loadIntroFields();
+
+  // ---- 联系方式 ----
+  renderSocialsTable();
+}
+
+function loadIntroFields() {
+  const key = $('introSection').value;
+  const s = SITE.sections.find((x) => x.key === key) || { intro: {} };
+  $('introTitle').value = s.intro.title || '';
+  $('introDesc').value = s.intro.description || '';
+  $('introBody').value = s.intro.body || '';
+  const extra = (s.intro.extraKeys || []).filter((k) => !['title', 'description'].includes(k));
+  $('introExtra').textContent = extra.length ? `这个页面还有 ${extra.join('、')} 等设置，保存时会原样保留` : '';
+}
+
+async function saveSiteHome() {
+  const values = {};
+  document.querySelectorAll('[data-site]').forEach((el) => { values[el.dataset.site] = el.value; });
+  const r = await post('/api/site/home', { values });
+  if (r.error) return setStatus('保存失败：' + r.error, 'err');
+  SITE = null;
+  await renderSite(true);
+  setStatus('首页文案已保存。回到「✍ 写作」点一次「保存并发布」，网站上就更新了。', 'ok');
+}
+
+async function saveIntroPage() {
+  const key = $('introSection').value;
+  const r = await post('/api/site/intro', {
+    key, title: $('introTitle').value, description: $('introDesc').value, body: $('introBody').value
+  });
+  if (r.error) return setStatus('保存失败：' + r.error, 'err');
+  const s = SITE.sections.find((x) => x.key === key);
+  if (s) s.intro = r.intro;
+  setStatus(`「${SITE.sections.find((x) => x.key === key).title}」的介绍页已保存。\n回到「✍ 写作」点一次「保存并发布」即可。`, 'ok');
+}
+
+function renderSocialsTable() {
+  const rows = (SITE.socials || []).map((it, i) => `<tr data-i="${i}">
+      <td><input type="text" data-s="name" value="${esc(it.name || '')}" style="min-width:90px"></td>
+      <td><select data-s="icon">${(SITE.icons || []).map((ic) => `<option ${ic === it.icon ? 'selected' : ''}>${ic}</option>`).join('')}</select></td>
+      <td><input type="text" data-s="url" value="${esc(it.url || '')}" style="min-width:220px"></td>
+      <td><input type="text" data-s="text" value="${esc(it.text || '')}" style="min-width:150px"></td>
+      <td><button class="btn sm danger" onclick="removeSocialRow(${i})">删除</button></td>
+    </tr>`).join('');
+  $('socialsTable').innerHTML = `<tr><th>名称</th><th>图标</th><th>链接</th><th>显示文字</th><th></th></tr>${rows}`;
+}
+
+function removeSocialRow(i) {
+  SITE.socials.splice(i, 1);
+  renderSocialsTable();
+}
+
+async function saveSocialsTable() {
+  const items = [...document.querySelectorAll('#socialsTable tr[data-i]')].map((tr) => {
+    const o = {};
+    tr.querySelectorAll('[data-s]').forEach((el) => { o[el.dataset.s] = el.value; });
+    return o;
+  });
+  const r = await post('/api/site/socials', { items });
+  if (r.error) return setStatus('保存失败：' + r.error, 'err');
+  SITE = null;
+  await renderSite(true);
+  setStatus(`联系方式已保存（${r.count} 条）。回到「✍ 写作」点一次「保存并发布」即可。`, 'ok');
 }
 
 /* ================= 板块 ================= */

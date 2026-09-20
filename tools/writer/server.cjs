@@ -399,6 +399,148 @@ function trashPost(sectionKey, file) {
 
 
 /* ============================================================
+   站点设置：首页文案 / 板块介绍页 / 联系方式
+   ============================================================ */
+const HOME_FILE = path.join(ROOT, 'data', 'home.yaml');
+const SOCIALS_FILE = path.join(ROOT, 'data', 'socials.yaml');
+
+// 首页文案的字段表（dotted path → 类型），前端照着渲染表单
+const SITE_HOME_FIELDS = [
+  { group: '主视觉（首屏）', key: 'hero.kicker', label: '名字上方的小字', type: 'string' },
+  { group: '主视觉（首屏）', key: 'hero.name', label: '名字（超大字）', type: 'string', hint: '就是页面正中那个大写名字' },
+  { group: '主视觉（首屏）', key: 'hero.tagline', label: '一行定位语', type: 'string' },
+  { group: '主视觉（首屏）', key: 'hero.intro', label: '自我介绍正文', type: 'text' },
+  { group: '主视觉（首屏）', key: 'hero.primary.label', label: '主按钮文字（实心）', type: 'string' },
+  { group: '主视觉（首屏）', key: 'hero.primary.url', label: '主按钮链接', type: 'string', hint: '站内写 /about/ 这样就行' },
+  { group: '主视觉（首屏）', key: 'hero.secondary.label', label: '次按钮文字（描边）', type: 'string' },
+  { group: '主视觉（首屏）', key: 'hero.secondary.url', label: '次按钮链接', type: 'string' },
+  { group: '关于我（首页区块）', key: 'about.title', label: '标题', type: 'string' },
+  { group: '关于我（首页区块）', key: 'about.subtitle', label: '英文小标题', type: 'string' },
+  { group: '关于我（首页区块）', key: 'about.portrait', label: '竖版照片', type: 'image', hint: '上传后会同时用在首页和自我介绍页；留空则显示字母方框' },
+  { group: '关于我（首页区块）', key: 'about.portraitFallback', label: '没有照片时显示的字母', type: 'string' },
+  { group: '关于我（首页区块）', key: 'about.paragraphs', label: '段落', type: 'lines', hint: '一行一段' },
+  { group: '关于我（首页区块）', key: 'about.facts', label: '速览', type: 'pairs', hint: '一行一条，写成「名目 | 内容」，例如：\n常驻 | 某座四季分明的城市' },
+  { group: '最近的记录', key: 'latest.title', label: '标题', type: 'string' },
+  { group: '最近的记录', key: 'latest.subtitle', label: '英文小标题', type: 'string' },
+  { group: '最近的记录', key: 'latest.count', label: '显示几条', type: 'number' }
+];
+
+function getPath(obj, dotted) {
+  return dotted.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
+}
+
+function setPath(obj, dotted, value) {
+  const parts = dotted.split('.');
+  let cur = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (cur[parts[i]] == null || typeof cur[parts[i]] !== 'object') cur[parts[i]] = {};
+    cur = cur[parts[i]];
+  }
+  cur[parts[parts.length - 1]] = value;
+}
+
+/** 保留文件开头的中文注释块（重新生成时不让注释消失） */
+function leadingComments(text) {
+  const lines = String(text).replace(/^\uFEFF/, '').split(/\r?\n/);
+  const head = [];
+  for (const line of lines) {
+    if (line.trim() === '' || line.trim().startsWith('#')) head.push(line);
+    else break;
+  }
+  return head.length ? head.join('\n').replace(/\s+$/, '') + '\n\n' : '';
+}
+
+function readHome() {
+  if (!fs.existsSync(HOME_FILE)) return {};
+  return parseYaml(fs.readFileSync(HOME_FILE, 'utf8')) || {};
+}
+
+function readSocials() {
+  if (!fs.existsSync(SOCIALS_FILE)) return [];
+  const v = parseYaml(fs.readFileSync(SOCIALS_FILE, 'utf8'));
+  return Array.isArray(v) ? v : [];
+}
+
+/** 首页文案：转成「一行一个值」方便表单显示 */
+function homeToFormValues(home) {
+  const values = {};
+  for (const f of SITE_HOME_FIELDS) {
+    const v = getPath(home, f.key);
+    if (f.type === 'lines') values[f.key] = Array.isArray(v) ? v.join('\n') : String(v || '');
+    else if (f.type === 'pairs') {
+      values[f.key] = Array.isArray(v)
+        ? v.map((x) => (x && typeof x === 'object') ? `${x.label || ''} | ${x.value || ''}` : String(x)).join('\n')
+        : '';
+    } else values[f.key] = v == null ? '' : String(v);
+  }
+  return values;
+}
+
+/** 表单值写回首页文案（保留未知字段） */
+function saveHome(values) {
+  const original = fs.existsSync(HOME_FILE) ? fs.readFileSync(HOME_FILE, 'utf8') : '';
+  const home = readHome();
+  for (const f of SITE_HOME_FIELDS) {
+    const raw = values[f.key];
+    if (raw === undefined) continue;
+    if (f.type === 'lines') {
+      const list = String(raw).split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+      setPath(home, f.key, list);
+    } else if (f.type === 'pairs') {
+      const list = String(raw).split(/\r?\n/).map((s) => s.trim()).filter(Boolean)
+        .map((line) => {
+          const i = line.indexOf('|');
+          return i === -1 ? { label: line.trim(), value: '' } : { label: line.slice(0, i).trim(), value: line.slice(i + 1).trim() };
+        });
+      setPath(home, f.key, list);
+    } else if (f.type === 'number') {
+      const n = Number(String(raw).trim());
+      setPath(home, f.key, Number.isFinite(n) && String(raw).trim() !== '' ? n : 0);
+    } else {
+      setPath(home, f.key, String(raw).trim());
+    }
+  }
+  fs.writeFileSync(HOME_FILE, leadingComments(original) + dumpFrontMatter(home, '').replace(/^---\n/, '').replace(/\n---\n?$/, '\n'), 'utf8');
+  return home;
+}
+
+function saveSocials(items) {
+  const original = fs.existsSync(SOCIALS_FILE) ? fs.readFileSync(SOCIALS_FILE, 'utf8') : '';
+  const clean = (Array.isArray(items) ? items : [])
+    .map((it) => ({ name: String(it.name || '').trim(), icon: String(it.icon || 'link').trim(), url: String(it.url || '').trim(), text: String(it.text || '').trim() }))
+    .filter((it) => it.name || it.url);
+  const body = clean.map((it) => [
+    `- name: ${quoteIfNeeded(it.name)}`,
+    `  icon: ${it.icon}`,
+    `  url: ${quoteIfNeeded(it.url)}`,
+    `  text: ${quoteIfNeeded(it.text)}`
+  ].join('\n')).join('\n');
+  fs.writeFileSync(SOCIALS_FILE, leadingComments(original) + body + '\n', 'utf8');
+  return clean;
+}
+
+/** 板块介绍页（content/<板块>/_index.md）：只改 title / description / 正文，其它字段原样保留 */
+function readIntro(key) {
+  const file = path.join(CONTENT, key, '_index.md');
+  if (!fs.existsSync(file)) return { title: '', description: '', body: '', exists: false };
+  const { data, body } = parseFrontMatter(fs.readFileSync(file, 'utf8'));
+  return { title: data.title || '', description: data.description || '', body, exists: true, extraKeys: Object.keys(data).filter((k) => !['title', 'description'].includes(k)) };
+}
+
+function saveIntro(key, patch) {
+  if (!sectionByKey(key)) throw new Error('板块不存在：' + key);
+  const file = path.join(CONTENT, key, '_index.md');
+  const raw = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+  const parsed = raw ? parseFrontMatter(raw) : { data: {}, body: '' };
+  const data = parsed.data || {};
+  if (patch.title !== undefined) data.title = String(patch.title).trim();
+  if (patch.description !== undefined) data.description = String(patch.description).trim();
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, dumpFrontMatter(data, String(patch.body == null ? parsed.body : patch.body)), 'utf8');
+  return readIntro(key);
+}
+
+/* ============================================================
    极简 YAML：解析 / 生成（只覆盖本站用到的写法，但保留未知字段）
    ============================================================ */
 function scalarValue(raw) {
@@ -447,15 +589,17 @@ function splitFlow(s) {
 function indentOf(line) { return line.match(/^ */)[0].length; }
 
 function parseBlock(lines, start, indent) {
-  // 判断是列表还是映射
-  const first = lines[start];
+  // 先跳过开头的空行与注释，再判断这是列表还是映射
+  let s = start;
+  while (s < lines.length && (lines[s].trim() === '' || lines[s].trim().startsWith('#'))) s++;
+  const first = lines[s] || '';
   const isList = /^\s*-\s/.test(first) || first.trim() === '-';
 
   if (isList) {
     const arr = [];
     let i = start;
-    while (i < lines.length && indentOf(lines[i]) === indent && (/^\s*-\s?/.test(lines[i]) || lines[i].trim() === '')) {
-      if (lines[i].trim() === '') { i++; continue; }   // 空行只是分隔，不是结束
+    while (i < lines.length && indentOf(lines[i]) === indent && (/^\s*-\s?/.test(lines[i]) || lines[i].trim() === '' || lines[i].trim().startsWith('#'))) {
+      if (lines[i].trim() === '' || lines[i].trim().startsWith('#')) { i++; continue; }   // 空行与注释只是分隔
       const rest = lines[i].replace(/^\s*-\s?/, '');
       if (rest.trim() === '') {
         // 嵌套结构
@@ -486,7 +630,7 @@ function parseBlock(lines, start, indent) {
   const obj = {};
   let i = start;
   while (i < lines.length && indentOf(lines[i]) === indent) {
-    if (lines[i].trim() === '') { i++; continue; }      // 空行只是分隔，不是结束
+    if (lines[i].trim() === '' || lines[i].trim().startsWith('#')) { i++; continue; }   // 空行与注释只是分隔
     const m = lines[i].match(/^\s*([^:#]+):\s?(.*)$/);
     if (!m) { i++; continue; }
     const key = m[1].trim();
@@ -529,8 +673,9 @@ function quoteIfNeeded(v) {
   if (typeof v === 'number' || typeof v === 'boolean') return String(v);
   const s = String(v);
   if (s === '') return '""';
-  // 纯日期、纯数字以外一律加引号，最稳
+  // 纯日期，以及安全的普通标量（如 profile / leaf / About / /images/x.jpg）不加引号，读起来更清爽
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (/^[A-Za-z0-9_./@+-]+$/.test(s)) return s;
   return '"' + s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\r?\n/g, '\\n') + '"';
 }
 
@@ -794,6 +939,38 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true, moved: r.moved });
     }
 
+    /* ---------------- 站点设置 ---------------- */
+    if (req.method === 'GET' && u.pathname === '/api/site') {
+      const home = readHome();
+      return json(res, 200, {
+        homeValues: homeToFormValues(home),
+        fields: SITE_HOME_FIELDS,
+        socials: readSocials(),
+        icons: ICON_CHOICES,
+        sections: listSections().map((s) => ({
+          key: s.key, title: s.title, blurb: s.blurb, intro: readIntro(s.key)
+        }))
+      });
+    }
+
+    if (req.method === 'POST' && u.pathname === '/api/site/home') {
+      const payload = JSON.parse(await readBody(req) || '{}');
+      saveHome(payload.values || {});
+      return json(res, 200, { ok: true });
+    }
+
+    if (req.method === 'POST' && u.pathname === '/api/site/socials') {
+      const payload = JSON.parse(await readBody(req) || '{}');
+      const saved = saveSocials(payload.items);
+      return json(res, 200, { ok: true, count: saved.length });
+    }
+
+    if (req.method === 'POST' && u.pathname === '/api/site/intro') {
+      const payload = JSON.parse(await readBody(req) || '{}');
+      const saved = saveIntro(payload.key, payload);
+      return json(res, 200, { ok: true, intro: saved });
+    }
+
     if (req.method === 'POST' && u.pathname === '/api/upload') {
       const { name, dataUrl } = JSON.parse(await readBody(req) || '{}');
       const m = String(dataUrl || '').match(/^data:([^;]+);base64,(.*)$/);
@@ -928,5 +1105,6 @@ if (require.main === module) {
 module.exports = {
   parseFrontMatter, dumpFrontMatter, parseYaml, buildPost, listPosts, CONTENT, ROOT,
   listSections, readSectionData, writeSectionData, saveSectionDisplay, createSection,
-  deleteSection, trashPost, regeneratePagesYml
+  deleteSection, trashPost, regeneratePagesYml,
+  readHome, saveHome, homeToFormValues, readSocials, saveSocials, readIntro, saveIntro, SITE_HOME_FIELDS
 };
