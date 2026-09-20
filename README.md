@@ -8,11 +8,13 @@
 
 ## 网址在哪里
 
-- **现在（本地预览）**：`http://localhost:1313/`
+- **线上地址（已上线）**：<https://mysteriousamateurplayer.github.io/Parlour/>
+  ⚠️ 路径**区分大小写**：`/Parlour/` 大写 P 才对，写成 `/parlour/` 会看到 GitHub 的
+  「There isn't a GitHub Pages site here」。分享时从浏览器地址栏复制最稳妥。
+- **本地预览**：`http://localhost:1313/`
   启动方式：双击 `D:\个人网站\start.bat`，或 `cd D:\个人网站` 后运行 `.\start.bat`。
-  服务起来之前，这个网址是打不开的——`localhost` 是"本机"的意思，不是现成的公网网站。
-- **上线之后（公网）**：形如 `https://你的用户名.github.io/仓库名/`。
-  完整步骤见 **[上线指南.md](上线指南.md)**（从注册 GitHub 账号开始，约 20 分钟）。
+  服务起来之前这个网址打不开——`localhost` 是"本机"的意思。
+- **上线/排错**：见 **[上线指南.md](上线指南.md)**（含国内网络受限的处理办法）。
 
 ## 两件事，两个指南
 
@@ -392,6 +394,10 @@ node scripts\verify.cjs
 - `.pages.yml`（网页后台配置）已用 Hugo 的 YAML 解析器验证：5 个内容集合 + 1 个设置分组，
   字段数与预期一致；`.vscode/` 下 4 个配置文件已校验为合法 JSONC，任务依赖关系与
   `Ctrl+Shift+B` 默认任务都已确认。
+- **已实际部署到 GitHub Pages 并通过线上体检**（24 项全过）：首页、五个版块列表、
+  一篇文章、一份食谱、标签页、里版入口、RSS、robots、sitemap 全部 200；
+  CSS/JS/KaTeX 字体与公式均正常加载；canonical 与实际网址一致；sitemap 已排除里版；
+  线上首页截图与本地渲染一致。
 
 （本次验收过程的截图留在 `.tools/shots/`，该目录已被 git 忽略，可以随时删。）
 
