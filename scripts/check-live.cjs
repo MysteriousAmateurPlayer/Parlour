@@ -59,7 +59,8 @@ async function get(path, { timeout = 25000 } = {}) {
   if (home.status !== 200) process.exit(1);
 
   line(home.text.includes('hero__name') ? 'PASS' : 'FAIL', '首页有主视觉（内容没丢）');
-  line(home.text.includes('五个房间') ? 'PASS' : 'FAIL', '首页有五个版块区块');
+  // 卡片标题是数据驱动的（板块数量可能被改过），所以只验证卡片区与卡片本身存在
+  line(home.text.includes('band--sections') && home.text.includes('card__title') ? 'PASS' : 'FAIL', '首页有版块卡片区');
 
   const H = norm(home.text);
 

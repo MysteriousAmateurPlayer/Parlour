@@ -63,7 +63,7 @@
 {{- $homeSections = sort $homeSections "weight" -}}
 {{- $cnNum := slice "零" "一" "二" "三" "四" "五" "六" "七" "八" "九" "十" -}}
 {{- $n := len $homeSections -}}
-{{- $cardsTitle := printf "%s 个房间" (cond (le $n 10) (index $cnNum $n) (string $n)) -}}
+{{- $cardsTitle := printf "%s个房间" (cond (le $n 10) (index $cnNum $n) (string $n)) -}}
 <section class="band band--sections" id="sections">
   <div class="wrap">
     {{ partial "section-head.html" (dict "kicker" "Explore" "title" $cardsTitle "lede" "每个版块都是一类被我认真对待过的东西。") }}
