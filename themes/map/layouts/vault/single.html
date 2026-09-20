@@ -6,7 +6,7 @@
   <header class="article__head">
     <div class="wrap wrap--narrow">
       <div class="article__crumbs">
-        <a href="{{ with $sectionPage }}{{ .RelPermalink }}{{ else }}{{ "/vault/" | relURL }}{{ end }}">
+        <a href="{{ with $sectionPage }}{{ .RelPermalink }}{{ else }}{{ site.Home.RelPermalink }}{{ end }}">
           {{ partial "icon.html" (dict "name" "lock" "class" "icon icon--sm") }}{{ $meta.title }}
         </a>
       </div>

@@ -1,8 +1,9 @@
 {{- $current := . -}}
 {{- $vault := partial "section-meta.html" "vault" -}}
+{{- $vaultPage := site.GetPage "/vault" -}}
 <header class="site-header" id="site-header">
   <div class="wrap site-header__inner">
-    <a class="brand" href="{{ "/" | relURL }}" aria-label="{{ site.Title }} 首页">
+    <a class="brand" href="{{ site.Home.RelPermalink }}" aria-label="{{ site.Title }} 首页">
       <span class="brand__mark">{{ site.Title }}</span>
       <span class="brand__divider" aria-hidden="true"></span>
       <span class="brand__tag">{{ site.Params.tagline }}</span>
@@ -10,16 +11,16 @@
 
     <nav class="nav" aria-label="主导航">
       {{- $homeActive := $current.IsHome }}
-      <a class="nav__link{{ if $homeActive }} is-active{{ end }}" href="{{ "/" | relURL }}"{{ if $homeActive }} aria-current="page"{{ end }}>首页</a>
+      <a class="nav__link{{ if $homeActive }} is-active{{ end }}" href="{{ site.Home.RelPermalink }}"{{ if $homeActive }} aria-current="page"{{ end }}>首页</a>
       {{- range $item := partial "nav-items.html" . }}
         {{- $active := eq $current.Section $item.key }}
-        <a class="nav__link{{ if $active }} is-active{{ end }}" href="{{ printf "/%s/" $item.key | relURL }}"{{ if $active }} aria-current="page"{{ end }}>{{ $item.title }}</a>
+        <a class="nav__link{{ if $active }} is-active{{ end }}" href="{{ $item.href }}"{{ if $active }} aria-current="page"{{ end }}>{{ $item.title }}</a>
       {{- end }}
     </nav>
 
     <div class="header-tools">
-      {{- if and site.Params.vault.enabled site.Params.vault.showInHeader (site.GetPage "/vault") }}
-      <a class="icon-btn icon-btn--vault" href="{{ "/vault/" | relURL }}" title="{{ $vault.title }}入口" aria-label="{{ $vault.title }}入口">
+      {{- if and site.Params.vault.enabled site.Params.vault.showInHeader $vaultPage }}
+      <a class="icon-btn icon-btn--vault" href="{{ $vaultPage.RelPermalink }}" title="{{ $vault.title }}入口" aria-label="{{ $vault.title }}入口">
         {{- partial "icon.html" (dict "name" "lock" "class" "icon icon--sm") -}}
       </a>
       {{- end }}
@@ -39,12 +40,12 @@
   <div class="mobile-nav" id="mobile-nav" hidden>
     <div class="wrap">
       <nav class="mobile-nav__links" aria-label="移动端导航">
-        <a class="mobile-nav__link" href="{{ "/" | relURL }}">首页</a>
+        <a class="mobile-nav__link" href="{{ site.Home.RelPermalink }}">首页</a>
         {{- range $item := partial "nav-items.html" . }}
-        <a class="mobile-nav__link" href="{{ printf "/%s/" $item.key | relURL }}">{{ $item.title }}</a>
+        <a class="mobile-nav__link" href="{{ $item.href }}">{{ $item.title }}</a>
         {{- end }}
-        {{- if and site.Params.vault.enabled (site.GetPage "/vault") }}
-        <a class="mobile-nav__link mobile-nav__link--vault" href="{{ "/vault/" | relURL }}">
+        {{- if and site.Params.vault.enabled $vaultPage }}
+        <a class="mobile-nav__link mobile-nav__link--vault" href="{{ $vaultPage.RelPermalink }}">
           {{ partial "icon.html" (dict "name" "lock" "class" "icon icon--sm") }}<span>{{ $vault.title }}</span>
         </a>
         {{- end }}

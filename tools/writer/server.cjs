@@ -33,6 +33,8 @@ const COMMON = {
   description: { key: 'description', label: '摘要', type: 'textarea', rows: 2, placeholder: '一两句话，会显示在卡片和搜索结果里（可以不填）' },
   tags: { key: 'tags', label: '标签', type: 'tags', placeholder: '用逗号隔开，例如：短篇, 治愈（可以不填）' },
   cover: { key: 'cover', label: '封面图', type: 'image', hint: '可留空，留空会自动用带编号的色块' },
+  series: { key: 'series', label: '系列', type: 'tags', placeholder: '同一系列的文章填同一个名字，会生成系列页（可不填）' },
+  source: { key: 'source', label: '参考 / 来源', type: 'text', placeholder: '例如：原作名、菜谱出处、资料链接（可不填）' },
   toc: { key: 'toc', label: '显示右侧目录', type: 'bool', default: false },
   draft: { key: 'draft', label: '草稿（勾着就不对外显示）', type: 'bool', default: true },
   filename: { key: '__filename', label: '文件名（决定网址）', type: 'text', hint: '建议用英文短名，例如 rain-stops。中文也能用，只是网址会变成一串 %E9 编码' }
@@ -43,12 +45,10 @@ const SPECIAL_FIELDS = {
   fanworks: () => [
     COMMON.title, COMMON.date, COMMON.description,
     { key: 'source', label: '原作', type: 'text', placeholder: '例如：《某部作品》' },
-    COMMON.tags,
-    { key: 'series', label: '系列', type: 'tags', placeholder: '同一系列的文章填同一个名字，会生成系列页' },
-    COMMON.cover, COMMON.draft, COMMON.filename
+    COMMON.tags, COMMON.series, COMMON.cover, COMMON.draft, COMMON.filename
   ],
   math: () => [
-    COMMON.title, COMMON.date, COMMON.description, COMMON.tags,
+    COMMON.title, COMMON.date, COMMON.description, COMMON.tags, COMMON.series,
     { key: 'math', label: '渲染数学公式（写 $公式$ 时必须勾）', type: 'bool', default: true },
     { key: 'toc', label: '显示右侧目录', type: 'bool', default: true },
     COMMON.draft, COMMON.filename
@@ -56,7 +56,7 @@ const SPECIAL_FIELDS = {
   garden: () => [
     COMMON.title, COMMON.date, COMMON.description,
     { key: 'weather', label: '天气', type: 'text', placeholder: '例如：晴，22℃（会显示在年表里）' },
-    COMMON.tags, COMMON.draft, COMMON.filename
+    COMMON.tags, COMMON.series, COMMON.draft, COMMON.filename
   ],
   kitchen: () => [
     COMMON.title, COMMON.date, COMMON.description,
@@ -64,16 +64,17 @@ const SPECIAL_FIELDS = {
     { key: 'prep_time', label: '准备时间（分钟）', type: 'number' },
     { key: 'cook_time', label: '烹饪时间（分钟）', type: 'number' },
     { key: 'difficulty', label: '难度', type: 'select', options: ['简单', '中等', '麻烦'] },
-    COMMON.tags,
+    COMMON.tags, COMMON.series, COMMON.source,
     {
       key: 'ingredients', label: '食材', type: 'ingredients', rows: 8,
       hint: '一组用一对方括号起头，下面每行写一样食材。例如：\n[主料]\n牛腩 700g\n番茄 3 个'
     },
     { key: 'steps', label: '步骤', type: 'steps', rows: 7, hint: '一行一步，会自动编号成卡片' },
+    { key: 'cover', label: '成品图（可留空）', type: 'image' },
     COMMON.draft, COMMON.filename
   ],
   vault: () => [
-    COMMON.title, COMMON.date, COMMON.description, COMMON.tags,
+    COMMON.title, COMMON.date, COMMON.description, COMMON.tags, COMMON.series,
     COMMON.toc,
     { key: 'private', label: '不被搜索引擎收录（请保持勾选）', type: 'bool', default: true },
     COMMON.filename
@@ -82,7 +83,8 @@ const SPECIAL_FIELDS = {
 
 /* 自定义板块的通用字段 */
 function genericFields() {
-  return [COMMON.title, COMMON.date, COMMON.description, COMMON.tags, COMMON.cover, COMMON.draft, COMMON.filename];
+  return [COMMON.title, COMMON.date, COMMON.description, COMMON.tags, COMMON.series,
+    COMMON.cover, COMMON.draft, COMMON.filename];
 }
 
 function fieldsFor(key) {
@@ -704,6 +706,20 @@ function runGit(args, timeout = 120000) {
   });
 }
 
+/** 跑任意命令（不经过 shell），用于构建与自检脚本 */
+function runCmd(exe, args, timeout = 120000) {
+  return new Promise((resolve) => {
+    execFile(exe, args, { cwd: ROOT, timeout, windowsHide: true, maxBuffer: 16 * 1024 * 1024 },
+      (err, stdout, stderr) => resolve({ ok: !err, out: (stdout || '') + (stderr || ''), code: err ? (err.code || 1) : 0 }));
+  });
+}
+
+/** 找 Hugo：优先用工作区里的便携版 */
+function hugoExe() {
+  const local = path.join(ROOT, '.tools', 'hugo', 'hugo.exe');
+  return fs.existsSync(local) ? local : 'hugo';
+}
+
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://127.0.0.1:${PORT}`);
   try {
@@ -792,28 +808,53 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'POST' && u.pathname === '/api/publish') {
       const log = [];
+
+      // ① 先在本地构建一次：模板/内容有错就当场拦住，不把坏版本推上去
+      const build = await runCmd(hugoExe(), ['--source', ROOT, '--minify', '--gc'], 240000);
+      if (!build.ok) {
+        return json(res, 200, {
+          ok: false,
+          log: '本地构建失败，已中止推送（线上还是上一个好版本，没被弄坏）：\n\n' + build.out.trim(),
+          hint: '把上面的报错发我；也可以只点「保存」（不发布）先把内容留在本地。'
+        });
+      }
+      log.push('① 本地构建通过 ✓');
+
+      // ② 站内链接体检（漏了 /仓库名/ 前缀的链接会被抓出来）
+      const links = await runCmd(process.execPath, [path.join(ROOT, 'scripts', 'check-links.cjs')], 180000);
+      log.push('② 站内链接体检：' + (links.ok ? '全部通过 ✓' : '发现问题 ⚠'));
+      if (!links.ok) log.push(links.out.trim().split('\n').slice(0, 12).join('\n'));
+
+      // ③ 编辑器同步检查（模板要用的字段，写作台能不能填）
+      const sync = await runCmd(process.execPath, [path.join(ROOT, 'scripts', 'verify-editor-sync.cjs')], 60000);
+      log.push('③ 编辑器同步检查：' + (sync.ok ? '一致 ✓' : '有缺口 ⚠'));
+      if (!sync.ok) log.push(sync.out.trim().split('\n').slice(-8).join('\n'));
+
+      // ④ 提交并推送
       const status = await runGit(['status', '--porcelain']);
       if (status.out.trim()) {
         await runGit(['add', '-A']);
         const msg = `更新内容 ${new Date().toLocaleString('zh-CN', { hour12: false })}`;
         const c = await runGit(['commit', '-m', msg]);
-        log.push(`提交：${msg}`, c.out.trim());
+        log.push(`④ 提交：${msg}`);
+        if (!c.ok) log.push(c.out.trim().split('\n').slice(-3).join('\n'));
       } else {
-        log.push('没有需要提交的改动。');
+        log.push('④ 没有需要提交的改动，直接推送。');
       }
       let last = null;
       for (let i = 1; i <= 5; i++) {
         last = await runGit(['push', 'origin', 'HEAD']);
-        log.push(`第 ${i} 次推送：${last.ok ? '成功' : '失败'}`);
+        log.push(`④ 第 ${i} 次推送：${last.ok ? '成功' : '失败'}`);
         if (last.ok) break;
         log.push(last.out.trim().split('\n').slice(-3).join('\n'));
         await new Promise((r) => setTimeout(r, 5000));
       }
+      const warn = (links.ok ? '' : '\n\n注意：站内链接体检发现有问题，虽然已经推送，但点那些链接会 404 —— 把日志发我。');
       return json(res, 200, {
         ok: !!(last && last.ok),
         log: log.join('\n'),
-        hint: last && last.ok
-          ? '已推送。1~2 分钟后刷新 https://mysteriousamateurplayer.github.io/Parlour/ 就能看到。'
+        hint: (last && last.ok)
+          ? '已推送（本地构建与检查都跑过了）。1~2 分钟后刷新 https://mysteriousamateurplayer.github.io/Parlour/ 就能看到。' + warn
           : '推送失败。检查网络，或双击 push.bat 再试。'
       });
     }

@@ -1,0 +1,10 @@
+{{- /* 正文里链接的渲染钩子
+       把 [文字](/math/) 这种站内链接自动补上 /仓库名/ 前缀，
+       这样正文里可以放心写 /math/、/about/，也可以在写作台里直接粘贴站内路径。
+       外链、锚点原样保留（外链会自动新窗口打开）。 */ -}}
+{{- $dest := .Destination -}}
+{{- $isExternal := or (hasPrefix $dest "http") (hasPrefix $dest "//") (hasPrefix $dest "mailto:") (hasPrefix $dest "tel:") -}}
+{{- $isAnchor := hasPrefix $dest "#" -}}
+<a href="{{ if or $isExternal $isAnchor }}{{ $dest }}{{ else }}{{ partial "link.html" $dest }}{{ end }}"
+  {{- with .Title }} title="{{ . }}"{{ end }}
+  {{- if $isExternal }} target="_blank" rel="noopener"{{ end }}>{{ .Text }}</a>

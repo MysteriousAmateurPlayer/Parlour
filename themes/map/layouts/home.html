@@ -12,7 +12,7 @@
     <div class="about-preview__portrait reveal">
       <div class="portrait-frame">
         {{- if $about.portrait }}
-        <img src="{{ $about.portrait | relURL }}" alt="{{ site.Params.author }}" loading="lazy">
+        <img src="{{ partial "link.html" $about.portrait }}" alt="{{ site.Params.author }}" loading="lazy">
         {{- else }}
         <span class="portrait-frame__fallback">{{ $about.portraitFallback | default site.Title }}</span>
         {{- end }}
@@ -36,7 +36,7 @@
       </dl>
       {{- end }}
 
-      <a class="text-link reveal" href="{{ "/about/" | relURL }}">
+      <a class="text-link reveal" href="{{ (site.GetPage "/about").RelPermalink }}">
         <span>完整自我介绍</span>
         {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
       </a>
@@ -107,10 +107,12 @@
       {{ partial "post-row.html" (dict "page" .) }}
       {{- end }}
     </div>
-    <a class="text-link" href="{{ "/tags/" | relURL }}">
+    {{- with site.GetPage "/tags" }}
+    <a class="text-link" href="{{ .RelPermalink }}">
       <span>按标签浏览全部</span>
       {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
     </a>
+    {{- end }}
   </div>
 </section>
 {{- end }}
@@ -120,7 +122,7 @@
 {{- $vault := partial "section-meta.html" "vault" }}
 <section class="band band--vault" id="vault-entry">
   <div class="wrap">
-    <a class="vault-teaser reveal" href="{{ "/vault/" | relURL }}" style="--accent: {{ $vault.accent }}">
+    <a class="vault-teaser reveal" href="{{ (site.GetPage "/vault").RelPermalink }}" style="--accent: {{ $vault.accent }}">
       <span class="vault-teaser__icon">{{ partial "icon.html" (dict "name" "lock") }}</span>
       <span class="vault-teaser__text">
         <span class="vault-teaser__title">{{ $vault.title }}</span>

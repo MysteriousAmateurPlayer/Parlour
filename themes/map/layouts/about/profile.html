@@ -15,7 +15,7 @@
   <aside class="profile__aside">
     <div class="portrait-frame portrait-frame--lg reveal">
       {{- if $about.portrait }}
-      <img src="{{ $about.portrait | relURL }}" alt="{{ site.Params.author }}" loading="lazy">
+      <img src="{{ partial "link.html" $about.portrait }}" alt="{{ site.Params.author }}" loading="lazy">
       {{- else }}
       <span class="portrait-frame__fallback">{{ $about.portraitFallback | default site.Title }}</span>
       {{- end }}
@@ -36,7 +36,7 @@
     <ul class="contact-list reveal">
       {{- range . }}
       <li>
-        <a href="{{ .url }}"{{ if not (hasPrefix .url "/") }} rel="me noopener" target="_blank"{{ end }}>
+        <a href="{{ partial "link.html" .url }}"{{ if not (hasPrefix .url "/") }} rel="me noopener" target="_blank"{{ end }}>
           {{- partial "icon.html" (dict "name" .icon "class" "icon icon--sm") -}}
           <span class="contact-list__name">{{ .name }}</span>
           <span class="contact-list__text">{{ .text }}</span>

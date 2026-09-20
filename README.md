@@ -376,12 +376,21 @@ node scripts\check-live.cjs https://你的用户名.github.io/仓库名/
 
 ```powershell
 cd D:\个人网站
-.\build.bat
+.\build.bat          # 构建 + 自动跑「链接体检」和「编辑器同步检查」
 node scripts\verify.cjs
 ```
 
-`verify.cjs` 会检查首页五个版块、KaTeX 是否只在数学页加载、食谱结构化数据能否被解析、
-里版是否被排除在 sitemap 之外等等。改了模板之后跑一遍很有用。
+四个脚本各管一件事，改完东西跑一遍就够：
+
+| 脚本 | 检查什么 | 什么时候跑 |
+| --- | --- | --- |
+| `check-links.cjs` | 每个页面里的站内链接能不能真的打开（专抓漏了 `/仓库名/` 前缀 → 点开 404） | 每次改模板/加链接后（`build.bat` 已自动包含） |
+| `verify-editor-sync.cjs` | 模板要用的文章字段，写作台里能不能填（防止"网站改了、编辑器失效"） | 每次改模板或改写作台字段后（`build.bat` 已自动包含） |
+| `verify.cjs` | 站点冒烟测试：首页、各板块列表、文章、KaTeX、食谱结构化数据、sitemap 等 | 改模板/内容后 |
+| `verify-writer.cjs` | 写作台保存文章时会不会弄丢字段（拿 `content/` 里所有文章做往返比对） | 改写作台的 YAML 处理时 |
+
+> 在线版本：`node scripts\check-links.cjs https://mysteriousamateurplayer.github.io/Parlour/`
+> 会把线上页面的链接逐个请求一遍，确认部署后真的都能点开。
 
 ---
 

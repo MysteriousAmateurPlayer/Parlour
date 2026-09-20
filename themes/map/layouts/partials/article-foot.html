@@ -11,7 +11,7 @@
       <span class="article-foot__label">{{ partial "icon.html" (dict "name" "tag" "class" "icon icon--sm") }}标签</span>
       <ul class="tag-list">
         {{- range . }}
-        <li><a href="{{ printf "/tags/%s/" (. | urlize) | relURL }}">{{ . }}</a></li>
+        <li><a href="{{ partial "link.html" (printf "/tags/%s/" (. | urlize)) }}">{{ . }}</a></li>
         {{- end }}
       </ul>
     </div>
@@ -21,7 +21,7 @@
       <span class="article-foot__label">系列</span>
       <ul class="tag-list">
         {{- range . }}
-        <li><a href="{{ printf "/series/%s/" (. | urlize) | relURL }}">{{ . }}</a></li>
+        <li><a href="{{ partial "link.html" (printf "/series/%s/" (. | urlize)) }}">{{ . }}</a></li>
         {{- end }}
       </ul>
     </div>
@@ -50,7 +50,7 @@
   </nav>
   {{- end }}
 
-  <a class="text-link article-foot__back" href="{{ with site.GetPage (printf "/%s" .Section) }}{{ .RelPermalink }}{{ else }}{{ "/" | relURL }}{{ end }}">
+  <a class="text-link article-foot__back" href="{{ with site.GetPage (printf "/%s" .Section) }}{{ .RelPermalink }}{{ else }}{{ site.Home.RelPermalink }}{{ end }}">
     <span>返回{{ with site.GetPage (printf "/%s" .Section) }}{{ (partial "section-meta.html" .Section).title }}{{ end }}列表</span>
     {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
   </a>

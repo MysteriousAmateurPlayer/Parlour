@@ -1,0 +1,5 @@
+{{- /* 正文里图片的渲染钩子
+       把 ![](/images/x.png) 自动补上 /仓库名/ 前缀 —— 写作台上传的图片
+       插入的就是 /images/xxx.png 这种写法，靠这个钩子才能正确显示。 */ -}}
+<img src="{{ partial "link.html" .Destination }}" alt="{{ .Text }}"
+  {{- with .Title }} title="{{ . }}"{{ end }} loading="lazy">

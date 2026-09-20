@@ -26,13 +26,13 @@
     {{- if or $hero.primary $hero.secondary }}
     <div class="hero__actions reveal" style="--d:400ms">
       {{- with $hero.primary }}
-      <a class="btn btn--primary" href="{{ .url | relURL }}">
+      <a class="btn btn--primary" href="{{ partial "link.html" .url }}">
         <span>{{ .label }}</span>
         {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
       </a>
       {{- end }}
       {{- with $hero.secondary }}
-      <a class="btn btn--ghost" href="{{ .url | relURL }}"><span>{{ .label }}</span></a>
+      <a class="btn btn--ghost" href="{{ partial "link.html" .url }}"><span>{{ .label }}</span></a>
       {{- end }}
     </div>
     {{- end }}

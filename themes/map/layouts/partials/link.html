@@ -1,0 +1,21 @@
+{{- /* 把站内路径转成正确链接（会自动带上 /仓库名/ 子路径前缀）
+       ------------------------------------------------------------
+       为什么需要它：Hugo 的 relURL 对「以 / 开头的路径」**不会**补上 baseURL 里的子路径，
+       例如 baseURL = https://x.github.io/Parlour/ 时：
+           relURL "/about/"   →  /about/          ✗ 少了 /Parlour/，点开就 404
+           relURL "about/"    →  /Parlour/about/  ✓
+       所以这里先去掉开头的斜杠再交给 relURL。
+
+       用法：href="{{ partial "link.html" "/about/" }}"
+             href="{{ partial "link.html" $somePage.RelPermalink }}"   （已是对的，原样返回）
+             href="{{ partial "link.html" "mailto:a@b.c" }}           （外部链接原样返回）
+             href="{{ partial "link.html" "" }}                        （空值 = 首页）
+       ------------------------------------------------------------ */ -}}
+{{- $p := printf "%v" . | strings.TrimSpace -}}
+{{- if or (eq $p "") (eq $p "/") -}}
+  {{- return site.Home.RelPermalink -}}
+{{- end -}}
+{{- if or (hasPrefix $p "http") (hasPrefix $p "#") (strings.Contains $p ":") -}}
+  {{- return $p -}}
+{{- end -}}
+{{- return (relURL (strings.TrimPrefix "/" $p)) -}}

@@ -8,7 +8,7 @@
   <a class="post-card__link" href="{{ $p.RelPermalink }}" aria-label="{{ $p.Title }}">
     <div class="post-card__cover">
       {{- with $p.Params.cover }}
-      <img src="{{ . | relURL }}" alt="{{ $p.Title }}" loading="lazy" width="640" height="360">
+      <img src="{{ partial "link.html" . }}" alt="{{ $p.Title }}" loading="lazy" width="640" height="360">
       {{- else }}
       <span class="post-card__cover-mark" aria-hidden="true">{{ $meta.numeral }}</span>
       <span class="post-card__cover-pattern" aria-hidden="true"></span>
