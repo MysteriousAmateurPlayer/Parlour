@@ -1,0 +1,8 @@
+{{- /* 定理框 {{< theorem title="勾股定理" number="1.2" >}}内容{{< /theorem >}} */ -}}
+<div class="callout callout--theorem">
+  <p class="callout__title">
+    <span class="callout__label">{{ .Get "title" | default "定理" }}</span>
+    {{- with .Get "number" }}<span class="callout__number">{{ . }}</span>{{ end }}
+  </p>
+  <div class="callout__body">{{ .Inner | markdownify }}</div>
+</div>

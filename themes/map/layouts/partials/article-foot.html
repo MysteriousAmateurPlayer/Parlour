@@ -1,0 +1,58 @@
+{{- /* 文章末尾：标签、系列、上一篇/下一篇 */ -}}
+{{- $tags := .Params.tags | default slice -}}
+{{- $series := .Params.series | default slice -}}
+
+{{- if or $tags $series .PrevInSection .NextInSection }}
+<footer class="article-foot">
+  {{- if or $tags $series }}
+  <div class="article-foot__taxonomies">
+    {{- with $tags }}
+    <div class="article-foot__group">
+      <span class="article-foot__label">{{ partial "icon.html" (dict "name" "tag" "class" "icon icon--sm") }}标签</span>
+      <ul class="tag-list">
+        {{- range . }}
+        <li><a href="{{ printf "/tags/%s/" (. | urlize) | relURL }}">{{ . }}</a></li>
+        {{- end }}
+      </ul>
+    </div>
+    {{- end }}
+    {{- with $series }}
+    <div class="article-foot__group">
+      <span class="article-foot__label">系列</span>
+      <ul class="tag-list">
+        {{- range . }}
+        <li><a href="{{ printf "/series/%s/" (. | urlize) | relURL }}">{{ . }}</a></li>
+        {{- end }}
+      </ul>
+    </div>
+    {{- end }}
+  </div>
+  {{- end }}
+
+  {{- if or .PrevInSection .NextInSection }}
+  <nav class="article-nav" aria-label="同版块上下篇">
+    <div class="article-nav__side article-nav__side--prev">
+      {{- with .PrevInSection }}
+      <span class="article-nav__hint">上一篇</span>
+      <a class="article-nav__link" href="{{ .RelPermalink }}">{{ .Title }}</a>
+      {{- else }}
+      <span class="article-nav__hint">已经是第一篇</span>
+      {{- end }}
+    </div>
+    <div class="article-nav__side article-nav__side--next">
+      {{- with .NextInSection }}
+      <span class="article-nav__hint">下一篇</span>
+      <a class="article-nav__link" href="{{ .RelPermalink }}">{{ .Title }}</a>
+      {{- else }}
+      <span class="article-nav__hint">已经是最后一篇</span>
+      {{- end }}
+    </div>
+  </nav>
+  {{- end }}
+
+  <a class="text-link article-foot__back" href="{{ with site.GetPage (printf "/%s" .Section) }}{{ .RelPermalink }}{{ else }}{{ "/" | relURL }}{{ end }}">
+    <span>返回{{ with site.GetPage (printf "/%s" .Section) }}{{ (partial "section-meta.html" .Section).title }}{{ end }}列表</span>
+    {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
+  </a>
+</footer>
+{{- end }}

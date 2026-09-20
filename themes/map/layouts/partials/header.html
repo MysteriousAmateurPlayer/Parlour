@@ -1,0 +1,49 @@
+<header class="site-header" id="site-header">
+  <div class="wrap site-header__inner">
+    <a class="brand" href="{{ "/" | relURL }}" aria-label="{{ site.Title }} 首页">
+      <span class="brand__mark">{{ site.Title }}</span>
+      <span class="brand__divider" aria-hidden="true"></span>
+      <span class="brand__tag">{{ site.Params.tagline }}</span>
+    </a>
+
+    <nav class="nav" aria-label="主导航">
+      {{- range site.Menus.main }}
+        {{- $active := or ($.IsMenuCurrent "main" .) ($.HasMenuCurrent "main" .) }}
+        <a class="nav__link{{ if $active }} is-active{{ end }}" href="{{ .URL }}"{{ if $active }} aria-current="page"{{ end }}>{{ .Name }}</a>
+      {{- end }}
+    </nav>
+
+    <div class="header-tools">
+      {{- if and site.Params.vault.enabled site.Params.vault.showInHeader }}
+      <a class="icon-btn icon-btn--vault" href="{{ "/vault/" | relURL }}" title="里版入口" aria-label="里版入口">
+        {{- partial "icon.html" (dict "name" "lock" "class" "icon icon--sm") -}}
+      </a>
+      {{- end }}
+      {{- if site.Params.appearance.showThemeToggle }}
+      <button class="icon-btn theme-toggle" id="theme-toggle" type="button" aria-label="切换明暗主题" title="切换明暗主题">
+        <span class="theme-toggle__sun">{{ partial "icon.html" (dict "name" "sun" "class" "icon icon--sm") }}</span>
+        <span class="theme-toggle__moon">{{ partial "icon.html" (dict "name" "moon" "class" "icon icon--sm") }}</span>
+      </button>
+      {{- end }}
+      <button class="icon-btn nav-toggle" id="nav-toggle" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="mobile-nav">
+        <span class="nav-toggle__open">{{ partial "icon.html" (dict "name" "menu" "class" "icon icon--sm") }}</span>
+        <span class="nav-toggle__close">{{ partial "icon.html" (dict "name" "close" "class" "icon icon--sm") }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="mobile-nav" id="mobile-nav" hidden>
+    <div class="wrap">
+      <nav class="mobile-nav__links" aria-label="移动端导航">
+        {{- range site.Menus.main }}
+        <a class="mobile-nav__link" href="{{ .URL }}">{{ .Name }}</a>
+        {{- end }}
+        {{- if site.Params.vault.enabled }}
+        <a class="mobile-nav__link mobile-nav__link--vault" href="{{ "/vault/" | relURL }}">
+          {{ partial "icon.html" (dict "name" "lock" "class" "icon icon--sm") }}<span>里版</span>
+        </a>
+        {{- end }}
+      </nav>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,13 @@
+{{- /* 文章行：用于首页「最近的记录」等紧凑列表
+       参数：page（必填）, showSection（可选，默认 true） */ -}}
+{{- $p := .page -}}
+{{- $showSection := .showSection | default true -}}
+{{- $meta := partial "section-meta.html" $p.Section -}}
+<article class="post-row reveal" style="--accent: {{ $meta.accent }}">
+  <a class="post-row__link" href="{{ $p.RelPermalink }}">
+    <time class="post-row__date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "2006.01.02" }}</time>
+    {{- if $showSection }}<span class="post-row__section">{{ $meta.title }}</span>{{ end }}
+    <h3 class="post-row__title">{{ $p.Title }}</h3>
+    <span class="post-row__arrow" aria-hidden="true">{{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}</span>
+  </a>
+</article>

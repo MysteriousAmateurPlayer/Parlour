@@ -1,0 +1,53 @@
+# ============================================================
+#  各内容板块的展示信息
+#  key 必须与 content/ 下的目录名（section）一致
+#  numeral / accent / icon 用于首页卡片与列表页
+# ============================================================
+
+about:
+  title: 自我介绍
+  en: About
+  numeral: 壹
+  accent: "#8a6f63"
+  icon: user
+  blurb: 我是谁，正在做什么，以及怎样找到我。
+
+fanworks:
+  title: 二次同人创作
+  en: Fanworks
+  numeral: 贰
+  accent: "#8d6a93"
+  icon: feather
+  blurb: 同人小说、插画与企划的归档，附上创作时的碎碎念。
+
+math:
+  title: 数学分享
+  en: Mathematics
+  numeral: 叁
+  accent: "#3d6b8a"
+  icon: sigma
+  blurb: 解题笔记、定理整理，以及一些自以为有趣的观察。
+
+garden:
+  title: 园艺记录
+  en: Garden
+  numeral: 肆
+  accent: "#5f7a4f"
+  icon: leaf
+  blurb: 阳台与窗边的四季：播种、修剪、开花与失手。
+
+kitchen:
+  title: 烹饪食谱
+  en: Kitchen
+  numeral: 伍
+  accent: "#b1743f"
+  icon: pot
+  blurb: 亲手验证过的菜谱，写清分量、火候与翻车点。
+
+vault:
+  title: 里版
+  en: Vault
+  numeral: 零
+  accent: "#4a4a55"
+  icon: lock
+  blurb: 需要解开一道谜题才能进入的房间。

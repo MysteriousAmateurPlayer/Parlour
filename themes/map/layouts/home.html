@@ -1,0 +1,122 @@
+{{ define "main" }}
+{{- $home := hugo.Data.home -}}
+{{- $sectionOrder := slice "about" "fanworks" "math" "garden" "kitchen" -}}
+
+{{/* ---------- 1. 主视觉 ---------- */}}
+{{ partial "hero.html" . }}
+
+{{/* ---------- 2. 关于我预览 ---------- */}}
+{{- $about := $home.about -}}
+<section class="band band--about" id="about-preview">
+  <div class="wrap about-preview">
+    <div class="about-preview__portrait reveal">
+      <div class="portrait-frame">
+        {{- if $about.portrait }}
+        <img src="{{ $about.portrait | relURL }}" alt="{{ site.Params.author }}" loading="lazy">
+        {{- else }}
+        <span class="portrait-frame__fallback">{{ $about.portraitFallback | default site.Title }}</span>
+        {{- end }}
+      </div>
+    </div>
+
+    <div class="about-preview__text">
+      {{ partial "section-head.html" (dict "kicker" $about.subtitle "title" $about.title) }}
+      {{- range $about.paragraphs }}
+      <p class="reveal">{{ . }}</p>
+      {{- end }}
+
+      {{- with $about.facts }}
+      <dl class="facts reveal">
+        {{- range . }}
+        <div class="facts__item">
+          <dt>{{ .label }}</dt>
+          <dd>{{ .value }}</dd>
+        </div>
+        {{- end }}
+      </dl>
+      {{- end }}
+
+      <a class="text-link reveal" href="{{ "/about/" | relURL }}">
+        <span>完整自我介绍</span>
+        {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
+      </a>
+    </div>
+  </div>
+</section>
+
+{{/* ---------- 3. 五个版块 ---------- */}}
+<section class="band band--sections" id="sections">
+  <div class="wrap">
+    {{ partial "section-head.html" (dict "kicker" "Explore" "title" "五个房间" "lede" "每个版块都是一类被我认真对待过的东西。") }}
+
+    <div class="cards">
+      {{- range $key := $sectionOrder }}
+        {{- $meta := partial "section-meta.html" $key }}
+        {{- $sec := site.GetPage (printf "/%s" $key) }}
+        {{- $count := 0 }}
+        {{- with $sec }}{{ $count = len .RegularPages }}{{ end }}
+        {{- $href := printf "/%s/" $key }}
+        {{- with $sec }}{{ $href = .RelPermalink }}{{ end }}
+      <a class="card reveal" href="{{ $href }}" style="--accent: {{ $meta.accent }}">
+        <span class="card__top">
+          <span class="card__numeral">{{ $meta.numeral }}</span>
+          <span class="card__icon">{{ partial "icon.html" (dict "name" $meta.icon) }}</span>
+        </span>
+        <span class="card__title">{{ $meta.title }}</span>
+        <span class="card__en">{{ $meta.en }}</span>
+        <span class="card__blurb">{{ $meta.blurb }}</span>
+        <span class="card__foot">
+          <span>{{ if gt $count 0 }}{{ $count }} 篇记录{{ else }}即将开张{{ end }}</span>
+          {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
+        </span>
+      </a>
+      {{- end }}
+    </div>
+  </div>
+</section>
+
+{{/* ---------- 4. 最近的记录 ---------- */}}
+{{- $latest := $home.latest -}}
+{{- $pages := where site.RegularPages "Section" "in" (slice "fanworks" "math" "garden" "kitchen") -}}
+{{- $pages = $pages.ByDate.Reverse -}}
+{{- with $pages }}
+<section class="band band--latest" id="latest">
+  <div class="wrap">
+    {{ partial "section-head.html" (dict "kicker" $latest.subtitle "title" $latest.title "lede" "按时间倒序，跨版块汇总。") }}
+    <div class="post-rows">
+      {{- range first ($latest.count | default 6) . }}
+      {{ partial "post-row.html" (dict "page" .) }}
+      {{- end }}
+    </div>
+    <a class="text-link" href="{{ "/tags/" | relURL }}">
+      <span>按标签浏览全部</span>
+      {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
+    </a>
+  </div>
+</section>
+{{- end }}
+
+{{/* ---------- 5. 里版入口（低调） ---------- */}}
+{{- if site.Params.vault.enabled }}
+{{- $vault := partial "section-meta.html" "vault" }}
+<section class="band band--vault" id="vault-entry">
+  <div class="wrap">
+    <a class="vault-teaser reveal" href="{{ "/vault/" | relURL }}" style="--accent: {{ $vault.accent }}">
+      <span class="vault-teaser__icon">{{ partial "icon.html" (dict "name" "lock") }}</span>
+      <span class="vault-teaser__text">
+        <span class="vault-teaser__title">{{ $vault.title }}</span>
+        <span class="vault-teaser__blurb">{{ $vault.blurb }}</span>
+      </span>
+      <span class="vault-teaser__cta">去解谜 {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}</span>
+    </a>
+  </div>
+</section>
+{{- end }}
+
+{{/* ---------- 6. 首页 Markdown 正文（可选） ---------- */}}
+{{- with .Content }}
+<section class="band band--content">
+  <div class="wrap prose">{{ . }}</div>
+</section>
+{{- end }}
+{{ end }}

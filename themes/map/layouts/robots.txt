@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /vault/
+
+Sitemap: {{ "sitemap.xml" | absURL }}

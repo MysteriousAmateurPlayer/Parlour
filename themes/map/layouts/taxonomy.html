@@ -1,0 +1,27 @@
+{{ define "main" }}
+<header class="page-head">
+  <div class="wrap">
+    <p class="page-head__kicker">Tags</p>
+    <h1 class="page-head__title">{{ .Title }}</h1>
+    <p class="page-head__lede">全部标签，按条目数排序。</p>
+  </div>
+</header>
+
+<div class="wrap">
+  {{- $terms := .Pages.ByTitle -}}
+  {{- if $terms }}
+  <ul class="term-cloud">
+    {{- range $terms }}
+    <li>
+      <a href="{{ .RelPermalink }}" class="term-chip">
+        <span class="term-chip__name">{{ .Title }}</span>
+        <span class="term-chip__count">{{ len .Pages }}</span>
+      </a>
+    </li>
+    {{- end }}
+  </ul>
+  {{- else }}
+  <p class="empty">还没有任何标签。</p>
+  {{- end }}
+</div>
+{{ end }}

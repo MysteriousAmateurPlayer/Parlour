@@ -1,0 +1,57 @@
+{{ define "main" }}
+{{- $meta := partial "section-meta.html" .Section -}}
+{{- $sectionPage := site.GetPage (printf "/%s" .Section) -}}
+
+<article class="article" style="--accent: {{ $meta.accent }}">
+  <header class="article__head">
+    <div class="wrap wrap--narrow">
+      <div class="article__crumbs">
+        {{- with $sectionPage }}
+        <a href="{{ .RelPermalink }}">{{ $meta.title }}</a>
+        {{- end }}
+      </div>
+
+      <h1 class="article__title">{{ .Title }}</h1>
+
+      {{- with .Description }}
+      <p class="article__lede">{{ . }}</p>
+      {{- end }}
+
+      <div class="article__meta">
+        <span class="article__meta-item">
+          {{ partial "icon.html" (dict "name" "calendar" "class" "icon icon--sm") }}
+          <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006 年 01 月 02 日" }}</time>
+        </span>
+        {{- if ne (.Lastmod.Format "2006-01-02") (.Date.Format "2006-01-02") }}
+        <span class="article__meta-item">修订于 {{ .Lastmod.Format "2006.01.02" }}</span>
+        {{- end }}
+        {{- with .Params.author | default site.Params.author }}
+        <span class="article__meta-item">{{ . }}</span>
+        {{- end }}
+        {{- if .Params.private }}
+        <span class="article__meta-item article__meta-item--private">
+          {{ partial "icon.html" (dict "name" "lock" "class" "icon icon--sm") }}里版内容
+        </span>
+        {{- end }}
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap wrap--narrow">
+    <div class="article__layout{{ if .Params.toc }} has-toc{{ end }}">
+      {{- if and .Params.toc .TableOfContents }}
+      <aside class="article__toc" aria-label="目录">
+        <p class="article__toc-title">目录</p>
+        {{ .TableOfContents }}
+      </aside>
+      {{- end }}
+
+      <div class="article__content prose">
+        {{ .Content }}
+      </div>
+    </div>
+
+    {{- partial "article-foot.html" . }}
+  </div>
+</article>
+{{ end }}

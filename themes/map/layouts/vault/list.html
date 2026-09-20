@@ -1,0 +1,64 @@
+{{ define "main" }}
+{{- $meta := partial "section-meta.html" "vault" -}}
+{{- $vault := site.Params.vault -}}
+{{- $gate := .Params.gate | default dict -}}
+{{- $hash := $gate.hash | default $vault.answerHash -}}
+{{- $question := $gate.question | default $vault.question -}}
+{{- $hint := $gate.hint | default $vault.hint -}}
+{{- $placeholder := $gate.placeholder | default "在此输入答案" -}}
+
+<div class="vault" style="--accent: {{ $meta.accent }}"
+     data-vault-gate
+     data-hash="{{ $hash }}"
+     data-storage-key="map-vault-unlocked">
+
+  {{- /* ---------- 关卡 ---------- */}}
+  <section class="gate" data-vault-lock>
+    <div class="gate__card">
+      <span class="gate__icon">{{ partial "icon.html" (dict "name" "lock") }}</span>
+      <p class="gate__kicker">{{ $meta.en | default "Vault" }}</p>
+      <h1 class="gate__title">{{ .Title }}</h1>
+      {{- with $question }}<p class="gate__question">{{ . }}</p>{{ end }}
+
+      <form class="gate__form" data-vault-form novalidate>
+        <label class="sr-only" for="vault-answer">答案</label>
+        <input class="gate__input" id="vault-answer" name="answer" type="text"
+               placeholder="{{ $placeholder }}" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+        <button class="btn btn--primary" type="submit"><span>验证</span></button>
+      </form>
+
+      <p class="gate__msg" data-vault-msg role="status" aria-live="polite"></p>
+      {{- with $hint }}<p class="gate__hint">提示：{{ . }}</p>{{ end }}
+
+      <noscript>
+        <p class="gate__msg gate__msg--error">这个入口需要 JavaScript 才能验证答案。</p>
+      </noscript>
+    </div>
+  </section>
+
+  {{- /* ---------- 解锁后的内容 ---------- */}}
+  <section class="vault-content" data-vault-content hidden>
+    <div class="wrap">
+      <div class="vault-banner">
+        <span class="vault-banner__icon">{{ partial "icon.html" (dict "name" "key" "class" "icon icon--sm") }}</span>
+        <p>已解锁 · 这里是里版。内容未经整理，请勿外传。</p>
+        <button class="text-button" type="button" data-vault-lock-again>重新上锁</button>
+      </div>
+
+      {{- with .Content }}
+      <div class="prose prose--intro">{{ . }}</div>
+      {{- end }}
+
+      {{- if .RegularPages }}
+      <div class="card-grid">
+        {{- range .RegularPages.ByDate.Reverse }}
+        {{ partial "post-card.html" (dict "page" . "accent" $meta.accent) }}
+        {{- end }}
+      </div>
+      {{- else }}
+      <p class="empty">里版还空着，先把门修好。</p>
+      {{- end }}
+    </div>
+  </section>
+</div>
+{{ end }}

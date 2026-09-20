@@ -1,0 +1,44 @@
+# ============================================================
+#  首页文案（改这里就能改首页，不用动模板）
+# ============================================================
+
+hero:
+  # 名字上方的小字
+  kicker: "PERSONAL SITE · 个人网站"
+  # 主标题：你的名字
+  name: "MAP"
+  # 主标题下方的一行定位语
+  tagline: "在算式、花木与灶火之间"
+  # 更长的自我介绍，2~3 句最合适
+  intro: "你好，我是 MAP。这里是我在互联网上的一间书房：放着我写下的同人故事、推过的数学题、养过的花草，以及认真做过并愿意再做一次的菜。"
+  # 两个按钮：primary 为实心，secondary 为描边
+  primary:
+    label: "从头认识我"
+    url: "/about/"
+  secondary:
+    label: "最近的记录"
+    url: "/fanworks/"
+
+# 首页「关于我」预览区块
+about:
+  title: "关于我"
+  subtitle: "About"
+  # 放一张竖版照片到 static/images/portrait.jpg，然后取消下一行注释
+  # portrait: "/images/portrait.jpg"
+  portraitFallback: "MAP"
+  paragraphs:
+    - "白天和人打交道，夜里和公式打交道。写代码、做题、种花、做饭，是我用来确认自己还活着的四件事。"
+    - "这个网站没有什么宏伟目标，只是想把散落各处的东西收拾到一处——这样若干年后回看，至少知道这些年时间去了哪里。"
+  facts:
+    - label: "常驻"
+      value: "某座四季分明的城市"
+    - label: "在做"
+      value: "数学、写作、园艺"
+    - label: "写信给我"
+      value: "map@example.com"
+
+# 首页「最近的记录」区块
+latest:
+  title: "最近的记录"
+  subtitle: "Recent"
+  count: 6

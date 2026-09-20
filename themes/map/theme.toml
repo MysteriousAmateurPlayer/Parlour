@@ -1,0 +1,12 @@
+# theme.toml — Hugo 主题元信息
+name = "MAP"
+license = "MIT"
+licenselink = "https://opensource.org/licenses/MIT"
+description = "为 MAP 的个人网站定制的极简典藏风主题：衬线排版、宣纸配色、五板块首页与解谜里版入口。"
+homepage = ""
+tags = ["personal", "blog", "portfolio", "chinese", "minimal", "serif"]
+features = ["dark mode", "katex math", "recipe schema", "tag filter", "vault gate"]
+min_version = "0.128.0"
+
+[author]
+  name = "MAP"

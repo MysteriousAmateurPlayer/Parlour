@@ -1,0 +1,49 @@
+{{ define "main" }}
+{{- $meta := partial "section-meta.html" "kitchen" -}}
+{{- $paginator := .Paginate .RegularPages.ByDate.Reverse -}}
+
+<header class="page-head" style="--accent: {{ $meta.accent }}">
+  <div class="wrap">
+    <p class="page-head__kicker">{{ $meta.en }}</p>
+    <h1 class="page-head__title">{{ .Title }}</h1>
+    {{- with .Params.description | default $meta.blurb }}<p class="page-head__lede">{{ . }}</p>{{ end }}
+    <p class="page-head__count">共 {{ len .RegularPages }} 道菜</p>
+  </div>
+</header>
+
+<div class="wrap">
+  {{- with .Content }}
+  <div class="prose prose--intro">{{ . }}</div>
+  {{- end }}
+
+  {{- if $paginator.Pages }}
+  <div class="recipe-grid">
+    {{- range $paginator.Pages }}
+    {{- $total := add (.Params.prep_time | default 0) (.Params.cook_time | default 0) }}
+    <article class="recipe-card reveal" style="--accent: {{ $meta.accent }}">
+      <a class="recipe-card__link" href="{{ .RelPermalink }}">
+        <h2 class="recipe-card__title">{{ .Title }}</h2>
+        {{- with .Description | default (.Summary | plainify | truncate 56) }}
+        <p class="recipe-card__desc">{{ . }}</p>
+        {{- end }}
+        <ul class="recipe-card__specs">
+          {{- if gt $total 0 }}
+          <li>{{ partial "icon.html" (dict "name" "clock" "class" "icon icon--sm") }}{{ partial "duration.html" $total }}</li>
+          {{- end }}
+          {{- with .Params.servings }}
+          <li>{{ partial "icon.html" (dict "name" "servings" "class" "icon icon--sm") }}{{ . }} 人份</li>
+          {{- end }}
+          {{- with .Params.difficulty }}
+          <li>{{ partial "icon.html" (dict "name" "gauge" "class" "icon icon--sm") }}{{ . }}</li>
+          {{- end }}
+        </ul>
+      </a>
+    </article>
+    {{- end }}
+  </div>
+  {{ partial "pagination.html" . }}
+  {{- else }}
+  <p class="empty">厨房还没开火。</p>
+  {{- end }}
+</div>
+{{ end }}

@@ -1,0 +1,13 @@
+{{ define "main" }}
+<section class="band band--404">
+  <div class="wrap error-page">
+    <p class="error-page__code" aria-hidden="true">404</p>
+    <h1 class="error-page__title">这一页不在架上</h1>
+    <p class="error-page__text">你要找的东西也许被移到了别处，也许从来就没有写过。</p>
+    <div class="error-page__actions">
+      <a class="btn btn--primary" href="{{ "/" | relURL }}"><span>回到首页</span></a>
+      <a class="btn btn--ghost" href="{{ "/about/" | relURL }}"><span>认识我</span></a>
+    </div>
+  </div>
+</section>
+{{ end }}

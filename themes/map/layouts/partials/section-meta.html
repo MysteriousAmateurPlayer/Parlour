@@ -1,0 +1,14 @@
+{{- /* 返回某个 section 的展示信息（data/sections.yaml），带默认值兜底。
+       用法：{{ $meta := partial "section-meta.html" "math" }}  → $meta.title / .accent / .icon ... */ -}}
+{{- $key := . -}}
+{{- $meta := index hugo.Data.sections $key -}}
+{{- if not $meta }}{{ $meta = dict }}{{ end -}}
+{{- return dict
+      "key"     $key
+      "title"   ($meta.title | default ($key | humanize | title))
+      "en"      ($meta.en | default "")
+      "numeral" ($meta.numeral | default "")
+      "accent"  ($meta.accent | default "#8a6f63")
+      "icon"    ($meta.icon | default "link")
+      "blurb"   ($meta.blurb | default "")
+-}}

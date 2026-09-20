@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+{{- $theme := site.Params.appearance.defaultTheme | default "auto" -}}
+<html lang="{{ site.Language.Locale | default "zh-cn" }}" data-theme="{{ if eq $theme "dark" }}dark{{ else }}light{{ end }}" data-theme-pref="{{ $theme }}">
+<head>
+  {{- partial "head.html" . -}}
+</head>
+<body class="kind-{{ .Kind }}{{ with .Section }} section-{{ . }}{{ end }}{{ if .IsHome }} is-home{{ end }}{{ if .Params.private }} is-private{{ end }}">
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  {{- partial "header.html" . -}}
+  <main id="main" class="site-main">
+    {{- block "main" . }}{{ end -}}
+  </main>
+  {{- partial "footer.html" . -}}
+  {{- partial "scripts.html" . -}}
+</body>
+</html>

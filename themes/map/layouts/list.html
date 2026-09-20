@@ -1,0 +1,31 @@
+{{ define "main" }}
+{{- $meta := partial "section-meta.html" .Section -}}
+{{- $paginator := .Paginate .RegularPages.ByDate.Reverse -}}
+
+<header class="page-head" style="--accent: {{ $meta.accent }}">
+  <div class="wrap">
+    {{- with $meta.en }}<p class="page-head__kicker">{{ . }}</p>{{ end }}
+    <h1 class="page-head__title">{{ .Title }}</h1>
+    {{- $lede := .Params.description | default $meta.blurb }}
+    {{- with $lede }}<p class="page-head__lede">{{ . }}</p>{{ end }}
+    <p class="page-head__count">{{ len .RegularPages }} 篇记录</p>
+  </div>
+</header>
+
+<div class="wrap">
+  {{- with .Content }}
+  <div class="prose prose--intro">{{ . }}</div>
+  {{- end }}
+
+  {{- if $paginator.Pages }}
+  <div class="card-grid">
+    {{- range $paginator.Pages }}
+    {{ partial "post-card.html" (dict "page" . "accent" $meta.accent) }}
+    {{- end }}
+  </div>
+  {{ partial "pagination.html" . }}
+  {{- else }}
+  <p class="empty">这个版块还空着，第一篇正在路上。</p>
+  {{- end }}
+</div>
+{{ end }}

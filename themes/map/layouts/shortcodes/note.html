@@ -1,0 +1,7 @@
+{{- /* 提示框 {{< note type="tip" title="小标题" >}}内容{{< /note >}}
+       type 可选：note（默认）/ tip / warn / idea */ -}}
+{{- $type := .Get "type" | default "note" -}}
+<aside class="callout callout--{{ $type }}">
+  {{- with .Get "title" }}<p class="callout__title">{{ . }}</p>{{ end }}
+  <div class="callout__body">{{ .Inner | markdownify }}</div>
+</aside>

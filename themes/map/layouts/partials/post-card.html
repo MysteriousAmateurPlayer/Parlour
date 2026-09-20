@@ -1,0 +1,37 @@
+{{- /* 文章卡片：用于同人 / 园艺等图文列表
+       参数：page（必填）, accent（可选） */ -}}
+{{- $p := .page -}}
+{{- $accent := .accent | default "#8a6f63" -}}
+{{- $meta := partial "section-meta.html" $p.Section -}}
+{{- $tags := $p.Params.tags | default slice -}}
+<article class="post-card reveal" style="--accent: {{ $accent }}" data-tags="{{ delimit $tags "," }}">
+  <a class="post-card__link" href="{{ $p.RelPermalink }}" aria-label="{{ $p.Title }}">
+    <div class="post-card__cover">
+      {{- with $p.Params.cover }}
+      <img src="{{ . | relURL }}" alt="{{ $p.Title }}" loading="lazy" width="640" height="360">
+      {{- else }}
+      <span class="post-card__cover-mark" aria-hidden="true">{{ $meta.numeral }}</span>
+      <span class="post-card__cover-pattern" aria-hidden="true"></span>
+      {{- end }}
+    </div>
+
+    <div class="post-card__body">
+      <div class="post-card__meta">
+        <time datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "2006 年 01 月 02 日" }}</time>
+        {{- with $meta.en }}<span class="dot" aria-hidden="true"></span><span>{{ . }}</span>{{ end }}
+      </div>
+
+      <h3 class="post-card__title">{{ $p.Title }}</h3>
+
+      {{- with $p.Description | default ($p.Summary | plainify | truncate 68) }}
+      <p class="post-card__summary">{{ . }}</p>
+      {{- end }}
+
+      {{- with $tags }}
+      <ul class="tag-list tag-list--sm">
+        {{- range first 3 . }}<li>{{ . }}</li>{{ end }}
+      </ul>
+      {{- end }}
+    </div>
+  </a>
+</article>

@@ -1,0 +1,47 @@
+{{- $hero := hugo.Data.home.hero -}}
+<section class="hero">
+  <div class="hero__ornament" aria-hidden="true">
+    <span class="hero__ornament-line hero__ornament-line--left"></span>
+    <span class="hero__ornament-dot"></span>
+    <span class="hero__ornament-line hero__ornament-line--right"></span>
+  </div>
+
+  <div class="wrap hero__inner">
+    <p class="hero__kicker reveal" style="--d:0ms">{{ $hero.kicker }}</p>
+
+    <h1 class="hero__name reveal" style="--d:80ms">
+      <span class="hero__name-text">{{ $hero.name }}</span>
+    </h1>
+
+    <p class="hero__tagline reveal" style="--d:160ms">{{ $hero.tagline }}</p>
+
+    <div class="hero__divider reveal" style="--d:240ms" aria-hidden="true">
+      <span class="hero__divider-rule"></span>
+      <span class="hero__divider-gem"></span>
+      <span class="hero__divider-rule"></span>
+    </div>
+
+    <p class="hero__intro reveal" style="--d:320ms">{{ $hero.intro }}</p>
+
+    {{- if or $hero.primary $hero.secondary }}
+    <div class="hero__actions reveal" style="--d:400ms">
+      {{- with $hero.primary }}
+      <a class="btn btn--primary" href="{{ .url | relURL }}">
+        <span>{{ .label }}</span>
+        {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
+      </a>
+      {{- end }}
+      {{- with $hero.secondary }}
+      <a class="btn btn--ghost" href="{{ .url | relURL }}"><span>{{ .label }}</span></a>
+      {{- end }}
+    </div>
+    {{- end }}
+  </div>
+
+  {{- if site.Params.appearance.showScrollHint }}
+  <a class="scroll-hint" href="#sections" aria-label="向下浏览版块">
+    <span class="scroll-hint__text">向下</span>
+    {{ partial "icon.html" (dict "name" "arrow-down" "class" "icon icon--sm") }}
+  </a>
+  {{- end }}
+</section>

@@ -1,0 +1,126 @@
+# ============================================================
+#  MAP · 个人网站  站点配置
+#  文档：https://gohugo.io/configuration/all/
+# ============================================================
+
+# 部署后请把 baseURL 改成你的正式域名（详见 README.md）
+baseURL = "https://map.example.com/"
+title = "MAP"
+theme = "map"
+
+locale = "zh-CN"
+defaultContentLanguage = "zh"
+hasCJKLanguage = true          # 中文按字数统计摘要
+timeZone = "Asia/Shanghai"
+enableRobotsTXT = true
+
+summaryLength = 72
+
+# 每页文章数（Hugo 0.128+ 的写法）
+[pagination]
+  pagerSize = 9
+
+# ------------------------------------------------------------
+#  作者与站点信息
+# ------------------------------------------------------------
+[params]
+  author = "MAP"
+  description = "MAP 的个人网站：自我介绍、二次同人创作记录、数学分享、园艺记录与烹饪食谱。"
+  # 首页 <title> 用到的副标题
+  tagline = "在算式、花木与灶火之间"
+  # 站点建立年份，用于页脚版权
+  since = 2026
+  # 默认分享图（放在 static/images/ 下，留空则不输出 og:image）
+  ogImage = ""
+  # 首页「关于我」预览区里的一句话
+  bio = "一名喜欢在深夜推导公式、白天摆弄花草的普通人。这里存放我认真对待过的那些事。"
+
+  # ---- 主题外观 ----
+  [params.appearance]
+    # 默认配色：auto / light / dark
+    defaultTheme = "auto"
+    # 是否允许访客手动切换明暗
+    showThemeToggle = true
+    # 首页是否显示往下滚动的提示
+    showScrollHint = true
+
+  # ---- 里版 / 解谜入口 ----
+  [params.vault]
+    enabled = true
+    # 顶部导航右侧的小锁图标是否显示
+    showInHeader = true
+    # 关卡问题与答案的 SHA-256（小写十六进制）。
+    # 生成方法见 README「设置解谜答案」：scripts/hash-answer.ps1
+    # 下面这个默认答案是「MAP」（大小写不敏感）
+    answerHash = "4cf644d78bfc298f26ba4c170c7a1c04c3d1388e09fdd02534f23433a9a8f227"
+    question = "把网站主人的名字输入进来（三个字母）。"
+    hint = "就在页面左上角。"
+
+  # ---- 二次同人创作记录页的筛选项 ----
+  [params.fanworks]
+    # 留空则自动从文章 tag 里收集
+    filters = []
+
+# ------------------------------------------------------------
+#  导航菜单（顺序由 weight 决定）
+# ------------------------------------------------------------
+[menu]
+  [[menu.main]]
+    name = "首页"
+    pageRef = "/"
+    weight = 10
+  [[menu.main]]
+    name = "自我介绍"
+    pageRef = "/about"
+    weight = 20
+  [[menu.main]]
+    name = "同人创作"
+    pageRef = "/fanworks"
+    weight = 30
+  [[menu.main]]
+    name = "数学"
+    pageRef = "/math"
+    weight = 40
+  [[menu.main]]
+    name = "园艺"
+    pageRef = "/garden"
+    weight = 50
+  [[menu.main]]
+    name = "食谱"
+    pageRef = "/kitchen"
+    weight = 60
+
+# ------------------------------------------------------------
+#  分类法
+# ------------------------------------------------------------
+[taxonomies]
+  tag = "tags"
+  series = "series"
+
+# ------------------------------------------------------------
+#  内容渲染
+# ------------------------------------------------------------
+[markup]
+  [markup.goldmark.renderer]
+    # 允许在 Markdown 里直接写 HTML（嵌入视频、自定义样式等）
+    unsafe = true
+  [markup.goldmark.extensions.passthrough]
+    enable = true
+    [markup.goldmark.extensions.passthrough.delimiters]
+      block = [['\[', '\]'], ['$$', '$$']]
+      inline = [['\(', '\)'], ['$', '$']]
+  [markup.highlight]
+    noClasses = false        # 使用 class 形式的代码高亮，配色由主题 CSS 控制
+    lineNos = false
+    tabWidth = 2
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 4
+    ordered = false
+
+# ------------------------------------------------------------
+#  输出格式
+# ------------------------------------------------------------
+[outputs]
+  home = ["HTML", "RSS"]
+  section = ["HTML", "RSS"]

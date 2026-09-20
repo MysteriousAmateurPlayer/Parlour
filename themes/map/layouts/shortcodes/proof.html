@@ -1,0 +1,6 @@
+{{- /* 证明框 {{< proof >}}内容{{< /proof >}}，末尾自动补 ∎ */ -}}
+<div class="callout callout--proof">
+  {{- with .Get "title" }}<p class="callout__title"><span class="callout__label">{{ . }}</span></p>{{ end }}
+  <div class="callout__body">{{ .Inner | markdownify }}</div>
+  <p class="callout__qed" aria-label="证毕">∎</p>
+</div>

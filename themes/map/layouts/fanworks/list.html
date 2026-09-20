@@ -1,0 +1,47 @@
+{{ define "main" }}
+{{- $meta := partial "section-meta.html" "fanworks" -}}
+{{- $paginator := .Paginate .RegularPages.ByDate.Reverse -}}
+
+{{- /* 收集筛选用标签 */ -}}
+{{- $filters := site.Params.fanworks.filters | default slice -}}
+{{- if not $filters -}}
+  {{- range .RegularPages -}}
+    {{- range .Params.tags -}}{{- $filters = $filters | append . -}}{{- end -}}
+  {{- end -}}
+  {{- $filters = $filters | uniq | sort -}}
+{{- end -}}
+
+<header class="page-head" style="--accent: {{ $meta.accent }}">
+  <div class="wrap">
+    <p class="page-head__kicker">{{ $meta.en }}</p>
+    <h1 class="page-head__title">{{ .Title }}</h1>
+    {{- with .Params.description | default $meta.blurb }}<p class="page-head__lede">{{ . }}</p>{{ end }}
+    <p class="page-head__count">共 {{ len .RegularPages }} 篇记录</p>
+  </div>
+</header>
+
+<div class="wrap">
+  {{- with .Content }}
+  <div class="prose prose--intro">{{ . }}</div>
+  {{- end }}
+
+  {{- if $filters }}
+  <div class="filter-bar" data-filter-bar>
+    <button class="filter-bar__btn is-active" type="button" data-filter="__all__">全部</button>
+    {{- range $filters }}
+    <button class="filter-bar__btn" type="button" data-filter="{{ . }}">{{ . }}</button>
+    {{- end }}
+  </div>
+  {{- end }}
+
+  <div class="card-grid" data-filter-target>
+    {{- range $paginator.Pages }}
+    {{ partial "post-card.html" (dict "page" . "accent" $meta.accent) }}
+    {{- end }}
+  </div>
+
+  <p class="filter-empty" data-filter-empty hidden>这个标签下暂时没有记录。</p>
+
+  {{ partial "pagination.html" . }}
+</div>
+{{ end }}

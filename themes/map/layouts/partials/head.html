@@ -1,0 +1,95 @@
+{{- /* ---------- 基础 meta ---------- */ -}}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+
+  {{- /* 主题必须在首屏绘制前定好，避免闪烁 */ -}}
+  <script>
+    (function () {
+      var root = document.documentElement;
+      try {
+        var pref = root.getAttribute('data-theme-pref') || 'auto';
+        var saved = localStorage.getItem('map-theme');
+        var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = saved || (pref === 'auto' ? (dark ? 'dark' : 'light') : pref);
+        // 预览用：?theme=dark / ?theme=light 可临时强制配色，不写入 localStorage
+        var forced = new URLSearchParams(window.location.search).get('theme');
+        if (forced === 'dark' || forced === 'light') theme = forced;
+        root.setAttribute('data-theme', theme);
+      } catch (e) {}
+      root.classList.add('js');
+    })();
+  </script>
+
+{{- /* ---------- 标题与描述 ---------- */ -}}
+{{- $title := "" -}}
+{{- if .IsHome -}}
+  {{- $title = printf "%s · %s" site.Title (site.Params.tagline | default site.Params.description) -}}
+{{- else if eq .Kind "404" -}}
+  {{- $title = printf "页面不存在 · %s" site.Title -}}
+{{- else if and (eq .Kind "taxonomy") (eq .Data.Singular "tag") -}}
+  {{- $title = printf "标签：%s · %s" .Title site.Title -}}
+{{- else -}}
+  {{- $title = printf "%s · %s" .Title site.Title -}}
+{{- end -}}
+  <title>{{ $title }}</title>
+
+{{- $desc := "" -}}
+{{- with .Description }}{{ $desc = . }}{{ end -}}
+{{- if not $desc }}{{ with .Summary }}{{ $desc = . | plainify | htmlUnescape | chomp }}{{ end }}{{ end -}}
+{{- if not $desc }}{{ $desc = site.Params.description }}{{ end -}}
+{{- $desc = $desc | truncate 140 -}}
+  <meta name="description" content="{{ $desc }}">
+  <meta name="author" content="{{ site.Params.author | default site.Title }}">
+
+{{- /* 里版等私密页面不进搜索引擎 */ -}}
+{{- if or .Params.private .Params.noindex }}
+  <meta name="robots" content="noindex, nofollow, noarchive">
+{{- end }}
+  <link rel="canonical" href="{{ .Permalink }}">
+
+{{- /* ---------- Open Graph / Twitter ---------- */ -}}
+  <meta property="og:site_name" content="{{ site.Title }}">
+  <meta property="og:title" content="{{ .Title | default site.Title }}">
+  <meta property="og:description" content="{{ $desc }}">
+  <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
+  <meta property="og:url" content="{{ .Permalink }}">
+  <meta property="og:locale" content="zh_CN">
+  {{- with or .Params.cover site.Params.ogImage }}
+  <meta property="og:image" content="{{ . | absURL }}">
+  {{- end }}
+  <meta name="twitter:card" content="{{ if or .Params.cover site.Params.ogImage }}summary_large_image{{ else }}summary{{ end }}">
+
+{{- /* ---------- 图标与订阅 ---------- */ -}}
+  <link rel="icon" href="{{ "favicon.svg" | relURL }}" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="{{ "favicon.svg" | relURL }}">
+  {{- with .OutputFormats.Get "rss" }}
+  <link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ site.Title }}">
+  {{- end }}
+
+{{- /* ---------- 样式 ---------- */ -}}
+{{- $main := resources.Get "css/main.css" -}}
+{{- $chroma := resources.Get "css/chroma.css" -}}
+{{- $bundle := slice $main $chroma | resources.Concat "css/site.css" | minify | fingerprint "sha512" -}}
+  <link rel="stylesheet" href="{{ $bundle.RelPermalink }}" integrity="{{ $bundle.Data.Integrity }}" crossorigin="anonymous">
+{{- if .Params.math }}
+  <link rel="stylesheet" href="{{ "vendor/katex/katex.min.css" | relURL }}">
+{{- end }}
+
+{{- /* ---------- 结构化数据 ----------
+     注意：Go 模板在 <script> 上下文会给标量自动加引号，
+     所以这里统一用 dict + jsonify + safeJS 一次性输出，避免双重转义。 */ -}}
+{{- $ldType := "CollectionPage" -}}
+{{- if .IsHome }}{{ $ldType = "WebSite" }}{{ else if .IsPage }}{{ $ldType = "BlogPosting" }}{{ end -}}
+{{- $ld := dict
+      "@context" "https://schema.org"
+      "@type" $ldType
+      "name" (.Title | default site.Title)
+      "url" .Permalink
+      "inLanguage" "zh-CN"
+      "author" (dict "@type" "Person" "name" (site.Params.author | default site.Title))
+-}}
+{{- if .IsPage }}
+  {{- $ld = merge $ld (dict "datePublished" (.Date.Format "2006-01-02") "dateModified" (.Lastmod.Format "2006-01-02")) -}}
+{{- end }}
+  <script type="application/ld+json">{{ $ld | jsonify | safeJS }}</script>

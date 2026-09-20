@@ -1,0 +1,54 @@
+{{- /* 「关于我」页面：左照片右文字 + 社交方式 */ -}}
+{{ define "main" }}
+{{- $meta := partial "section-meta.html" .Section -}}
+{{- $about := hugo.Data.home.about -}}
+
+<header class="page-head page-head--profile" style="--accent: {{ $meta.accent }}">
+  <div class="wrap">
+    <p class="page-head__kicker">{{ $meta.en | default "About" }}</p>
+    <h1 class="page-head__title">{{ .Title }}</h1>
+    {{- with .Params.description }}<p class="page-head__lede">{{ . }}</p>{{ end }}
+  </div>
+</header>
+
+<div class="wrap profile">
+  <aside class="profile__aside">
+    <div class="portrait-frame portrait-frame--lg reveal">
+      {{- if $about.portrait }}
+      <img src="{{ $about.portrait | relURL }}" alt="{{ site.Params.author }}" loading="lazy">
+      {{- else }}
+      <span class="portrait-frame__fallback">{{ $about.portraitFallback | default site.Title }}</span>
+      {{- end }}
+    </div>
+
+    {{- with $about.facts }}
+    <dl class="facts facts--stacked reveal">
+      {{- range . }}
+      <div class="facts__item">
+        <dt>{{ .label }}</dt>
+        <dd>{{ .value }}</dd>
+      </div>
+      {{- end }}
+    </dl>
+    {{- end }}
+
+    {{- with hugo.Data.socials }}
+    <ul class="contact-list reveal">
+      {{- range . }}
+      <li>
+        <a href="{{ .url }}"{{ if not (hasPrefix .url "/") }} rel="me noopener" target="_blank"{{ end }}>
+          {{- partial "icon.html" (dict "name" .icon "class" "icon icon--sm") -}}
+          <span class="contact-list__name">{{ .name }}</span>
+          <span class="contact-list__text">{{ .text }}</span>
+        </a>
+      </li>
+      {{- end }}
+    </ul>
+    {{- end }}
+  </aside>
+
+  <div class="profile__main prose">
+    {{ .Content }}
+  </div>
+</div>
+{{ end }}

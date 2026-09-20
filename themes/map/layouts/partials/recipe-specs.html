@@ -1,0 +1,36 @@
+{{- /* 食谱顶部规格条：份量 / 准备 / 烹饪 / 总时长 / 难度 */ -}}
+{{- $prep := .Params.prep_time | default 0 -}}
+{{- $cook := .Params.cook_time | default 0 -}}
+{{- $total := add $prep $cook -}}
+<dl class="recipe-specs">
+  {{- with .Params.servings }}
+  <div class="recipe-specs__item">
+    <dt>{{ partial "icon.html" (dict "name" "servings" "class" "icon icon--sm") }}份量</dt>
+    <dd>{{ . }} 人份</dd>
+  </div>
+  {{- end }}
+  {{- if gt $prep 0 }}
+  <div class="recipe-specs__item">
+    <dt>{{ partial "icon.html" (dict "name" "clock" "class" "icon icon--sm") }}准备</dt>
+    <dd>{{ partial "duration.html" $prep }}</dd>
+  </div>
+  {{- end }}
+  {{- if gt $cook 0 }}
+  <div class="recipe-specs__item">
+    <dt>{{ partial "icon.html" (dict "name" "pot" "class" "icon icon--sm") }}烹饪</dt>
+    <dd>{{ partial "duration.html" $cook }}</dd>
+  </div>
+  {{- end }}
+  {{- if gt $total 0 }}
+  <div class="recipe-specs__item">
+    <dt>{{ partial "icon.html" (dict "name" "clock" "class" "icon icon--sm") }}合计</dt>
+    <dd>{{ partial "duration.html" $total }}</dd>
+  </div>
+  {{- end }}
+  {{- with .Params.difficulty }}
+  <div class="recipe-specs__item">
+    <dt>{{ partial "icon.html" (dict "name" "gauge" "class" "icon icon--sm") }}难度</dt>
+    <dd>{{ . }}</dd>
+  </div>
+  {{- end }}
+</dl>

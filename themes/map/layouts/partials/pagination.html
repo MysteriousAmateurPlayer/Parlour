@@ -1,0 +1,22 @@
+{{- $p := .Paginator -}}
+{{- if gt $p.TotalPages 1 }}
+<nav class="pagination" aria-label="分页">
+  {{- if $p.HasPrev }}
+  <a class="pagination__step" href="{{ $p.Prev.URL }}" rel="prev">
+    {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm icon--flip") }}<span>上一页</span>
+  </a>
+  {{- else }}
+  <span class="pagination__step is-disabled"><span>上一页</span></span>
+  {{- end }}
+
+  <span class="pagination__status">第 {{ $p.PageNumber }} / {{ $p.TotalPages }} 页</span>
+
+  {{- if $p.HasNext }}
+  <a class="pagination__step" href="{{ $p.Next.URL }}" rel="next">
+    <span>下一页</span>{{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
+  </a>
+  {{- else }}
+  <span class="pagination__step is-disabled"><span>下一页</span></span>
+  {{- end }}
+</nav>
+{{- end }}

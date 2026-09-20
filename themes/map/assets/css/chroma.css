@@ -1,0 +1,66 @@
+/* ==========================================================================
+   代码高亮（Chroma 输出的类名）
+   颜色由 main.css 中的 --code-* 变量提供，因此明暗主题自动生效。
+   ========================================================================== */
+
+.chroma {
+  color: var(--code-text);
+  background-color: var(--code-bg);
+}
+
+/* 注释 */
+.chroma .c, .chroma .ch, .chroma .cm, .chroma .c1, .chroma .cs, .chroma .cp, .chroma .cpf {
+  color: var(--code-comment);
+  font-style: italic;
+}
+
+/* 关键字 */
+.chroma .k, .chroma .kc, .chroma .kd, .chroma .kn, .chroma .kp, .chroma .kr, .chroma .kt {
+  color: var(--code-keyword);
+}
+.chroma .kd, .chroma .kn, .chroma .kr { font-weight: 600; }
+
+/* 字符串 */
+.chroma .s, .chroma .sa, .chroma .sb, .chroma .sc, .chroma .dl, .chroma .sd,
+.chroma .s2, .chroma .se, .chroma .sh, .chroma .si, .chroma .sx, .chroma .sr,
+.chroma .s1, .chroma .ss {
+  color: var(--code-string);
+}
+
+/* 数字与常量 */
+.chroma .m, .chroma .mb, .chroma .mf, .chroma .mh, .chroma .mi, .chroma .mo, .chroma .il {
+  color: var(--code-number);
+}
+.chroma .kc, .chroma .no, .chroma .bp, .chroma .fm { color: var(--code-number); }
+
+/* 函数与内建 */
+.chroma .nf, .chroma .fm, .chroma .nb, .chroma .bp { color: var(--code-func); }
+
+/* 类型、类名、命名空间 */
+.chroma .nc, .chroma .nn, .chroma .ne, .chroma .nt, .chroma .nv, .chroma .vc,
+.chroma .vg, .chroma .vi, .chroma .vm, .chroma .na, .chroma .nd, .chroma .nl, .chroma .py {
+  color: var(--code-type);
+}
+
+/* 运算符与标点 */
+.chroma .o, .chroma .ow, .chroma .p { color: var(--code-punct); }
+
+/* 通用名称 */
+.chroma .n, .chroma .nx, .chroma .nl { color: var(--code-text); }
+
+/* diff 与错误 */
+.chroma .err { color: var(--code-error); border-bottom: 1px dotted var(--code-error); }
+.chroma .gd { color: var(--code-error); }
+.chroma .gi { color: var(--code-string); }
+.chroma .gh { color: var(--code-func); font-weight: 600; }
+.chroma .gu { color: var(--code-comment); font-weight: 600; }
+.chroma .gs { font-weight: 600; }
+.chroma .ge { font-style: italic; }
+
+/* 行号与高亮行 */
+.chroma .lnt, .chroma .ln, .chroma .lntd { color: var(--code-comment); }
+.chroma .hl { background-color: var(--code-hl); display: block; }
+.chroma .w { color: transparent; }
+.chroma .lntable { border-spacing: 0; padding: 0; margin: 0; width: auto; }
+.chroma .lntable td { padding: 0; border: 0; }
+.chroma .lntable td:first-child { padding-right: 0.9rem; user-select: none; }

@@ -1,0 +1,8 @@
+{{- $kicker := .kicker -}}
+{{- $title := .title -}}
+{{- $lede := .lede -}}
+<header class="block-head">
+  {{- with $kicker }}<p class="block-head__kicker">{{ . }}</p>{{ end }}
+  {{- with $title }}<h2 class="block-head__title">{{ . }}</h2>{{ end }}
+  {{- with $lede }}<p class="block-head__lede">{{ . }}</p>{{ end }}
+</header>

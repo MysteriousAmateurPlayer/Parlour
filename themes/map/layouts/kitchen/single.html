@@ -1,0 +1,103 @@
+{{ define "main" }}
+{{- $meta := partial "section-meta.html" "kitchen" -}}
+{{- $prep := .Params.prep_time | default 0 -}}
+{{- $cook := .Params.cook_time | default 0 -}}
+{{- $total := add $prep $cook -}}
+{{- $groups := .Params.ingredients | default slice -}}
+{{- $steps := .Params.steps | default slice -}}
+
+{{- /* 扁平化食材清单，供结构化数据使用 */ -}}
+{{- $flat := slice -}}
+{{- range $groups -}}
+  {{- if reflect.IsMap . -}}
+    {{- range .items }}{{ $flat = $flat | append . }}{{ end -}}
+  {{- else -}}
+    {{- $flat = $flat | append . -}}
+  {{- end -}}
+{{- end -}}
+
+<article class="article article--recipe" style="--accent: {{ $meta.accent }}">
+  <header class="article__head">
+    <div class="wrap wrap--narrow">
+      <div class="article__crumbs"><a href="{{ with site.GetPage "/kitchen" }}{{ .RelPermalink }}{{ end }}">{{ $meta.title }}</a></div>
+      <h1 class="article__title">{{ .Title }}</h1>
+      {{- with .Description }}<p class="article__lede">{{ . }}</p>{{ end }}
+      <div class="article__meta">
+        <span class="article__meta-item">
+          {{ partial "icon.html" (dict "name" "calendar" "class" "icon icon--sm") }}
+          <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006 年 01 月 02 日" }}</time>
+        </span>
+        {{- with .Params.source }}<span class="article__meta-item">参考：{{ . }}</span>{{ end }}
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap wrap--narrow">
+    {{ partial "recipe-specs.html" . }}
+
+    <div class="recipe-layout">
+      {{- if $groups }}
+      <aside class="recipe-ingredients">
+        <h2 class="recipe-section__title">食材</h2>
+        {{- range $groups }}
+          {{- if reflect.IsMap . }}
+          <div class="ingredients__group">
+            {{- with .group }}<h3 class="ingredients__group-title">{{ . }}</h3>{{ end }}
+            <ul class="ingredients__list">
+              {{- range .items }}<li>{{ . | markdownify }}</li>{{ end }}
+            </ul>
+          </div>
+          {{- else }}
+          <ul class="ingredients__list"><li>{{ . | markdownify }}</li></ul>
+          {{- end }}
+        {{- end }}
+        {{- with .Params.servings }}
+        <p class="ingredients__servings">以上为 {{ . }} 人份</p>
+        {{- end }}
+      </aside>
+      {{- end }}
+
+      <div class="recipe-main">
+        {{- if $steps }}
+        <section class="recipe-steps">
+          <h2 class="recipe-section__title">做法</h2>
+          <ol class="steps">
+            {{- range $steps }}
+            <li class="steps__item">{{ . | markdownify }}</li>
+            {{- end }}
+          </ol>
+        </section>
+        {{- end }}
+
+        <div class="prose recipe-notes">
+          {{ .Content }}
+        </div>
+      </div>
+    </div>
+
+    {{- partial "article-foot.html" . }}
+  </div>
+</article>
+
+{{- /* schema.org Recipe：让搜索引擎能识别成菜谱。
+     同 head.html：在 <script> 上下文里用 dict + jsonify + safeJS 一次性输出。 */ -}}
+{{- $instructions := slice -}}
+{{- range $steps }}
+  {{- $instructions = $instructions | append (dict "@type" "HowToStep" "text" (. | plainify)) -}}
+{{- end -}}
+{{- $ld := dict
+      "@context" "https://schema.org"
+      "@type" "Recipe"
+      "name" .Title
+      "description" (.Description | default (.Summary | plainify))
+      "author" (dict "@type" "Person" "name" site.Params.author)
+      "datePublished" (.Date.Format "2006-01-02")
+      "recipeIngredient" $flat
+      "recipeInstructions" $instructions
+-}}
+{{- with .Params.servings }}{{ $ld = merge $ld (dict "recipeYield" (printf "%v 人份" .)) }}{{ end -}}
+{{- if gt $prep 0 }}{{ $ld = merge $ld (dict "prepTime" (partial "iso-duration.html" $prep)) }}{{ end -}}
+{{- if gt $cook 0 }}{{ $ld = merge $ld (dict "cookTime" (partial "iso-duration.html" $cook)) }}{{ end -}}
+{{- if gt $total 0 }}{{ $ld = merge $ld (dict "totalTime" (partial "iso-duration.html" $total)) }}{{ end }}
+<script type="application/ld+json">{{ $ld | jsonify | safeJS }}</script>
+{{ end }}

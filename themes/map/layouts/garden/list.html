@@ -1,0 +1,47 @@
+{{ define "main" }}
+{{- $meta := partial "section-meta.html" "garden" -}}
+
+<header class="page-head" style="--accent: {{ $meta.accent }}">
+  <div class="wrap">
+    <p class="page-head__kicker">{{ $meta.en }}</p>
+    <h1 class="page-head__title">{{ .Title }}</h1>
+    {{- with .Params.description | default $meta.blurb }}<p class="page-head__lede">{{ . }}</p>{{ end }}
+    <p class="page-head__count">{{ len .RegularPages }} 篇记录</p>
+  </div>
+</header>
+
+<div class="wrap wrap--narrow">
+  {{- with .Content }}
+  <div class="prose prose--intro">{{ . }}</div>
+  {{- end }}
+
+  {{- if .RegularPages }}
+  <div class="timeline">
+    {{- range .RegularPages.ByDate.Reverse.GroupByDate "2006" }}
+    <section class="timeline__year">
+      <h2 class="timeline__year-label">{{ .Key }}</h2>
+      <ul class="timeline__list">
+        {{- range .Pages }}
+        <li class="timeline__item reveal" style="--accent: {{ $meta.accent }}">
+          <span class="timeline__dot" aria-hidden="true"></span>
+          <time class="timeline__date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "01.02" }}</time>
+          <div class="timeline__body">
+            <a class="timeline__title" href="{{ .RelPermalink }}">{{ .Title }}</a>
+            {{- with .Params.weather }}<span class="timeline__note">{{ . }}</span>{{ end }}
+          </div>
+          {{- with .Params.tags }}
+          <ul class="tag-list tag-list--sm">
+            {{- range first 2 . }}<li>{{ . }}</li>{{ end }}
+          </ul>
+          {{- end }}
+        </li>
+        {{- end }}
+      </ul>
+    </section>
+    {{- end }}
+  </div>
+  {{- else }}
+  <p class="empty">还没有园艺记录，等下一次播种。</p>
+  {{- end }}
+</div>
+{{ end }}

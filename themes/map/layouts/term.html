@@ -1,0 +1,19 @@
+{{ define "main" }}
+{{- $paginator := .Paginate .Pages.ByDate.Reverse -}}
+<header class="page-head">
+  <div class="wrap">
+    <p class="page-head__kicker">{{ .Data.Singular | title }}</p>
+    <h1 class="page-head__title">{{ .Title }}</h1>
+    <p class="page-head__count">{{ len .Pages }} 篇记录</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card-grid">
+    {{- range $paginator.Pages }}
+    {{ partial "post-card.html" (dict "page" .) }}
+    {{- end }}
+  </div>
+  {{ partial "pagination.html" . }}
+</div>
+{{ end }}

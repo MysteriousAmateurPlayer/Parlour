@@ -1,0 +1,9 @@
+{{- /* 分钟 → ISO 8601 时长（用于食谱结构化数据）：90 → PT1H30M */ -}}
+{{- $m := int . -}}
+{{- $h := div $m 60 -}}
+{{- $r := mod $m 60 -}}
+{{- $out := "PT" -}}
+{{- if gt $h 0 }}{{ $out = printf "%s%dH" $out $h }}{{ end -}}
+{{- if gt $r 0 }}{{ $out = printf "%s%dM" $out $r }}{{ end -}}
+{{- if eq $out "PT" }}{{ $out = "PT0M" }}{{ end -}}
+{{- $out -}}

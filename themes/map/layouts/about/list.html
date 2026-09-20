@@ -1,0 +1,20 @@
+{{ define "main" }}
+{{- $meta := partial "section-meta.html" .Section -}}
+<header class="page-head" style="--accent: {{ $meta.accent }}">
+  <div class="wrap">
+    {{- with $meta.en }}<p class="page-head__kicker">{{ . }}</p>{{ end }}
+    <h1 class="page-head__title">{{ .Title }}</h1>
+    {{- with .Params.description | default $meta.blurb }}<p class="page-head__lede">{{ . }}</p>{{ end }}
+  </div>
+</header>
+
+<div class="wrap">
+  {{- if .RegularPages }}
+  <div class="card-grid">
+    {{- range .RegularPages.ByDate.Reverse }}
+    {{ partial "post-card.html" (dict "page" . "accent" $meta.accent) }}
+    {{- end }}
+  </div>
+  {{- end }}
+</div>
+{{ end }}
