@@ -517,6 +517,22 @@ const server = http.createServer(async (req, res) => {
 });
 
 if (require.main === module) {
+  server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') {
+      const url = `http://127.0.0.1:${PORT}/`;
+      console.log('');
+      console.log('写作台已经在运行了（可能是你之前开的那个窗口还没关）。');
+      console.log('现在帮你在浏览器里打开： ' + url);
+      console.log('');
+      const { spawn } = require('child_process');
+      try { spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore', windowsHide: true }).unref(); } catch (err) {}
+      setTimeout(() => process.exit(0), 1200);
+      return;
+    }
+    console.error('启动失败：' + e.message);
+    process.exit(1);
+  });
+
   server.listen(PORT, '127.0.0.1', () => {
     const url = `http://127.0.0.1:${PORT}/`;
     console.log('');
