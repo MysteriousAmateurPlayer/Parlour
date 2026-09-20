@@ -1,13 +1,17 @@
 # 本地便携版工具链（不进入版本库）
 .tools/
 
-# Hugo 构建产物
+# Hugo 构建产物（网站内容在 content/，public/ 是生成出来的）
 public/
 resources/_gen/
 .hugo_build.lock
 
-# 编辑器 / 系统
-.vscode/
+# VS Code：.vscode/ 下的工作区配置是有意提交的
+# （推荐插件、Ctrl+Shift+B 任务、写作片段都要跟着仓库走）
+# 只忽略个人覆盖文件
+.vscode/*.local
+
+# 系统杂物
 .idea/
 Thumbs.db
 desktop.ini

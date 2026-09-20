@@ -1,0 +1,11 @@
+{
+  // 打开这个文件夹时，VS Code 会提示安装这些插件，点「安装」即可。
+  // 都是免费的，装完就有 Markdown 预览增强、YAML/TOML 语法校验和 Hugo 模板高亮。
+  "recommendations": [
+    "yzhang.markdown-all-in-one",
+    "davidanson.vscode-markdownlint",
+    "redhat.vscode-yaml",
+    "tamasfe.even-better-toml",
+    "budparr.language-hugo-vscode"
+  ]
+}

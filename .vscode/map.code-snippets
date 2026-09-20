@@ -1,0 +1,126 @@
+{
+  // ============================================================
+  //  MAP 个人网站 · 写作速记片段
+  //  在 .md 文件里输入前缀（如 note、定理、食谱）后按 Tab 即可展开
+  // ============================================================
+  "通用 front matter": {
+    "scope": "markdown",
+    "prefix": ["fm", "front"],
+    "body": [
+      "---",
+      "title: \"${1:标题}\"",
+      "date: ${CURRENT_YEAR}-${CURRENT_MONTH}-${CURRENT_DATE}",
+      "description: \"${2:一句话摘要}\"",
+      "tags: [${3:\"标签\"}]",
+      "draft: true",
+      "---",
+      "",
+      "$0"
+    ],
+    "description": "插入一段通用的 front matter"
+  },
+  "数学文章 front matter": {
+    "scope": "markdown",
+    "prefix": ["fmm", "数学"],
+    "body": [
+      "---",
+      "title: \"${1:标题}\"",
+      "date: ${CURRENT_YEAR}-${CURRENT_MONTH}-${CURRENT_DATE}",
+      "description: \"${2:一句话摘要}\"",
+      "tags: [${3:\"数论\"}]",
+      "math: true",
+      "toc: true",
+      "draft: true",
+      "---",
+      "",
+      "## ${4:问题}",
+      "",
+      "$0"
+    ],
+    "description": "数学文章的开头（已打开公式与目录）"
+  },
+  "食谱 front matter": {
+    "scope": "markdown",
+    "prefix": ["食谱", "recipe"],
+    "body": [
+      "---",
+      "title: \"${1:菜名}\"",
+      "date: ${CURRENT_YEAR}-${CURRENT_MONTH}-${CURRENT_DATE}",
+      "description: \"${2:一句话介绍}\"",
+      "servings: ${3:2}",
+      "prep_time: ${4:15}",
+      "cook_time: ${5:30}",
+      "difficulty: \"${6|简单,中等,麻烦|}\"",
+      "tags: [${7:\"家常菜\"}]",
+      "ingredients:",
+      "  - group: 主料",
+      "    items:",
+      "      - \"${8:食材 100g}\"",
+      "  - group: 调味",
+      "    items:",
+      "      - \"盐 适量\"",
+      "steps:",
+      "  - \"${9:第一步。}\"",
+      "  - \"第二步。\"",
+      "draft: true",
+      "---",
+      "",
+      "## 关键点",
+      "",
+      "$0"
+    ],
+    "description": "食谱文章的开头（含食材与步骤字段）"
+  },
+  "提示框 note": {
+    "scope": "markdown",
+    "prefix": ["note", "提示"],
+    "body": [
+      "{{< note type=\"${1|note,tip,warn,idea|}\" title=\"${2:小标题}\" >}}",
+      "${3:内容}",
+      "{{< /note >}}"
+    ],
+    "description": "插入一个提示框"
+  },
+  "定理框 theorem": {
+    "scope": "markdown",
+    "prefix": ["定理", "theorem"],
+    "body": [
+      "{{< theorem title=\"${1:定理名}\" number=\"${2:1.1}\" >}}",
+      "${3:定理内容}",
+      "{{< /theorem >}}"
+    ],
+    "description": "插入一个定理框"
+  },
+  "证明框 proof": {
+    "scope": "markdown",
+    "prefix": ["证明", "proof"],
+    "body": [
+      "{{< proof >}}",
+      "${1:证明过程}",
+      "{{< /proof >}}"
+    ],
+    "description": "插入一个证明框（结尾自动补 ∎）"
+  },
+  "行内公式": {
+    "scope": "markdown",
+    "prefix": ["il", "行内公式"],
+    "body": ["\\$${1:x^2}\\$"],
+    "description": "插入行内公式 $...$"
+  },
+  "公式块": {
+    "scope": "markdown",
+    "prefix": ["eq", "公式块"],
+    "body": [
+      "\\$\\$",
+      "${1:x^2 + y^2 = z^2}",
+      "\\$\\$"
+    ],
+    "description": "插入独占一行的公式块 $$...$$"
+  },
+  "图片": {
+    "scope": "markdown",
+    "prefix": ["img", "图片"],
+    "body": ["![${1:说明}](/images/${2:文件名.jpg})"],
+    "description": "插入一张 static/images/ 里的图片"
+  }
+}

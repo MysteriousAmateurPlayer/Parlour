@@ -10,9 +10,21 @@
 
 - **现在（本地预览）**：`http://localhost:1313/`
   启动方式：双击 `D:\个人网站\start.bat`，或 `cd D:\个人网站` 后运行 `.\start.bat`。
-  服务起来之前，这个网址是打不开的——两个 `localhost` 地址是"本地服务"，不是现成的公网网站。
-- **上线之后（公网）**：等你把它部署到 GitHub Pages / Cloudflare Pages 等平台，才会拿到形如
-  `https://你的名字.github.io/仓库名/` 的正式网址。部署步骤见下面「部署」一节。
+  服务起来之前，这个网址是打不开的——`localhost` 是"本机"的意思，不是现成的公网网站。
+- **上线之后（公网）**：形如 `https://你的用户名.github.io/仓库名/`。
+  完整步骤见 **[上线指南.md](上线指南.md)**（从注册 GitHub 账号开始，约 20 分钟）。
+
+## 两件事，两个指南
+
+| 你想做什么 | 看哪份 |
+| --- | --- |
+| 让网站有个真正的公网网址、给朋友看 | **[上线指南.md](上线指南.md)** |
+| 平时写文章、改首页文案、传照片 | **[写作指南.md](写作指南.md)** |
+| 只想在本地看看效果 | 双击 `start.bat` |
+
+> 写作有两条路，可以混着用：
+> **① 网页后台**（[Pages CMS](https://app.pagescms.org)，用 GitHub 登录，手机上也能写，配置在 `.pages.yml`）；
+> **② 本地 VS Code**（打开 `D:\个人网站`，按 `Ctrl+Shift+B` 就有本地预览，带写作片段和快捷键）。
 
 ---
 
@@ -111,6 +123,12 @@ node scripts\verify.cjs      # 可选：冒烟测试，检查关键页面是否�
 ## 目录结构
 
 ```
+上线指南.md                从注册 GitHub 到网站上线的逐步清单（新手先看这个）
+写作指南.md                日常怎么改内容：网页后台 / VS Code 两条路 + front matter 速查
+start.bat                  双击 = 本地预览
+build.bat                  双击 = 生成 public/（部署用）
+.pages.yml                 网页版写作后台（Pages CMS）的配置
+.vscode/                   VS Code 工作区：Ctrl+Shift+B 预览、推荐插件、写作片段
 hugo.toml                  站点配置（导航、站点信息、里版答案哈希、渲染选项）
 content/
   _index.md                首页（文案主要在 data/home.yaml）
@@ -300,7 +318,12 @@ powershell -ExecutionPolicy Bypass -File scripts\hash-answer.ps1 "你的新答�
 
 ## 部署
 
-先把 `hugo.toml` 里的 `baseURL` 改成你的正式地址。
+> **新手请直接看 [上线指南.md](上线指南.md)**：那里是从注册 GitHub 账号、建仓库、推代码、
+> 开启 Pages 到排错的逐步清单。下面只是各平台的参数速查。
+>
+> 关于 `baseURL`：`.github/workflows/hugo.yml` 里已经用 `actions/configure-pages`
+> 自动把网址设成你的实际地址，所以**一般不需要手工改** `hugo.toml` 的 `baseURL`。
+> 它只影响本机构建出来的绝对链接。
 
 ### GitHub Pages（仓库里已经准备好工作流）
 
@@ -355,6 +378,9 @@ node scripts\verify.cjs
 - `start.bat` / `build.bat` 在 cmd 下实测可用，`scripts\*.ps1` 在 **Windows PowerShell 5.1**
   与 PowerShell 7 下都实测可跑（脚本存为 UTF-8 with BOM，5.1 才能正确解析中文；
   `.bat` 则刻意只用 ASCII，因为 cmd 按字节偏移读批处理，中途切代码页会把后面的行读错位）。
+- `.pages.yml`（网页后台配置）已用 Hugo 的 YAML 解析器验证：5 个内容集合 + 1 个设置分组，
+  字段数与预期一致；`.vscode/` 下 4 个配置文件已校验为合法 JSONC，任务依赖关系与
+  `Ctrl+Shift+B` 默认任务都已确认。
 
 （本次验收过程的截图留在 `.tools/shots/`，该目录已被 git 忽略，可以随时删。）
 
@@ -362,6 +388,8 @@ node scripts\verify.cjs
 
 - **站内搜索**：Hugo 的 `outputs` 加一个 JSON 索引，再写十几行前端即可，不需要后端。
 - **评论**：giscus / Waline（都支持 GitHub 登录，静态站点友好）。
+- **里版真正加密**：现在是软门禁；要做成"输口令才能解密"的话，可以用 staticrypt 之类的
+  构建后处理，口令不进仓库。
 - **图片处理**：把原图放进 `assets/`，用 `{{ $img := resources.Get "x.jpg" }}` 自动生成多尺寸 WebP。
 - **多语言**：`content/en/` + `i18n/`，主题里的界面文字目前是中文硬编码。
 - **阅读时长 / 字数**：`.WordCount`、`.ReadingTime` 直接可用，加进 `partials/article-foot.html` 即可。

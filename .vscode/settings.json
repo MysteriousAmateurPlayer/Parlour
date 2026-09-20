@@ -1,0 +1,62 @@
+{
+  // ============================================================
+  //  MAP 个人网站 · VS Code 工作区设置
+  //  打开文件夹 D:\个人网站 后自动生效
+  // ============================================================
+
+  // 中文内容必须用 UTF-8；统一 LF 换行，避免和 GitHub 上的版本产生差异
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+
+  // 写作体验
+  "editor.wordWrap": "on",
+  "editor.tabSize": 2,
+  "editor.rulers": [100],
+  "editor.minimap.enabled": false,
+
+  // 把构建产物和工具目录藏起来，文件树只留内容
+  "files.exclude": {
+    "**/.tools": true,
+    "**/public": true,
+    "**/resources": true,
+    ".hugo_build.lock": true
+  },
+  "search.exclude": {
+    "**/.tools": true,
+    "**/public": true,
+    "**/resources": true,
+    "themes/map/static/vendor": true
+  },
+
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": { "other": true, "comments": false, "strings": true },
+    "editor.snippetSuggestions": "top",
+    "editor.formatOnSave": false,
+    "files.trimTrailingWhitespace": false
+  },
+  "[yaml]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+
+  // Markdown 预览与校验
+  "markdown.preview.breaks": false,
+  "markdown.validate.enabled": true,
+
+  // 中文写作里这些规则没有意义，关掉免得满屏波浪线
+  "markdownlint.config": {
+    "MD013": false,
+    "MD024": false,
+    "MD025": false,
+    "MD033": false,
+    "MD034": false,
+    "MD036": false,
+    "MD041": false
+  },
+
+  "git.autofetch": true,
+  "git.confirmSync": false
+}

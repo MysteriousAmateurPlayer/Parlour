@@ -1,0 +1,82 @@
+{
+  // ============================================================
+  //  快捷键：Ctrl+Shift+B 直接启动本地预览
+  //  其他任务：Ctrl+Shift+P → 输入 Run Task → 选一个
+  // ============================================================
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "1 · 启动本地预览",
+      "detail": "启动 Hugo 本地服务器，浏览器打开 http://localhost:1313/ ；改文件即时刷新",
+      "type": "shell",
+      "command": "powershell.exe",
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts\\serve.ps1"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "group": "预览" },
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "2 · 构建静态文件",
+      "detail": "把网站生成到 public\\（等于双击 build.bat）",
+      "type": "shell",
+      "command": "powershell.exe",
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts\\build.ps1"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true, "group": "构建" }
+    },
+    {
+      "label": "3 · 冒烟测试（检查页面有没有坏）",
+      "detail": "检查首页五个板块、公式、食谱数据、里版收录设置等 29 项",
+      "type": "shell",
+      "command": "node",
+      "args": ["scripts\\verify.cjs"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true, "group": "构建" }
+    },
+    {
+      "label": "4 · 构建并检查",
+      "detail": "先构建，再跑冒烟测试",
+      "dependsOrder": "sequence",
+      "dependsOn": ["2 · 构建静态文件", "3 · 冒烟测试（检查页面有没有坏）"],
+      "problemMatcher": []
+    },
+    {
+      "label": "5 · 新建一篇文章",
+      "detail": "选板块、输入文件名，生成一篇带模板的草稿",
+      "type": "shell",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile", "-ExecutionPolicy", "Bypass",
+        "-File", "scripts\\new.ps1",
+        "${input:section}", "${input:title}"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true, "group": "写作" }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "section",
+      "type": "pickString",
+      "description": "写到哪个板块？",
+      "default": "fanworks",
+      "options": [
+        { "label": "二次同人创作", "value": "fanworks" },
+        { "label": "数学分享", "value": "math" },
+        { "label": "园艺记录", "value": "garden" },
+        { "label": "烹饪食谱", "value": "kitchen" },
+        { "label": "里版（解谜后才能看）", "value": "vault" }
+      ]
+    },
+    {
+      "id": "title",
+      "type": "promptString",
+      "description": "文件名（建议用英文短名，它会变成网址的一部分，例如 rain-stops）",
+      "default": "new-post"
+    }
+  ]
+}

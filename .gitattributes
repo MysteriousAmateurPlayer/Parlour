@@ -1,0 +1,17 @@
+# 统一换行符，避免 Windows / Linux（GitHub Actions）之间的噪音差异
+* text=auto eol=lf
+
+# 批处理必须是 CRLF：cmd.exe 对 LF 结尾的 .bat 兼容性不好
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 二进制文件不要做文本转换
+*.woff2 binary
+*.woff binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.zip binary
