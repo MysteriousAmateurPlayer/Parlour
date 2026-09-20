@@ -20,9 +20,9 @@
   header h1{margin:0;font:600 20px/1.2 var(--serif);letter-spacing:.16em}
   header .sub{color:var(--ink-mute);font-size:13px}
   header .grow{flex:1}
-  .layout{display:grid;grid-template-columns:290px minmax(0,1fr);gap:0;min-height:calc(100vh - 62px)}
+  .layout{display:grid;grid-template-columns:290px minmax(0,1fr);min-height:calc(100vh - 62px)}
   aside{border-right:1px solid var(--line);background:var(--surface);padding:18px 16px}
-  main{padding:22px 26px 80px;max-width:960px}
+  main{padding:22px 26px 80px;max-width:1000px}
   h2{font:600 17px/1.4 var(--serif);margin:0 0 10px;letter-spacing:.06em}
   .tabs{display:flex;flex-direction:column;gap:6px;margin-bottom:22px}
   .tab{text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:transparent;
@@ -30,7 +30,7 @@
   .tab:hover{border-color:var(--accent);color:var(--accent)}
   .tab.active{background:var(--ink);border-color:var(--ink);color:var(--bg)}
   .tab small{display:block;font-size:12px;opacity:.72;margin-top:2px}
-  .postlist{list-style:none;margin:0;padding:0;max-height:46vh;overflow:auto}
+  .postlist{list-style:none;margin:0;padding:0;max-height:40vh;overflow:auto}
   .postlist li{margin-bottom:4px}
   .postlist button{width:100%;text-align:left;padding:7px 9px;border:1px solid transparent;border-radius:4px;
     background:transparent;cursor:pointer;font-size:14px;color:var(--ink-soft);line-height:1.4}
@@ -41,7 +41,9 @@
   .btn:hover{border-color:var(--accent);color:var(--accent)}
   .btn.primary{background:var(--ink);border-color:var(--ink);color:var(--bg)}
   .btn.primary:hover{background:var(--accent);border-color:var(--accent);color:#fff}
-  .btn:disabled{opacity:.5;cursor:default}
+  .btn.danger{color:var(--err);border-color:#e2c6c4}
+  .btn.danger:hover{background:var(--err);border-color:var(--err);color:#fff}
+  .btn.sm{padding:5px 10px;font-size:13px}
   .row{display:flex;gap:12px;flex-wrap:wrap}
   .field{margin-bottom:16px}
   .field > label{display:block;font-size:13px;color:var(--ink-mute);margin-bottom:5px;letter-spacing:.04em}
@@ -50,34 +52,39 @@
     width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:4px;background:#fff;
     font:15px/1.6 var(--sans);color:var(--ink)}
   textarea{resize:vertical;font-family:var(--sans)}
-  textarea.body{min-height:340px;font:15px/1.85 var(--serif);font-size:16px}
+  textarea.body{min-height:320px;font:16px/1.85 var(--serif)}
   input:focus,textarea:focus,select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
   .check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-soft);cursor:pointer}
   .check input{width:17px;height:17px}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .toolbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;padding:8px;border:1px solid var(--line);
     border-radius:4px;background:var(--surface)}
   .toolbar button{padding:5px 10px;border:1px solid var(--line);border-radius:3px;background:#fff;
     cursor:pointer;font-size:13px;color:var(--ink-soft)}
   .toolbar button:hover{border-color:var(--accent);color:var(--accent)}
+  .toolbar button.hi{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
   .toolbar .sep{width:1px;background:var(--line);margin:0 4px}
   .sticky-bar{position:sticky;bottom:0;z-index:6;margin-top:10px;padding:10px 0 14px;
-    background:linear-gradient(to bottom, rgba(250,247,242,.75), var(--bg) 28%);}
+    background:linear-gradient(to bottom, rgba(250,247,242,.75), var(--bg) 28%)}
   .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .status{margin-bottom:10px;padding:12px 14px;border-radius:4px;font-size:14px;white-space:pre-wrap;
     border:1px solid var(--line);background:var(--surface);display:none;font-family:var(--mono);
-    max-height:32vh;overflow:auto}
+    max-height:30vh;overflow:auto}
   .status.show{display:block}
   .status.ok{border-color:var(--ok);color:var(--ok)}
   .status.err{border-color:var(--err);color:var(--err)}
   .status.info{border-color:var(--line-strong);color:var(--ink-soft)}
   .notice{padding:12px 14px;border:1px dashed var(--line-strong);border-radius:4px;background:var(--accent-soft);
-    font-size:13px;color:var(--ink-soft);margin-bottom:18px;line-height:1.7}
+    font-size:13px;color:var(--ink-soft);margin-bottom:18px;line-height:1.75}
   .legend{font-size:12px;color:var(--ink-mute);margin-top:22px;line-height:1.9}
   .legend code{font-family:var(--mono);background:#fff;padding:1px 5px;border:1px solid var(--line);border-radius:3px}
-  .thumb{margin-top:8px;font-size:12px;color:var(--ink-mute)}
-  .thumb img{max-width:220px;border:1px solid var(--line);border-radius:4px;display:block;margin-top:6px}
-  @media (max-width:820px){ .layout{grid-template-columns:1fr} aside{border-right:0;border-bottom:1px solid var(--line)} }
+  .thumb{margin-top:8px;font-size:12px;color:var(--ink-mute);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .thumb img{max-width:180px;border:1px solid var(--line);border-radius:4px;cursor:pointer}
+  table.sec{width:100%;border-collapse:collapse;font-size:14px}
+  table.sec th{font-size:12px;color:var(--ink-mute);text-align:left;font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line-strong)}
+  table.sec td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+  table.sec input[type=text],table.sec select{padding:6px 8px;font-size:14px}
+  code{font-family:var(--mono);font-size:12px;background:#fff;border:1px solid var(--line);border-radius:3px;padding:1px 5px}
+  @media (max-width:900px){ .layout{grid-template-columns:1fr} aside{border-right:0;border-bottom:1px solid var(--line)} }
 </style>
 </head>
 <body>
@@ -85,78 +92,117 @@
   <h1>MAP 写作台</h1>
   <span class="sub">填表、写字、点发布 —— 不用碰任何代码</span>
   <span class="grow"></span>
+  <button class="btn" id="btnViewWrite">✍ 写作</button>
+  <button class="btn" id="btnViewSections">⚙ 板块管理</button>
   <button class="btn" id="btnPreview">本地预览</button>
-  <button class="btn" id="btnReload">重新载入</button>
 </header>
 
 <div class="layout">
   <aside>
-    <h2>1. 选板块</h2>
-    <div class="tabs" id="tabs"></div>
-    <h2>这个板块的文章</h2>
-    <ul class="postlist" id="postlist"></ul>
-    <button class="btn primary" id="btnNew" style="width:100%;margin-top:12px">＋ 写新的一篇</button>
+    <div id="sideWrite">
+      <h2>1. 选板块</h2>
+      <div class="tabs" id="tabs"></div>
+      <h2>这个板块的文章</h2>
+      <ul class="postlist" id="postlist"></ul>
+      <button class="btn primary" id="btnNew" style="width:100%;margin-top:12px">＋ 写新的一篇</button>
+    </div>
+    <div id="sideSections" style="display:none">
+      <h2>板块管理</h2>
+      <p style="font-size:13px;color:#8d857c;line-height:1.8">在这里改板块名字、颜色、顺序，或者新增、删除板块。改完记得点右边的「保存并发布」才会更新到线上。</p>
+    </div>
   </aside>
 
   <main>
-    <div class="notice">
-      怎么用：<b>① 左边选板块</b> → <b>② 点「写新的一篇」或点已有文章</b> → <b>③ 填上面几栏、下面写正文</b> →
-      <b>④ 点「保存」</b>（只存到本地）或 <b>「保存并发布」</b>（会推到线上，1~2 分钟后网站上就有了）。
-      草稿勾着就不会对外显示，写满意了再取消勾选。
-    </div>
-
-    <div id="form"></div>
-
-    <div class="field">
-      <label>正文</label>
-      <div class="toolbar" id="toolbar">
-        <button data-md="h2">小标题</button>
-        <button data-md="b">粗体</button>
-        <button data-md="i">斜体</button>
-        <button data-md="ul">列表</button>
-        <button data-md="quote">引用</button>
-        <button data-md="link">链接</button>
-        <span class="sep"></span>
-        <button data-md="note">提示框</button>
-        <button data-md="theorem">定理框</button>
-        <button data-md="proof">证明框</button>
-        <button data-md="eq">公式块</button>
-        <span class="sep"></span>
-        <button id="btnUpload">插入图片</button>
+    <!-- ================= 写作视图 ================= -->
+    <div id="viewWrite">
+      <div class="notice">
+        <b>只有「标题」是必填的</b>，其他都能留空（日期空着自动填今天）。
+        用法：<b>① 左边选板块</b> → <b>② 点「写新的一篇」或点已有文章</b> → <b>③ 填上面几栏、下面写正文</b> →
+        <b>④ 点「保存」或「保存并发布」</b>。<br>
+        正文里插图片：点 <b>插入图片</b>，或者直接把图片文件<b>拖进</b>正文框，也可以截图后按 <b>Ctrl+V</b> 粘贴进来。
       </div>
-      <textarea class="body" id="body" placeholder="在这里写正文。空一行就是新的一段。"></textarea>
-      <input type="file" id="fileInput" accept="image/*" hidden>
-      <div class="thumb" id="thumb"></div>
-    </div>
 
-    <div class="sticky-bar">
-      <div class="status" id="status"></div>
-      <div class="actions">
-        <button class="btn primary" id="btnSave">保存</button>
-        <button class="btn primary" id="btnPublish">保存并发布</button>
-        <button class="btn" id="btnOpenLocal">在本地预览里看这篇</button>
-        <span style="font-size:13px;color:var(--ink-mute)" id="where"></span>
+      <div id="form"></div>
+
+      <div class="field">
+        <label>正文</label>
+        <div class="toolbar" id="toolbar">
+          <button data-md="h2">小标题</button>
+          <button data-md="b">粗体</button>
+          <button data-md="i">斜体</button>
+          <button data-md="ul">列表</button>
+          <button data-md="quote">引用</button>
+          <button data-md="link">链接</button>
+          <span class="sep"></span>
+          <button data-md="note">提示框</button>
+          <button data-md="theorem">定理框</button>
+          <button data-md="proof">证明框</button>
+          <button data-md="eq">公式块</button>
+          <span class="sep"></span>
+          <button id="btnUpload" class="hi">🖼 插入图片</button>
+        </div>
+        <textarea class="body" id="body" placeholder="在这里写正文。空一行就是新的一段。图片可以直接拖进来或粘贴。"></textarea>
+        <input type="file" id="fileInput" accept="image/*" multiple hidden>
+        <div class="thumb" id="thumb"></div>
+      </div>
+
+      <div class="sticky-bar">
+        <div class="status" id="status"></div>
+        <div class="actions">
+          <button class="btn primary" id="btnSave">保存</button>
+          <button class="btn primary" id="btnPublish">保存并发布</button>
+          <button class="btn" id="btnOpenLocal">在本地预览里看这篇</button>
+          <button class="btn danger" id="btnDelete" style="display:none">删除这篇文章</button>
+          <span style="font-size:13px;color:var(--ink-mute)" id="where"></span>
+        </div>
+      </div>
+
+      <div class="legend">
+        小贴士：<br>
+        · 想分小节就用工具栏的「小标题」，它会插入 <code>## 标题</code>。<br>
+        · 数学公式要先勾上「渲染数学公式」，然后正文里写 <code>$x^2$</code>（行内）或 <code>$$…$$</code>（独占一行）。<br>
+        · 图片会自动存到 <code>static/images/</code> 并写好地址，你不用管路径。<br>
+        · 文章开头那几行（标题、日期、标签……）就是所谓的 front matter，你在上面填表，工具会帮你写对格式。<br>
+        · 删掉的文章不会消失，会挪到本机的 <code>.tools/trash/</code> 里，想找回随时说。
       </div>
     </div>
 
-    <div class="legend">
-      小贴士：<br>
-      · 想分小节就用工具栏的「小标题」，它会插入 <code>## 标题</code>。<br>
-      · 数学公式要现在 front matter 里勾上「渲染数学公式」，然后正文里写 <code>$x^2$</code>（行内）或 <code>$$…$$</code>（独占一行）。<br>
-      · 图片：点「插入图片」选文件，会自动存到 static/images/ 并插入正确的地址。<br>
-      · 文章开头的几行（标题、日期、标签……）就是所谓的 front matter，你在这里填表，工具会帮你写对格式。<br>
-      · 保存后如果没看到变化：确认「草稿」取消了勾选，再点「保存并发布」，等 1~2 分钟。
+    <!-- ================= 板块管理视图 ================= -->
+    <div id="viewSections" style="display:none">
+      <h2>我的板块</h2>
+      <div class="notice">
+        改完点每行的「保存」，然后回到「✍ 写作」点一次 <b>保存并发布</b>，网站上的导航和首页卡片就会跟着变。<br>
+        板块代号（左边灰字）是网址里的一段，例如 <code>/notes/</code>，只能用英文小写字母、数字和连字符。
+      </div>
+      <div style="overflow:auto">
+        <table class="sec" id="secTable"></table>
+      </div>
+
+      <h2 style="margin-top:28px">新增板块</h2>
+      <div class="row" style="align-items:flex-end;gap:12px">
+        <div style="flex:0 0 180px"><label style="font-size:13px;color:#8d857c">代号（英文）</label>
+          <input type="text" id="newKey" placeholder="notes"></div>
+        <div style="flex:1;min-width:180px"><label style="font-size:13px;color:#8d857c">显示名</label>
+          <input type="text" id="newTitle" placeholder="随手笔记"></div>
+        <div><button class="btn primary" id="btnCreateSection">＋ 新增</button></div>
+      </div>
+      <div class="notice" style="margin-top:16px">
+        新增的板块会自动出现在顶部导航和首页卡片里；它的文章字段是通用的（标题／日期／摘要／标签／封面图／正文）。
+        想让它像「食谱」那样有专属字段（食材、步骤），告诉我，我给你加。
+      </div>
     </div>
   </main>
 </div>
 
 <script>
 let META = null;
-let CURRENT = null;      // { section, fields }
+let CURRENT = null;         // 当前板块（含 fields）
 let UNKNOWN_KEYS = [];
+let EDITING_FILE = null;    // 正在编辑的文件名（新建时为 null）
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const post = async (path, body) => (await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) })).json();
 
 function setStatus(text, kind) {
   const el = $('status');
@@ -164,46 +210,77 @@ function setStatus(text, kind) {
   el.textContent = text;
 }
 
-/* ---------- 初始化 ---------- */
+/* ================= 启动 ================= */
 async function boot() {
-  META = await (await fetch('/api/meta')).json();
-  $('tabs').innerHTML = META.sections.map((s) =>
-    `<button class="tab" data-key="${s.key}">${esc(s.label)}<small>${esc(s.note || '')}</small></button>`).join('');
+  await loadMeta();
   $('tabs').addEventListener('click', (e) => {
     const b = e.target.closest('.tab');
     if (b) selectSection(b.dataset.key);
   });
-  $('btnNew').addEventListener('click', () => newPost());
+  $('btnNew').addEventListener('click', newPost);
   $('btnSave').addEventListener('click', () => save(false));
   $('btnPublish').addEventListener('click', () => save(true));
+  $('btnDelete').addEventListener('click', deletePost);
   $('btnPreview').addEventListener('click', () => preview(false));
   $('btnOpenLocal').addEventListener('click', () => preview(true));
-  $('btnReload').addEventListener('click', () => location.reload());
-  $('btnUpload').addEventListener('click', () => $('fileInput').click());
-  $('fileInput').addEventListener('change', uploadImage);
+  $('btnViewWrite').addEventListener('click', () => switchView('write'));
+  $('btnViewSections').addEventListener('click', () => switchView('sections'));
+  $('btnUpload').addEventListener('click', () => { EDITING_FILE = EDITING_FILE; imageTargetField = null; $('fileInput').click(); });
+  $('fileInput').addEventListener('change', () => uploadFiles($('fileInput').files));
   $('toolbar').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-md]');
     if (b) insertMarkdown(b.dataset.md);
   });
-  selectSection(META.sections[0].key);
+  $('btnCreateSection').addEventListener('click', createSection);
+  bindImageDrop();
+  if (META.sections.length) selectSection(META.sections[0].key);
+  if (location.hash === '#sections') switchView('sections');
 }
 
+async function loadMeta() {
+  META = await (await fetch('/api/meta')).json();
+  $('tabs').innerHTML = META.sections.map((s) =>
+    `<button class="tab" data-key="${s.key}">${esc(s.label)}<small>${esc(s.note || '')}</small></button>`).join('');
+  if (CURRENT) {
+    const still = META.sections.find((s) => s.key === CURRENT.key);
+    CURRENT = still || META.sections[0] || null;
+  }
+  [...document.querySelectorAll('.tab')].forEach((t) => t.classList.toggle('active', CURRENT && t.dataset.key === CURRENT.key));
+}
+
+function switchView(v) {
+  $('viewWrite').style.display = v === 'write' ? '' : 'none';
+  $('viewSections').style.display = v === 'sections' ? '' : 'none';
+  $('sideWrite').style.display = v === 'write' ? '' : 'none';
+  $('sideSections').style.display = v === 'sections' ? '' : 'none';
+  if (v === 'sections') renderSectionTable();
+}
+
+/* ================= 板块 ================= */
 async function selectSection(key) {
-  CURRENT = META.sections.find((s) => s.key === key);
+  CURRENT = META.sections.find((s) => s.key === key) || null;
+  if (!CURRENT) return;
   [...document.querySelectorAll('.tab')].forEach((t) => t.classList.toggle('active', t.dataset.key === key));
+  EDITING_FILE = null;
   renderForm({}, '');
-  const r = await (await fetch('/api/posts?section=' + encodeURIComponent(key))).json();
-  $('postlist').innerHTML = (r.posts || []).map((p) =>
-    `<li><button data-file="${esc(p.file)}">${esc(p.title)}<span class="meta">${esc(p.date)}${p.draft ? ' · 草稿' : ''}</span></button></li>`).join('')
-    || '<li style="font-size:13px;color:#8d857c">还没有文章</li>';
+  await refreshPostList();
+  $('where').textContent = `content/${key}/`;
+}
+
+async function refreshPostList() {
+  const r = await (await fetch('/api/posts?section=' + encodeURIComponent(CURRENT.key))).json();
+  const posts = r.posts || [];
+  $('postlist').innerHTML = posts.length
+    ? posts.map((p) => `<li><button data-file="${esc(p.file)}">${esc(p.title)}<span class="meta">${esc(p.date)}${p.draft ? ' · 草稿' : ''}</span></button></li>`).join('')
+    : '<li style="font-size:13px;color:#8d857c">还没有文章</li>';
   $('postlist').onclick = async (e) => {
     const b = e.target.closest('button[data-file]');
     if (!b) return;
-    const d = await (await fetch(`/api/post?section=${encodeURIComponent(key)}&file=${encodeURIComponent(b.dataset.file)}`)).json();
+    const d = await (await fetch(`/api/post?section=${encodeURIComponent(CURRENT.key)}&file=${encodeURIComponent(b.dataset.file)}`)).json();
     if (d.error) return setStatus('打开失败：' + d.error, 'err');
+    EDITING_FILE = b.dataset.file;
     fillForm(d.data, d.body, b.dataset.file);
   };
-  $('where').textContent = `content/${key}/`;
 }
 
 function newPost() {
@@ -211,11 +288,13 @@ function newPost() {
   const defaults = {};
   CURRENT.fields.forEach((f) => { if (f.type === 'bool' && f.default === true) defaults[f.key] = true; });
   defaults.date = today;
+  EDITING_FILE = null;
   fillForm(defaults, '', today + '-post');
-  setStatus('新的一篇已经准备好。填好标题和正文，记得把文件名改成英文短名（可选）。', 'info');
+  setStatus('新的一篇准备好了。只有标题是必填的，写完点「保存」或「保存并发布」。', 'info');
+  $('body').focus();
 }
 
-/* ---------- 表单渲染 ---------- */
+/* ================= 写作表单 ================= */
 function renderForm(data, body) {
   UNKNOWN_KEYS = Object.keys(data).filter((k) => !CURRENT.fields.some((f) => f.key === k));
   const html = CURRENT.fields.map((f) => {
@@ -223,57 +302,44 @@ function renderForm(data, body) {
     const label = esc(f.label) + (f.required ? ' <span style="color:#8f3a2c">*</span>' : '');
     const hint = f.hint ? `<div class="hint">${esc(f.hint)}</div>` : '';
     let input = '';
-    if (f.type === 'textarea') {
-      input = `<textarea rows="${f.rows || 3}" data-k="${f.key}" placeholder="${esc(f.placeholder || '')}">${esc(v || '')}</textarea>`;
-    } else if (f.type === 'bool') {
-      input = `<label class="check"><input type="checkbox" data-k="${f.key}" ${v === true || (v === undefined && f.default === true) ? 'checked' : ''}> ${esc(f.label)}</label>`;
-      return `<div class="field">${input}${hint}</div>`;
-    } else if (f.type === 'select') {
-      input = `<select data-k="${f.key}">${f.options.map((o) => `<option ${v === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
-    } else if (f.type === 'number') {
-      input = `<input type="number" data-k="${f.key}" value="${v == null ? '' : esc(v)}">`;
-    } else if (f.type === 'date') {
-      input = `<input type="date" data-k="${f.key}" value="${esc(v || META.today)}">`;
-    } else if (f.type === 'ingredients') {
-      input = `<textarea rows="${f.rows || 7}" data-k="${f.key}" placeholder="[主料]&#10;牛腩 700g&#10;番茄 3 个">${esc(ingredientsToText(v))}</textarea>`;
-    } else if (f.type === 'steps') {
-      input = `<textarea rows="${f.rows || 6}" data-k="${f.key}" placeholder="第一步写在这里">${esc(Array.isArray(v) ? v.join('\n') : (v || ''))}</textarea>`;
-    } else if (f.type === 'image') {
-      input = `<div class="row"><input type="text" data-k="${f.key}" value="${esc(v || '')}" placeholder="/images/xxx.jpg" style="flex:1;min-width:200px">
-               <button class="btn" onclick="pickImage('${f.key}')">上传</button></div>`;
-    } else if (f.type === 'tags') {
-      input = `<input type="text" data-k="${f.key}" value="${esc(Array.isArray(v) ? v.join(', ') : (v || ''))}" placeholder="${esc(f.placeholder || '')}">`;
-    } else {
-      input = `<input type="text" data-k="${f.key}" value="${esc(v == null ? '' : v)}" placeholder="${esc(f.placeholder || '')}">`;
+    if (f.type === 'bool') {
+      return `<div class="field"><label class="check"><input type="checkbox" data-k="${f.key}" ${v === true || (v === undefined && f.default === true) ? 'checked' : ''}> ${esc(f.label)}</label>${hint}</div>`;
     }
+    if (f.type === 'textarea') input = `<textarea rows="${f.rows || 3}" data-k="${f.key}" placeholder="${esc(f.placeholder || '')}">${esc(v || '')}</textarea>`;
+    else if (f.type === 'select') input = `<select data-k="${f.key}">${f.options.map((o) => `<option ${v === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+    else if (f.type === 'number') input = `<input type="number" data-k="${f.key}" value="${v == null ? '' : esc(v)}">`;
+    else if (f.type === 'date') input = `<input type="date" data-k="${f.key}" value="${esc(v || '')}">`;
+    else if (f.type === 'ingredients') input = `<textarea rows="${f.rows || 7}" data-k="${f.key}" placeholder="[主料]&#10;牛腩 700g&#10;番茄 3 个">${esc(ingredientsToText(v))}</textarea>`;
+    else if (f.type === 'steps') input = `<textarea rows="${f.rows || 6}" data-k="${f.key}" placeholder="第一步写在这里">${esc(Array.isArray(v) ? v.join('\n') : (v || ''))}</textarea>`;
+    else if (f.type === 'image') input = `<div class="row"><input type="text" data-k="${f.key}" value="${esc(v || '')}" placeholder="/images/xxx.jpg" style="flex:1;min-width:200px"><button class="btn" onclick="pickImage('${f.key}')">上传</button></div>`;
+    else if (f.type === 'tags') input = `<input type="text" data-k="${f.key}" value="${esc(Array.isArray(v) ? v.join(', ') : (v || ''))}" placeholder="${esc(f.placeholder || '')}">`;
+    else input = `<input type="text" data-k="${f.key}" value="${esc(v == null ? '' : v)}" placeholder="${esc(f.placeholder || '')}">`;
     return `<div class="field"><label>${label}</label>${input}${hint}</div>`;
   }).join('');
 
   const noteHtml = UNKNOWN_KEYS.length
-    ? `<div class="notice">这篇文章还有这些不常用的设置，<b>保存时会原样保留</b>：<code>${UNKNOWN_KEYS.map(esc).join('</code> <code>')}</code></div>`
-    : '';
+    ? `<div class="notice">这篇文章还有这些不常用的设置，<b>保存时会原样保留</b>：<code>${UNKNOWN_KEYS.map(esc).join('</code> <code>')}</code></div>` : '';
 
   $('form').innerHTML = noteHtml + html;
   $('body').value = body || '';
+  $('thumb').innerHTML = '';
 }
 
 function ingredientsToText(v) {
   if (!Array.isArray(v)) return v || '';
-  return v.map((g) => {
-    if (g && typeof g === 'object') return `[${g.group || '材料'}]\n` + (g.items || []).join('\n');
-    return String(g);
-  }).join('\n');
+  return v.map((g) => (g && typeof g === 'object') ? `[${g.group || '材料'}]\n` + (g.items || []).join('\n') : String(g)).join('\n');
 }
 
-function fillForm(data, body) {
+function fillForm(data, body, file) {
   CURRENT.__data = data;
   renderForm(data, body);
-  CURRENT.__file = arguments[2] || '';
-  $('where').textContent = `content/${CURRENT.key}/${CURRENT.__file || ''}`;
-  setStatus('已载入：' + (data.title || CURRENT.__file), 'info');
+  const fname = document.querySelector('[data-k="__filename"]');
+  if (fname) fname.value = String(file || '').replace(/\.md$/, '');
+  $('where').textContent = `content/${CURRENT.key}/${file || ''}`;
+  $('btnDelete').style.display = 'inline-block';
+  setStatus('已载入：' + (data.title || file), 'info');
 }
 
-/* ---------- 收集表单 → 保存 ---------- */
 function collect() {
   const payload = { section: CURRENT.key, body: $('body').value };
   CURRENT.fields.forEach((f) => {
@@ -281,10 +347,7 @@ function collect() {
     if (!el) return;
     payload[f.key] = f.type === 'bool' ? el.checked : el.value;
   });
-  // 保留不常用字段
   UNKNOWN_KEYS.forEach((k) => { payload[k] = CURRENT.__data ? CURRENT.__data[k] : undefined; });
-  const known = new Set(CURRENT.fields.map((f) => f.key));
-  payload.__keep = UNKNOWN_KEYS.filter((k) => !known.has(k));
   return payload;
 }
 
@@ -292,58 +355,147 @@ async function save(publish) {
   const payload = collect();
   const fname = document.querySelector('[data-k="__filename"]');
   if (fname) payload.__filename = fname.value;
-  if (!payload.title || !String(payload.title).trim()) return setStatus('请先填标题。', 'err');
-
-  setStatus('正在保存…', 'info');
-  const r = await (await fetch('/api/save', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-  })).json();
-  if (r.error) return setStatus('保存失败：' + r.error, 'err');
-  CURRENT.__file = r.file;
-  setStatus(`已保存到 ${r.path}\n${publish ? '正在发布…' : '（还没发布到线上。满意后点「保存并发布」）'}`, 'ok');
-  selectSectionListRefresh();
-
-  if (publish) {
-    setStatus('已保存，正在推送到 GitHub（最多重试 5 次）…', 'info');
-    const p = await (await fetch('/api/publish', { method: 'POST' })).json();
-    setStatus(`已保存到 ${r.path}\n\n${p.log}\n\n${p.hint}`, p.ok ? 'ok' : 'err');
+  if (fname && !String(fname.value).trim()) payload.__filename = EDITING_FILE || payload.title;
+  if (!payload.title || !String(payload.title).trim()) {
+    setStatus('只需要填一个标题就能发——把「标题」填上吧。', 'err');
+    document.querySelector('[data-k="title"]').focus();
+    return;
   }
+  setStatus('正在保存…', 'info');
+  const r = await post('/api/save', payload);
+  if (r.error) return setStatus('保存失败：' + r.error, 'err');
+  EDITING_FILE = r.file;
+  $('btnDelete').style.display = 'inline-block';
+  await refreshPostList();
+  if (!publish) return setStatus(`已保存到 ${r.path}\n（还没发到线上。满意后点「保存并发布」）`, 'ok');
+  setStatus('已保存，正在推送到 GitHub（最多重试 5 次）…', 'info');
+  const p = await post('/api/publish');
+  setStatus(`已保存到 ${r.path}\n\n${p.log}\n\n${p.hint}`, p.ok ? 'ok' : 'err');
 }
 
-async function selectSectionListRefresh() {
-  const r = await (await fetch('/api/posts?section=' + encodeURIComponent(CURRENT.key))).json();
-  $('postlist').innerHTML = (r.posts || []).map((p) =>
-    `<li><button data-file="${esc(p.file)}">${esc(p.title)}<span class="meta">${esc(p.date)}${p.draft ? ' · 草稿' : ''}</span></button></li>`).join('');
+async function deletePost() {
+  if (!EDITING_FILE) return;
+  if (!confirm(`确定删除《${document.querySelector('[data-k="title"]').value || EDITING_FILE}》吗？\n\n文件会被挪到本机的 .tools/trash/，不会真的丢；下次发布时网站上就没有它了。`)) return;
+  const r = await post('/api/delete', { section: CURRENT.key, file: EDITING_FILE });
+  if (r.error) return setStatus('删除失败：' + r.error, 'err');
+  setStatus(`已删除，文件在 ${r.moved}\n（想让网站也删掉，点一次「保存并发布」）`, 'ok');
+  EDITING_FILE = null;
+  $('btnDelete').style.display = 'none';
+  renderForm({}, '');
+  await refreshPostList();
 }
 
-/* ---------- 图片 ---------- */
+/* ================= 板块管理 ================= */
+function renderSectionTable() {
+  const rows = META.sections.map((s) => `<tr data-key="${s.key}">
+      <td><code>${esc(s.key)}</code></td>
+      <td><input type="text" data-f="title" value="${esc(s.label)}" style="min-width:130px"></td>
+      <td><input type="text" data-f="blurb" value="${esc(s.note || '')}" style="min-width:180px"></td>
+      <td><input type="color" data-f="accent" value="${esc(s.accent || '#8a6f63')}" style="width:44px;padding:2px"></td>
+      <td><select data-f="icon">${META.icons.map((i) => `<option ${i === s.icon ? 'selected' : ''}>${i}</option>`).join('')}</select></td>
+      <td><input type="number" data-f="weight" value="${s.weight}" style="width:66px"></td>
+      <td style="text-align:center"><input type="checkbox" data-f="nav" ${s.nav ? 'checked' : ''}></td>
+      <td style="text-align:center"><input type="checkbox" data-f="home" ${s.home ? 'checked' : ''}></td>
+      <td style="white-space:nowrap">
+        <button class="btn sm" onclick="saveSectionRow('${s.key}')">保存</button>
+        <button class="btn sm danger" onclick="removeSection('${s.key}')">删除</button>
+      </td>
+    </tr>`).join('');
+  $('secTable').innerHTML = `<tr>
+      <th>代号</th><th>显示名</th><th>一句话介绍</th><th>颜色</th><th>图标</th><th>排序</th><th>导航</th><th>首页</th><th></th>
+    </tr>${rows}`;
+}
+
+async function saveSectionRow(key) {
+  const tr = document.querySelector(`tr[data-key="${key}"]`);
+  const patch = { key };
+  tr.querySelectorAll('[data-f]').forEach((el) => { patch[el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value; });
+  const r = await post('/api/section/save', patch);
+  if (r.error) return setStatus('保存板块失败：' + r.error, 'err');
+  await loadMeta();
+  renderSectionTable();
+  setStatus(`板块「${r.title}」已保存。\n回到「✍ 写作」点一次「保存并发布」，网站就会更新。`, 'ok');
+}
+
+async function removeSection(key) {
+  const s = META.sections.find((x) => x.key === key);
+  if (!confirm(`确定删除板块「${s ? s.label : key}」吗？\n\n它的所有文章会被挪到本机 .tools/trash/（不会真的丢），\n网站上的导航与首页卡片也会去掉这一项。`)) return;
+  const r = await post('/api/section/delete', { key });
+  if (r.error) return setStatus('删除板块失败：' + r.error, 'err');
+  await loadMeta();
+  if (!CURRENT || !META.sections.some((x) => x.key === CURRENT.key)) {
+    CURRENT = META.sections[0] || null;
+    if (CURRENT) { renderForm({}, ''); await refreshPostList(); }
+  }
+  renderSectionTable();
+  setStatus(`板块已删除（文件在 ${r.moved || '（本来就没有文件）'}）。\n回到「✍ 写作」点一次「保存并发布」即可。`, 'ok');
+}
+
+async function createSection() {
+  const key = $('newKey').value.trim();
+  const title = $('newTitle').value.trim();
+  if (!key || !title) return setStatus('代号和显示名都要填。', 'err');
+  const r = await post('/api/section/create', { key, title });
+  if (r.error) return setStatus('新增失败：' + r.error, 'err');
+  $('newKey').value = ''; $('newTitle').value = '';
+  await loadMeta();
+  renderSectionTable();
+  setStatus(`板块「${title}」已创建（网址会是 /${r.key}/）。\n回到「✍ 写作」点一次「保存并发布」就会出现在导航和首页。`, 'ok');
+}
+
+/* ================= 图片：选择 / 拖拽 / 粘贴 ================= */
 let imageTargetField = null;
 function pickImage(fieldKey) { imageTargetField = fieldKey; $('fileInput').click(); }
 
-async function uploadImage() {
-  const file = $('fileInput').files[0];
-  $('fileInput').value = '';
-  if (!file) return;
-  setStatus('正在上传图片…', 'info');
-  const dataUrl = await new Promise((res) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(file); });
-  const r = await (await fetch('/api/upload', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: file.name, dataUrl })
-  })).json();
-  if (r.error) return setStatus('上传失败：' + r.error, 'err');
-
-  if (imageTargetField) {
-    const el = document.querySelector(`[data-k="${imageTargetField}"]`);
-    if (el) el.value = r.url;
-    setStatus('图片已上传：' + r.url, 'ok');
-    imageTargetField = null;
-  } else {
-    insertAtCursor(`\n![图片](${r.url})\n`);
-    setStatus('图片已上传并插入正文：' + r.url, 'ok');
-  }
-  $('thumb').innerHTML = `<img src="${r.url}" alt="">`;
+function readAsDataUrl(file) {
+  return new Promise((res) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(file); });
 }
 
-/* ---------- 排版按钮 ---------- */
+async function uploadFiles(fileList) {
+  const files = [...(fileList || [])].filter((f) => f.type.startsWith('image/'));
+  $('fileInput').value = '';
+  if (!files.length) return;
+  setStatus(`正在上传 ${files.length} 张图片…`, 'info');
+  const urls = [];
+  for (const f of files) {
+    const dataUrl = await readAsDataUrl(f);
+    const r = await post('/api/upload', { name: f.name, dataUrl });
+    if (r.error) { setStatus('上传失败：' + r.error, 'err'); continue; }
+    urls.push(r.url);
+  }
+  if (!urls.length) return;
+  if (imageTargetField) {
+    const el = document.querySelector(`[data-k="${imageTargetField}"]`);
+    if (el) el.value = urls[0];
+    imageTargetField = null;
+    setStatus('封面图已设置：' + urls[0], 'ok');
+  } else {
+    insertAtCursor(urls.map((u) => `\n![图片](${u})\n`).join(''));
+    setStatus(`已上传 ${urls.length} 张图片，并插入到正文里（正文框里能看到 ![](…)，网站上会显示成图）。`, 'ok');
+  }
+  $('thumb').innerHTML = urls.map((u) => `<img src="${u}" title="点一下插入到光标处" onclick="insertAtCursor('\\n![图片](${u})\\n')">`).join('');
+}
+
+function bindImageDrop() {
+  const ta = $('body');
+  ['dragenter', 'dragover'].forEach((ev) => ta.addEventListener(ev, (e) => { e.preventDefault(); ta.style.borderColor = '#8f3a2c'; }));
+  ['dragleave', 'drop'].forEach((ev) => ta.addEventListener(ev, () => { ta.style.borderColor = ''; }));
+  ta.addEventListener('drop', (e) => {
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+      e.preventDefault();
+      imageTargetField = null;
+      uploadFiles(e.dataTransfer.files);
+    }
+  });
+  ta.addEventListener('paste', (e) => {
+    const items = (e.clipboardData && e.clipboardData.items) || [];
+    const files = [];
+    for (const it of items) if (it.kind === 'file' && it.type.startsWith('image/')) { const f = it.getAsFile(); if (f) files.push(f); }
+    if (files.length) { e.preventDefault(); imageTargetField = null; uploadFiles(files); }
+  });
+}
+
+/* ================= 排版按钮 ================= */
 function insertAtCursor(text, wrapSelection) {
   const ta = $('body');
   const s = ta.selectionStart, e = ta.selectionEnd;
@@ -371,18 +523,18 @@ function insertMarkdown(kind) {
   (map[kind] || (() => {}))();
 }
 
-/* ---------- 预览 ---------- */
+/* ================= 预览 ================= */
 async function preview(openThis) {
   const s = await (await fetch('/api/preview-status')).json();
   if (!s.running) {
     setStatus('正在启动本地预览（第一次要几秒）…', 'info');
-    await fetch('/api/preview-start', { method: 'POST' });
+    await post('/api/preview-start');
     await new Promise((r) => setTimeout(r, 3500));
   }
-  const slug = (CURRENT.__file || '').replace(/\.md$/, '');
+  const slug = EDITING_FILE ? EDITING_FILE.replace(/\.md$/, '') : '';
   const url = openThis && slug ? `http://localhost:1313/${CURRENT.key}/${slug}/` : 'http://localhost:1313/';
   window.open(url, '_blank');
-  setStatus('已打开本地预览：' + url + '\n（如果显示 404，说明这篇文章还是草稿，或预览刚启动还没好，等两秒刷新）', 'info');
+  setStatus('已打开本地预览：' + url + '\n（若显示 404：这篇文章还是草稿，或预览刚启动还没好，等两秒刷新）', 'info');
 }
 
 boot();

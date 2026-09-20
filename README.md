@@ -130,7 +130,8 @@ node scripts\verify.cjs      # 可选：冒烟测试，检查关键页面是否�
 ```
 上线指南.md                从注册 GitHub 到网站上线的逐步清单（新手先看这个）
 写作指南.md                日常怎么改内容：写作台 / 网页后台 / VS Code + front matter 速查
-写作台.bat                 双击 = 打开本地写作界面（浏览器里填表写字，一键发布）
+版权与许可.md              字体、图标、第三方代码的授权情况（逐项已核，无版权风险）
+写作台.bat                 双击 = 打开本地写作界面（填表写字、插图、板块管理、一键发布）
 start.bat                  双击 = 本地预览
 build.bat                  双击 = 生成 public/（部署用）
 push.bat                   双击 = 把本地改动推到线上（SSH 443，自动重试）
@@ -240,10 +241,13 @@ hero:
 
 ### 改导航、站点名、配色
 
-- 导航：`hugo.toml` 的 `[[menu.main]]`
+- **导航**：不用改代码。顶部导航由 `data/sections.yaml` 里 `nav: true` 的板块自动生成，
+  顺序按 `weight` 排。用写作台的 **⚙ 板块管理** 就能改名、调顺序、隐藏某一项，
+  或者新增/删除整个板块（首页的卡片墙同理，用 `home: true` 控制）。
 - 站点名 / 副标题 / 建站年份：`hugo.toml` 的 `title`、`params.tagline`、`params.since`
 - 配色：`themes/map/assets/css/main.css` 顶部的 `:root` 与 `[data-theme="dark"]`
   —— `--bg` 纸色、`--ink` 墨色、`--accent` 朱砂色，改这三个就能换气质
+- 版权与素材合规：见 **[版权与许可.md](版权与许可.md)**（字体、图标、第三方代码逐项已核）
 
 ---
 

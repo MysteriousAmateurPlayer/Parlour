@@ -1,0 +1,10 @@
+﻿KaTeX — https://katex.org
+版本 0.18.7，许可证 MIT（见同目录 LICENSE）
+
+本目录下的文件来自 KaTeX 官方 npm 包 katex@0.18.7 的 dist/ ：
+  katex.min.css, katex.min.js, auto-render.min.js, mhchem.min.js, fonts/*.woff2
+
+KaTeX 的数学字体由其项目以同一 MIT 许可证分发（字体源流为 Donald Knuth 的
+Computer Modern 与 AMS 字体，均为可自由使用的开放字体）。
+
+保持随附 LICENSE 文件即满足 MIT 许可证的分发要求。

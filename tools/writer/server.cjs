@@ -29,82 +29,372 @@ const PORT = Number(process.argv[2] || 4321);
    ============================================================ */
 const COMMON = {
   title: { key: 'title', label: '标题', type: 'text', required: true, placeholder: '例如：雨停之后' },
-  date: { key: 'date', label: '日期', type: 'date', required: true },
-  description: { key: 'description', label: '摘要', type: 'textarea', rows: 2, placeholder: '一两句话，会显示在卡片和搜索结果里' },
-  tags: { key: 'tags', label: '标签', type: 'tags', placeholder: '用逗号隔开，例如：短篇, 治愈' },
+  date: { key: 'date', label: '日期', type: 'date', hint: '留空就用今天' },
+  description: { key: 'description', label: '摘要', type: 'textarea', rows: 2, placeholder: '一两句话，会显示在卡片和搜索结果里（可以不填）' },
+  tags: { key: 'tags', label: '标签', type: 'tags', placeholder: '用逗号隔开，例如：短篇, 治愈（可以不填）' },
+  cover: { key: 'cover', label: '封面图', type: 'image', hint: '可留空，留空会自动用带编号的色块' },
+  toc: { key: 'toc', label: '显示右侧目录', type: 'bool', default: false },
   draft: { key: 'draft', label: '草稿（勾着就不对外显示）', type: 'bool', default: true },
   filename: { key: '__filename', label: '文件名（决定网址）', type: 'text', hint: '建议用英文短名，例如 rain-stops。中文也能用，只是网址会变成一串 %E9 编码' }
 };
 
-const SECTIONS = [
-  {
-    key: 'fanworks',
-    label: '二次同人创作',
-    note: '同人小说、插画、长评',
-    fields: [
-      COMMON.title, COMMON.date, COMMON.description,
-      { key: 'source', label: '原作', type: 'text', placeholder: '例如：《某部作品》' },
-      COMMON.tags,
-      { key: 'series', label: '系列', type: 'tags', placeholder: '同一系列的文章填同一个名字，会生成系列页' },
-      { key: 'cover', label: '封面图', type: 'image', hint: '可留空，留空会自动用带编号的色块' },
-      COMMON.draft, COMMON.filename
-    ]
-  },
-  {
-    key: 'math',
-    label: '数学分享',
-    note: '解题笔记、定理整理',
-    fields: [
-      COMMON.title, COMMON.date, COMMON.description, COMMON.tags,
-      { key: 'math', label: '渲染数学公式（写 $公式$ 时必须勾）', type: 'bool', default: true },
-      { key: 'toc', label: '显示右侧目录', type: 'bool', default: true },
-      COMMON.draft, COMMON.filename
-    ]
-  },
-  {
-    key: 'garden',
-    label: '园艺记录',
-    note: '按年排成花木年表',
-    fields: [
-      COMMON.title, COMMON.date, COMMON.description,
-      { key: 'weather', label: '天气', type: 'text', placeholder: '例如：晴，22℃（会显示在年表里）' },
-      COMMON.tags, COMMON.draft, COMMON.filename
-    ]
-  },
-  {
-    key: 'kitchen',
-    label: '烹饪食谱',
-    note: '食材、步骤会排成漂亮的卡片',
-    fields: [
-      COMMON.title, COMMON.date, COMMON.description,
-      { key: 'servings', label: '份量（人份）', type: 'number' },
-      { key: 'prep_time', label: '准备时间（分钟）', type: 'number' },
-      { key: 'cook_time', label: '烹饪时间（分钟）', type: 'number' },
-      { key: 'difficulty', label: '难度', type: 'select', options: ['简单', '中等', '麻烦'] },
-      COMMON.tags,
-      {
-        key: 'ingredients', label: '食材', type: 'ingredients', rows: 8,
-        hint: '一组用一对方括号起头，下面每行写一样食材。例如：\n[主料]\n牛腩 700g\n番茄 3 个'
-      },
-      {
-        key: 'steps', label: '步骤', type: 'steps', rows: 7,
-        hint: '一行一步，会自动编号成卡片'
-      },
-      COMMON.draft, COMMON.filename
-    ]
-  },
-  {
-    key: 'vault',
-    label: '里版（解谜后才能看）',
-    note: '注意：里版内容会随网站公开，只是加了门禁',
-    fields: [
-      COMMON.title, COMMON.date, COMMON.description, COMMON.tags,
-      { key: 'toc', label: '显示右侧目录', type: 'bool', default: false },
-      { key: 'private', label: '不被搜索引擎收录（请保持勾选）', type: 'bool', default: true },
-      COMMON.filename
-    ]
+/* 各内置板块的专属字段（只有「标题」是必填，其余都可以空着） */
+const SPECIAL_FIELDS = {
+  fanworks: () => [
+    COMMON.title, COMMON.date, COMMON.description,
+    { key: 'source', label: '原作', type: 'text', placeholder: '例如：《某部作品》' },
+    COMMON.tags,
+    { key: 'series', label: '系列', type: 'tags', placeholder: '同一系列的文章填同一个名字，会生成系列页' },
+    COMMON.cover, COMMON.draft, COMMON.filename
+  ],
+  math: () => [
+    COMMON.title, COMMON.date, COMMON.description, COMMON.tags,
+    { key: 'math', label: '渲染数学公式（写 $公式$ 时必须勾）', type: 'bool', default: true },
+    { key: 'toc', label: '显示右侧目录', type: 'bool', default: true },
+    COMMON.draft, COMMON.filename
+  ],
+  garden: () => [
+    COMMON.title, COMMON.date, COMMON.description,
+    { key: 'weather', label: '天气', type: 'text', placeholder: '例如：晴，22℃（会显示在年表里）' },
+    COMMON.tags, COMMON.draft, COMMON.filename
+  ],
+  kitchen: () => [
+    COMMON.title, COMMON.date, COMMON.description,
+    { key: 'servings', label: '份量（人份）', type: 'number' },
+    { key: 'prep_time', label: '准备时间（分钟）', type: 'number' },
+    { key: 'cook_time', label: '烹饪时间（分钟）', type: 'number' },
+    { key: 'difficulty', label: '难度', type: 'select', options: ['简单', '中等', '麻烦'] },
+    COMMON.tags,
+    {
+      key: 'ingredients', label: '食材', type: 'ingredients', rows: 8,
+      hint: '一组用一对方括号起头，下面每行写一样食材。例如：\n[主料]\n牛腩 700g\n番茄 3 个'
+    },
+    { key: 'steps', label: '步骤', type: 'steps', rows: 7, hint: '一行一步，会自动编号成卡片' },
+    COMMON.draft, COMMON.filename
+  ],
+  vault: () => [
+    COMMON.title, COMMON.date, COMMON.description, COMMON.tags,
+    COMMON.toc,
+    { key: 'private', label: '不被搜索引擎收录（请保持勾选）', type: 'bool', default: true },
+    COMMON.filename
+  ]
+};
+
+/* 自定义板块的通用字段 */
+function genericFields() {
+  return [COMMON.title, COMMON.date, COMMON.description, COMMON.tags, COMMON.cover, COMMON.draft, COMMON.filename];
+}
+
+function fieldsFor(key) {
+  const f = SPECIAL_FIELDS[key];
+  return f ? f() : genericFields();
+}
+
+/* ============================================================
+   板块配置：读写 data/sections.yaml（所以板块名可以随时改）
+   ============================================================ */
+const SECTIONS_FILE = path.join(ROOT, 'data', 'sections.yaml');
+const PAGES_FILE = path.join(ROOT, '.pages.yml');
+const TRASH_DIR = path.join(ROOT, '.tools', 'trash');
+
+const ICON_CHOICES = ['user', 'feather', 'sigma', 'leaf', 'pot', 'lock', 'key', 'tag', 'quote',
+  'calendar', 'clock', 'servings', 'gauge', 'mail', 'github', 'bilibili', 'pixiv', 'rss', 'link',
+  'check', 'sun', 'moon', 'arrow-right', 'arrow-down'];
+
+function readSectionData() {
+  if (!fs.existsSync(SECTIONS_FILE)) return {};
+  return parseYaml(fs.readFileSync(SECTIONS_FILE, 'utf8')) || {};
+}
+
+/** 给前端用的板块列表：展示信息来自 YAML，字段来自上面的定义 */
+function listSections() {
+  const data = readSectionData();
+  return Object.entries(data)
+    .map(([key, meta]) => ({
+      key,
+      title: meta.title || key,
+      en: meta.en || '',
+      numeral: meta.numeral || '',
+      accent: meta.accent || '#8a6f63',
+      icon: meta.icon || 'link',
+      blurb: meta.blurb || '',
+      weight: Number(meta.weight) || 100,
+      nav: meta.nav !== false,
+      home: meta.home !== false,
+      fields: fieldsFor(key)
+    }))
+    .sort((a, b) => a.weight - b.weight);
+}
+
+function writeSectionData(data) {
+  fs.writeFileSync(SECTIONS_FILE, dumpFrontMatter(data, '').replace(/^---\n/, '').replace(/\n---\n?$/, '\n'), 'utf8');
+}
+
+function sectionByKey(key) {
+  return listSections().find((s) => s.key === key);
+}
+
+/* ============================================================
+   板块管理：改名 / 新增 / 删除，并同步网页后台的 .pages.yml
+   ============================================================ */
+const PAGES_SETTINGS_BLOCK = `  # ==========================================================
+  #  站点设置（不是文章，改完直接生效）
+  # ==========================================================
+  - name: settings
+    label: 站点设置
+    type: group
+    items:
+      - name: home
+        label: 首页文案
+        type: file
+        path: data/home.yaml
+        format: yaml
+        fields:
+          - name: hero
+            label: 主视觉（首屏）
+            type: object
+            fields:
+              - { name: kicker, label: 名字上方的小字, type: string }
+              - { name: name, label: 名字（超大字）, type: string }
+              - { name: tagline, label: 一行定位语, type: string }
+              - { name: intro, label: 自我介绍正文, type: text }
+              - name: primary
+                label: 主按钮（实心）
+                type: object
+                fields:
+                  - { name: label, label: 按钮文字, type: string }
+                  - { name: url, label: 链接, type: string }
+              - name: secondary
+                label: 次按钮（描边）
+                type: object
+                fields:
+                  - { name: label, label: 按钮文字, type: string }
+                  - { name: url, label: 链接, type: string }
+          - name: about
+            label: 首页「关于我」区块
+            type: object
+            fields:
+              - { name: title, label: 标题, type: string }
+              - { name: subtitle, label: 英文小标题, type: string }
+              - { name: portrait, label: 竖版照片, type: image }
+              - { name: portraitFallback, label: 没有照片时显示的字母, type: string }
+              - { name: paragraphs, label: 段落（每行一段）, type: string, list: true }
+              - name: facts
+                label: 速览（常驻 / 在做 / 写给我 之类）
+                type: object
+                list:
+                  collapsible:
+                    collapsed: false
+                    summary: "{label}"
+                fields:
+                  - { name: label, label: 名目, type: string }
+                  - { name: value, label: 内容, type: string }
+          - name: latest
+            label: 首页「最近的记录」
+            type: object
+            fields:
+              - { name: title, label: 标题, type: string }
+              - { name: subtitle, label: 英文小标题, type: string }
+              - { name: count, label: 显示几条, type: number }
+
+      - name: socials
+        label: 联系方式
+        type: file
+        path: data/socials.yaml
+        format: yaml
+        list: true
+        fields:
+          - { name: name, label: 名称, type: string }
+          - name: icon
+            label: 图标
+            type: select
+            options:
+              values: [mail, github, twitter, bilibili, pixiv, rss, link]
+          - { name: url, label: 链接, type: string }
+          - { name: text, label: 显示的文字, type: string }
+`;
+
+function cmsFieldLines(f) {
+  const out = [`      - name: ${f.key}`, `        label: ${quoteIfNeeded(f.label)}`];
+  switch (f.type) {
+    case 'textarea': out.push('        type: text'); break;
+    case 'number': out.push('        type: number'); break;
+    case 'date': out.push('        type: date'); break;
+    case 'bool':
+      out.push('        type: boolean');
+      if (f.default === true) out.push('        default: true');
+      break;
+    case 'select':
+      out.push('        type: select', '        options:', `          values: [${f.options.map(quoteIfNeeded).join(', ')}]`);
+      break;
+    case 'tags':
+    case 'steps':
+      out.push('        type: string', '        list: true');
+      break;
+    case 'image': out.push('        type: image'); break;
+    case 'ingredients':
+      out.push('        type: object', '        list:', '          collapsible:',
+        '            collapsed: false', '            summary: "{group}"', '        fields:',
+        '          - name: group', '            label: 分组名', '            type: string',
+        '          - name: items', '            label: 这一组的食材（每行一条）', '            type: string',
+        '            list: true');
+      break;
+    default: out.push('        type: string');
   }
-];
+  if (f.required) out.push('        required: true');
+  return out;
+}
+
+/** 依据 data/sections.yaml 重新生成网页后台配置 .pages.yml */
+function regeneratePagesYml() {
+  const sections = listSections();
+  const L = [];
+  const put = (...s) => s.forEach((x) => L.push(x));
+
+  put('# ============================================================',
+    '#  Pages CMS 配置 · 网页版写作后台',
+    '#  ------------------------------------------------------------',
+    '#  怎么用：用 GitHub 账号登录 https://app.pagescms.org ，授权本仓库，',
+    '#          浏览器里就会出现下面这些栏目，可以直接写文章、传图片。',
+    '#          保存 = 自动提交到 GitHub = 网站自动重新发布（约 1~2 分钟）。',
+    '#',
+    '#  ⚠️ 这个文件由「写作台 → 板块管理」自动生成：改名/新增/删除板块时会重写。',
+    '#     如果你想手改这里的字段标签，改完就别再用写作台动板块管理（会覆盖）。',
+    '# ============================================================',
+    '',
+    '# 图片上传到仓库的 static/images/，网站上对应 /images/',
+    'media:',
+    '  input: static/images',
+    '  output: /images',
+    '  rename: safe',
+    '  categories: [image]',
+    '',
+    'content:');
+
+  for (const s of sections) {
+    if (s.key === 'about') continue;   // about 是单页，下面单独处理
+    put(`  # ---------------- ${s.title} ----------------`,
+      `  - name: ${s.key}`,
+      `    label: ${quoteIfNeeded(s.title)}`,
+      '    type: collection',
+      `    path: content/${s.key}`,
+      '    exclude: [_index.md]',
+      '    format: yaml-frontmatter',
+      '    filename:',
+      '      template: "{year}-{month}-{day}-{slug}.md"',
+      '      field: create',
+      '    view: { primary: title, sort: date, order: desc }',
+      '    fields:');
+    for (const f of s.fields) {
+      if (f.key === '__filename') continue;
+      cmsFieldLines(f).forEach((l) => L.push(l));
+    }
+  }
+
+  if (sections.some((s) => s.key === 'about')) {
+    put('  # ---------------- 自我介绍页（单页） ----------------',
+      '  - name: about',
+      '    label: 自我介绍页',
+      '    type: file',
+      '    path: content/about/_index.md',
+      '    format: yaml-frontmatter',
+      '    fields:',
+      '      - { name: title, label: 标题, type: string }',
+      '      - { name: description, label: 副标题 / 摘要, type: text }',
+      '      - { name: layout, label: 版面模板（请勿修改）, type: string, readonly: true }',
+      '      - { name: body, label: 正文（Markdown）, type: rich-text, options: { switcher: true } }');
+  }
+
+  put('', PAGES_SETTINGS_BLOCK.trimEnd());
+  const text = L.join('\n') + '\n';
+  fs.writeFileSync(PAGES_FILE, text, 'utf8');
+  return { sections: sections.length, bytes: text.length };
+}
+
+function nextWeight(data) {
+  const ws = Object.values(data).map((s) => Number(s.weight) || 100);
+  return ws.length ? Math.max(...ws) + 5 : 10;
+}
+
+function nextNumeral(data) {
+  const cn = ['壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖', '拾', '拾壹', '拾贰'];
+  const used = Object.values(data).map((s) => s.numeral);
+  return cn.find((c) => !used.includes(c)) || '';
+}
+
+function saveSectionDisplay(key, patch) {
+  const data = readSectionData();
+  if (!data[key]) throw new Error('板块不存在：' + key);
+  const s = data[key];
+  for (const k of ['title', 'en', 'numeral', 'accent', 'icon', 'blurb']) {
+    if (patch[k] !== undefined) s[k] = String(patch[k]);
+  }
+  if (patch.weight !== undefined) s.weight = Number(patch.weight) || 100;
+  if (patch.nav !== undefined) s.nav = !!patch.nav;
+  if (patch.home !== undefined) s.home = !!patch.home;
+  writeSectionData(data);
+  regeneratePagesYml();
+  return s;
+}
+
+function createSection(patch) {
+  const key = String(patch.key || '').trim().toLowerCase();
+  if (!/^[a-z][a-z0-9-]{1,30}$/.test(key)) {
+    throw new Error('板块代号只能用英文小写字母开头，可加数字和连字符，例如 notes、daily-life');
+  }
+  const data = readSectionData();
+  if (data[key]) throw new Error('代号 ' + key + ' 已经被占用了');
+  const dir = path.join(CONTENT, key);
+  if (fs.existsSync(dir)) throw new Error('content/' + key + ' 目录已经存在');
+
+  const title = String(patch.title || key).trim();
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, '_index.md'), dumpFrontMatter({ title, description: '' }, ''), 'utf8');
+
+  data[key] = {
+    title,
+    en: String(patch.en || ''),
+    numeral: String(patch.numeral || nextNumeral(data)),
+    accent: String(patch.accent || '#6b7a8a'),
+    icon: String(patch.icon || 'link'),
+    blurb: String(patch.blurb || ''),
+    weight: Number(patch.weight) || nextWeight(data),
+    nav: patch.nav !== false,
+    home: patch.home !== false
+  };
+  writeSectionData(data);
+  regeneratePagesYml();
+  return key;
+}
+
+function deleteSection(key) {
+  const data = readSectionData();
+  if (!data[key]) throw new Error('板块不存在：' + key);
+  const dir = path.join(CONTENT, key);
+  let moved = null;
+  if (fs.existsSync(dir)) {
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const dest = path.join(TRASH_DIR, `${stamp}-section-${key}`);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.renameSync(dir, dest);
+    moved = path.relative(ROOT, dest).replace(/\\/g, '/');
+  }
+  delete data[key];
+  writeSectionData(data);
+  regeneratePagesYml();
+  return { key, moved };
+}
+
+function trashPost(sectionKey, file) {
+  const { full, name } = safePostPath(sectionKey, file);
+  if (!fs.existsSync(full)) throw new Error('文件不存在：' + name);
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const dest = path.join(TRASH_DIR, `${stamp}-${sectionKey}-${name}`);
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  fs.renameSync(full, dest);
+  return path.relative(ROOT, dest).replace(/\\/g, '/');
+}
+
 
 /* ============================================================
    极简 YAML：解析 / 生成（只覆盖本站用到的写法，但保留未知字段）
@@ -162,7 +452,8 @@ function parseBlock(lines, start, indent) {
   if (isList) {
     const arr = [];
     let i = start;
-    while (i < lines.length && indentOf(lines[i]) === indent && /^\s*-\s?/.test(lines[i])) {
+    while (i < lines.length && indentOf(lines[i]) === indent && (/^\s*-\s?/.test(lines[i]) || lines[i].trim() === '')) {
+      if (lines[i].trim() === '') { i++; continue; }   // 空行只是分隔，不是结束
       const rest = lines[i].replace(/^\s*-\s?/, '');
       if (rest.trim() === '') {
         // 嵌套结构
@@ -192,7 +483,8 @@ function parseBlock(lines, start, indent) {
 
   const obj = {};
   let i = start;
-  while (i < lines.length && lines[i].trim() !== '' && indentOf(lines[i]) === indent) {
+  while (i < lines.length && indentOf(lines[i]) === indent) {
+    if (lines[i].trim() === '') { i++; continue; }      // 空行只是分隔，不是结束
     const m = lines[i].match(/^\s*([^:#]+):\s?(.*)$/);
     if (!m) { i++; continue; }
     const key = m[1].trim();
@@ -224,6 +516,11 @@ function parseFrontMatter(text) {
   const lines = m[1].split(/\r?\n/);
   const parsed = parseBlock(lines, 0, 0);
   return { data: parsed.value || {}, body: norm.slice(m[0].length).replace(/^\s*\n/, '') };
+}
+
+/** 直接解析一段 YAML（例如 data/sections.yaml），给校验脚本复用 */
+function parseYaml(text) {
+  return parseBlock(String(text).replace(/^\uFEFF/, '').split(/\r?\n/), 0, 0).value || {};
 }
 
 function quoteIfNeeded(v) {
@@ -291,8 +588,6 @@ function dumpFrontMatter(data, body) {
 /* ============================================================
    文件操作
    ============================================================ */
-function sectionByKey(key) { return SECTIONS.find((s) => s.key === key); }
-
 function listPosts(sectionKey) {
   const dir = path.join(CONTENT, sectionKey);
   if (!fs.existsSync(dir)) return [];
@@ -324,12 +619,18 @@ function buildPost(sectionKey, payload) {
   const data = {};
   let body = String(payload.body || '');
 
+  // 日期留空就默认今天（先补上，让它落在 front matter 里该在的位置）
+  if (!payload.date) payload.date = new Date().toISOString().slice(0, 10);
+
   for (const f of section.fields) {
     if (f.key === '__filename' || f.key === 'body') continue;
     const raw = payload[f.key];
 
     if (f.type === 'bool') {
-      const v = raw === true || raw === 'true' || raw === 'on';
+      // 没传（例如从接口直接保存）时按字段默认值处理：
+      // 这样「草稿」「不被收录」这类默认勾选的项，忘了传也不会意外公开。
+      const omitted = raw === undefined || raw === null || raw === '';
+      const v = omitted ? f.default === true : (raw === true || raw === 'true' || raw === 'on');
       if (f.default === true || v) data[f.key] = v;
       continue;
     }
@@ -414,7 +715,12 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && u.pathname === '/api/meta') {
       return json(res, 200, {
-        sections: SECTIONS.map((s) => ({ key: s.key, label: s.label, note: s.note, fields: s.fields.map((f) => ({ ...f, default: undefined })) })),
+        sections: listSections().map((s) => ({
+          key: s.key, label: s.title, note: s.blurb, weight: s.weight,
+          nav: s.nav, home: s.home, accent: s.accent, icon: s.icon, numeral: s.numeral, en: s.en,
+          fields: s.fields.map((f) => ({ ...f, default: undefined }))
+        })),
+        icons: ICON_CHOICES,
         today: new Date().toISOString().slice(0, 10)
       });
     }
@@ -444,6 +750,32 @@ const server = http.createServer(async (req, res) => {
       fs.mkdirSync(path.dirname(full), { recursive: true });
       fs.writeFileSync(full, dumpFrontMatter(data, body), 'utf8');   // 不带 BOM
       return json(res, 200, { ok: true, file: name, path: path.relative(ROOT, full) });
+    }
+
+    if (req.method === 'POST' && u.pathname === '/api/delete') {
+      const payload = JSON.parse(await readBody(req) || '{}');
+      const key = payload.section;
+      if (!sectionByKey(key)) return json(res, 400, { error: '未知板块' });
+      const moved = trashPost(key, payload.file);
+      return json(res, 200, { ok: true, moved });
+    }
+
+    if (req.method === 'POST' && u.pathname === '/api/section/save') {
+      const payload = JSON.parse(await readBody(req) || '{}');
+      const s = saveSectionDisplay(payload.key, payload);
+      return json(res, 200, { ok: true, section: payload.key, title: s.title });
+    }
+
+    if (req.method === 'POST' && u.pathname === '/api/section/create') {
+      const payload = JSON.parse(await readBody(req) || '{}');
+      const key = createSection(payload);
+      return json(res, 200, { ok: true, key });
+    }
+
+    if (req.method === 'POST' && u.pathname === '/api/section/delete') {
+      const payload = JSON.parse(await readBody(req) || '{}');
+      const r = deleteSection(payload.key);
+      return json(res, 200, { ok: true, moved: r.moved });
     }
 
     if (req.method === 'POST' && u.pathname === '/api/upload') {
@@ -551,4 +883,8 @@ if (require.main === module) {
   });
 }
 
-module.exports = { parseFrontMatter, dumpFrontMatter, buildPost, SECTIONS, listPosts, CONTENT, ROOT };
+module.exports = {
+  parseFrontMatter, dumpFrontMatter, parseYaml, buildPost, listPosts, CONTENT, ROOT,
+  listSections, readSectionData, writeSectionData, saveSectionDisplay, createSection,
+  deleteSection, trashPost, regeneratePagesYml
+};

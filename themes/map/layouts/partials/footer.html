@@ -7,8 +7,9 @@
       </div>
 
       <nav class="site-footer__nav" aria-label="页脚导航">
-        {{- range site.Menus.main }}
-        <a href="{{ .URL }}">{{ .Name }}</a>
+        <a href="{{ "/" | relURL }}">首页</a>
+        {{- range $item := partial "nav-items.html" . }}
+        <a href="{{ printf "/%s/" $item.key | relURL }}">{{ $item.title }}</a>
         {{- end }}
       </nav>
 
@@ -31,7 +32,7 @@
         © {{ if site.Params.since }}{{ site.Params.since }}–{{ end }}{{ now.Year }} {{ site.Params.author | default site.Title }} ·
         由 <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a> 驱动
       </p>
-      {{- if site.Params.vault.enabled }}
+      {{- if and site.Params.vault.enabled (site.GetPage "/vault") }}
       <a class="site-footer__vault" href="{{ "/vault/" | relURL }}" title="里版入口">
         {{ partial "icon.html" (dict "name" "key" "class" "icon icon--sm") }}<span>里版入口</span>
       </a>

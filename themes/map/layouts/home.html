@@ -1,12 +1,12 @@
 {{ define "main" }}
 {{- $home := hugo.Data.home -}}
-{{- $sectionOrder := slice "about" "fanworks" "math" "garden" "kitchen" -}}
 
 {{/* ---------- 1. 主视觉 ---------- */}}
 {{ partial "hero.html" . }}
 
-{{/* ---------- 2. 关于我预览 ---------- */}}
+{{/* ---------- 2. 关于我预览（板块被删掉时自动隐藏） ---------- */}}
 {{- $about := $home.about -}}
+{{- if site.GetPage "/about" }}
 <section class="band band--about" id="about-preview">
   <div class="wrap about-preview">
     <div class="about-preview__portrait reveal">
@@ -43,15 +43,34 @@
     </div>
   </div>
 </section>
+{{- end }}
 
-{{/* ---------- 3. 五个版块 ---------- */}}
+{{/* ---------- 3. 版块卡片（来自 data/sections.yaml 里 home: true 的项，按 weight 排序） ---------- */}}
+{{- $homeSections := slice -}}
+{{- range $key, $meta := hugo.Data.sections -}}
+  {{- if $meta.home -}}
+    {{- $homeSections = $homeSections | append (dict
+          "key" $key
+          "title" ($meta.title | default ($key | humanize | title))
+          "en" ($meta.en | default "")
+          "numeral" ($meta.numeral | default "")
+          "accent" ($meta.accent | default "#8a6f63")
+          "icon" ($meta.icon | default "link")
+          "blurb" ($meta.blurb | default "")
+          "weight" ($meta.weight | default 100)) -}}
+  {{- end -}}
+{{- end -}}
+{{- $homeSections = sort $homeSections "weight" -}}
+{{- $cnNum := slice "零" "一" "二" "三" "四" "五" "六" "七" "八" "九" "十" -}}
+{{- $n := len $homeSections -}}
+{{- $cardsTitle := printf "%s 个房间" (cond (le $n 10) (index $cnNum $n) (string $n)) -}}
 <section class="band band--sections" id="sections">
   <div class="wrap">
-    {{ partial "section-head.html" (dict "kicker" "Explore" "title" "五个房间" "lede" "每个版块都是一类被我认真对待过的东西。") }}
+    {{ partial "section-head.html" (dict "kicker" "Explore" "title" $cardsTitle "lede" "每个版块都是一类被我认真对待过的东西。") }}
 
     <div class="cards">
-      {{- range $key := $sectionOrder }}
-        {{- $meta := partial "section-meta.html" $key }}
+      {{- range $meta := $homeSections }}
+        {{- $key := $meta.key }}
         {{- $sec := site.GetPage (printf "/%s" $key) }}
         {{- $count := 0 }}
         {{- with $sec }}{{ $count = len .RegularPages }}{{ end }}
@@ -96,8 +115,8 @@
 </section>
 {{- end }}
 
-{{/* ---------- 5. 里版入口（低调） ---------- */}}
-{{- if site.Params.vault.enabled }}
+{{/* ---------- 5. 里版入口（低调；里版板块被删掉时自动隐藏） ---------- */}}
+{{- if and site.Params.vault.enabled (site.GetPage "/vault") }}
 {{- $vault := partial "section-meta.html" "vault" }}
 <section class="band band--vault" id="vault-entry">
   <div class="wrap">

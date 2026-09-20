@@ -65,33 +65,12 @@ summaryLength = 72
     filters = []
 
 # ------------------------------------------------------------
-#  导航菜单（顺序由 weight 决定）
+#  导航菜单
 # ------------------------------------------------------------
-[menu]
-  [[menu.main]]
-    name = "首页"
-    pageRef = "/"
-    weight = 10
-  [[menu.main]]
-    name = "自我介绍"
-    pageRef = "/about"
-    weight = 20
-  [[menu.main]]
-    name = "同人创作"
-    pageRef = "/fanworks"
-    weight = 30
-  [[menu.main]]
-    name = "数学"
-    pageRef = "/math"
-    weight = 40
-  [[menu.main]]
-    name = "园艺"
-    pageRef = "/garden"
-    weight = 50
-  [[menu.main]]
-    name = "食谱"
-    pageRef = "/kitchen"
-    weight = 60
+# 顶部导航**不再写在这里**，而是由 data/sections.yaml 里
+# 「nav: true」的板块自动生成（顺序由 weight 决定），
+# 所以用写作台的「板块管理」改名/新增/删除板块时，导航会自动跟着变。
+# 想改导航只要改 data/sections.yaml，不需要动这个文件。
 
 # ------------------------------------------------------------
 #  分类法
