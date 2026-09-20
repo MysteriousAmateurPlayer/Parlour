@@ -810,7 +810,8 @@ const server = http.createServer(async (req, res) => {
       const log = [];
 
       // ① 先在本地构建一次：模板/内容有错就当场拦住，不把坏版本推上去
-      const build = await runCmd(hugoExe(), ['--source', ROOT, '--minify', '--gc'], 240000);
+      //    --cleanDestinationDir：清掉上次的产物，避免开发服务器残留的 livereload.js 之类混进来
+      const build = await runCmd(hugoExe(), ['--source', ROOT, '--minify', '--gc', '--cleanDestinationDir'], 240000);
       if (!build.ok) {
         return json(res, 200, {
           ok: false,

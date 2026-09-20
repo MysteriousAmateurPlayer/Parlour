@@ -32,6 +32,7 @@ function extractLinks(html) {
   for (const m of norm(html).matchAll(/(?:href|src)="([^"]+)"/g)) {
     const raw = m[1];
     if (/^(mailto:|tel:|javascript:|data:|#)/.test(raw)) continue;
+    if (raw.includes('livereload.js')) continue;   // 开发服务器注入的脚本，不是站内链接
     out.add(raw);
   }
   return [...out];

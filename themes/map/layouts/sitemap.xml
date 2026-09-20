@@ -1,7 +1,12 @@
 {{ printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  {{- $vaultKey := site.Params.vault.section | default "vault" }}
   {{- range .Data.Pages }}
-  {{- if not (or .Params.private .Params.noindex) }}
+  {{- /* 两道保险：
+         ① 文章自己声明了 private / noindex
+         ② 属于里版板块（防止哪天忘了勾 private 就把里版漏进搜索引擎） */}}
+  {{- $isVault := and site.Params.vault.enabled (eq .Section $vaultKey) }}
+  {{- if and (not (or .Params.private .Params.noindex)) (not $isVault) }}
   <url>
     <loc>{{ .Permalink }}</loc>
     <lastmod>{{ .Lastmod.Format "2006-01-02T15:04:05-07:00" | safeHTML }}</lastmod>
