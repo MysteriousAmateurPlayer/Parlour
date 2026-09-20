@@ -1,30 +1,30 @@
 about:
-  title: "自我介绍"
+  title: "关于本站"
   en: "About"
   numeral: "壹"
-  accent: "#8a6f63"
+  accent: "#fff194"
   icon: "user"
-  blurb: "我是谁，正在做什么，以及怎样找到我。"
+  blurb: ""
   weight: 10
   nav: true
   home: true
 fanworks:
-  title: "二次同人创作"
+  title: "东方二次同人创作"
   en: "Fanworks"
   numeral: "贰"
-  accent: "#8d6a93"
+  accent: "#9acefe"
   icon: "feather"
-  blurb: "同人小说、插画与企划的归档，附上创作时的碎碎念。"
+  blurb: "东方二次同人STG创作的灵感解说与幕后故事"
   weight: 20
   nav: true
   home: true
 math:
-  title: "数学分享"
+  title: "弹幕与数学"
   en: "Mathematics"
   numeral: "叁"
-  accent: "#3d6b8a"
+  accent: "#3d4a8a"
   icon: "sigma"
-  blurb: "解题笔记、定理整理，以及一些自以为有趣的观察。"
+  blurb: "数学原理才是弹幕射击的基础噜"
   weight: 30
   nav: true
   home: true
@@ -32,9 +32,9 @@ garden:
   title: "园艺记录"
   en: "Garden"
   numeral: "肆"
-  accent: "#5f7a4f"
+  accent: "#80de4a"
   icon: "leaf"
-  blurb: "阳台与窗边的四季：播种、修剪、开花与失手。"
+  blurb: "Flower land"
   weight: 40
   nav: true
   home: true
@@ -42,9 +42,9 @@ kitchen:
   title: "烹饪食谱"
   en: "Kitchen"
   numeral: "伍"
-  accent: "#b1743f"
+  accent: "#e6b065"
   icon: "pot"
-  blurb: "亲手验证过的菜谱，写清分量、火候与翻车点。"
+  blurb: "人类需要甜点心"
   weight: 50
   nav: true
   home: true
@@ -54,9 +54,19 @@ vault:
   numeral: "零"
   accent: "#4a4a55"
   icon: "lock"
-  blurb: "需要解开一道谜题才能进入的房间。"
+  blurb: "心灵枷锁的另一侧"
   weight: 90
   nav: false
   home: false
+blogs:
+  title: "随性笔记"
+  en: ""
+  numeral: "陆"
+  accent: "#6b7a8a"
+  icon: "link"
+  blurb: "将奇迹化作日常"
+  weight: 95
+  nav: true
+  home: true
 ---
 

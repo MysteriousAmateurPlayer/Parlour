@@ -17,9 +17,9 @@ media:
   categories: [image]
 
 content:
-  # ---------------- 二次同人创作 ----------------
+  # ---------------- 东方二次同人创作 ----------------
   - name: fanworks
-    label: "二次同人创作"
+    label: "东方二次同人创作"
     type: collection
     path: content/fanworks
     exclude: [_index.md]
@@ -57,9 +57,9 @@ content:
         label: "草稿（勾着就不对外显示）"
         type: boolean
         default: true
-  # ---------------- 数学分享 ----------------
+  # ---------------- 弹幕与数学 ----------------
   - name: math
-    label: "数学分享"
+    label: "弹幕与数学"
     type: collection
     path: content/math
     exclude: [_index.md]
@@ -222,6 +222,39 @@ content:
         type: boolean
       - name: private
         label: "不被搜索引擎收录（请保持勾选）"
+        type: boolean
+        default: true
+  # ---------------- 随性笔记 ----------------
+  - name: blogs
+    label: "随性笔记"
+    type: collection
+    path: content/blogs
+    exclude: [_index.md]
+    format: yaml-frontmatter
+    filename:
+      template: "{year}-{month}-{day}-{slug}.md"
+      field: create
+    view: { primary: title, sort: date, order: desc }
+    fields:
+      - name: title
+        label: "标题"
+        type: string
+        required: true
+      - name: date
+        label: "日期"
+        type: date
+      - name: description
+        label: "摘要"
+        type: text
+      - name: tags
+        label: "标签"
+        type: string
+        list: true
+      - name: cover
+        label: "封面图"
+        type: image
+      - name: draft
+        label: "草稿（勾着就不对外显示）"
         type: boolean
         default: true
   # ---------------- 自我介绍页（单页） ----------------
