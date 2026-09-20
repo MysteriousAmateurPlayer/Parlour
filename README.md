@@ -148,7 +148,7 @@ themes/map/
 static/
   favicon.svg              站点图标
   images/                  放照片、封面图
-scripts/                   预览 / 构建 / 新建文章 / 生成答案哈希 / 冒烟测试
+scripts/                   预览 / 构建 / 新建文章 / 生成答案哈希 / 冒烟测试 / 上线体检
 ```
 
 ---
@@ -348,6 +348,15 @@ baseURL = "https://your-name.github.io/my-site/"
 
 在域名服务商处把 CNAME 指到托管平台，再在平台里绑定域名，
 最后把 `baseURL` 改成 `https://你的域名/`。因为主题里的链接全部走相对路径，换域名只需要改这一行。
+
+### 上线之后：跑一次体检
+
+拿到公网网址后，用这个脚本逐个检查首页、版块、文章、RSS、站点地图、KaTeX 字体，
+以及新手最容易踩的「CSS/JS 404 导致页面没样式」：
+
+```powershell
+node scripts\check-live.cjs https://你的用户名.github.io/仓库名/
+```
 
 ---
 
