@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAP 写作台</title>
+<style>
+  :root{
+    --bg:#faf7f2; --surface:#fffdfa; --line:#e4ddd2; --line-strong:#cfc6b8;
+    --ink:#221f1c; --ink-soft:#57504a; --ink-mute:#8d857c; --accent:#8f3a2c; --accent-soft:rgba(143,58,44,.08);
+    --ok:#3f7a45; --warn:#b1743f; --err:#b03a35;
+    --sans:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    --serif:"Source Han Serif SC","Noto Serif SC","Songti SC",SimSun,Georgia,serif;
+    --mono:"Cascadia Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 var(--sans)}
+  header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:14px;
+    padding:14px 22px;background:var(--surface);border-bottom:1px solid var(--line)}
+  header h1{margin:0;font:600 20px/1.2 var(--serif);letter-spacing:.16em}
+  header .sub{color:var(--ink-mute);font-size:13px}
+  header .grow{flex:1}
+  .layout{display:grid;grid-template-columns:290px minmax(0,1fr);gap:0;min-height:calc(100vh - 62px)}
+  aside{border-right:1px solid var(--line);background:var(--surface);padding:18px 16px}
+  main{padding:22px 26px 80px;max-width:960px}
+  h2{font:600 17px/1.4 var(--serif);margin:0 0 10px;letter-spacing:.06em}
+  .tabs{display:flex;flex-direction:column;gap:6px;margin-bottom:22px}
+  .tab{text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:transparent;
+    cursor:pointer;font-size:15px;color:var(--ink-soft)}
+  .tab:hover{border-color:var(--accent);color:var(--accent)}
+  .tab.active{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+  .tab small{display:block;font-size:12px;opacity:.72;margin-top:2px}
+  .postlist{list-style:none;margin:0;padding:0;max-height:46vh;overflow:auto}
+  .postlist li{margin-bottom:4px}
+  .postlist button{width:100%;text-align:left;padding:7px 9px;border:1px solid transparent;border-radius:4px;
+    background:transparent;cursor:pointer;font-size:14px;color:var(--ink-soft);line-height:1.4}
+  .postlist button:hover{background:var(--accent-soft);color:var(--ink)}
+  .postlist .meta{display:block;font-size:11px;color:var(--ink-mute);font-family:var(--mono)}
+  .btn{padding:8px 15px;border:1px solid var(--line-strong);border-radius:4px;background:var(--surface);
+    cursor:pointer;font-size:14px;color:var(--ink-soft);transition:.2s}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+  .btn.primary:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn:disabled{opacity:.5;cursor:default}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .field{margin-bottom:16px}
+  .field > label{display:block;font-size:13px;color:var(--ink-mute);margin-bottom:5px;letter-spacing:.04em}
+  .field .hint{font-size:12px;color:var(--ink-mute);margin-top:5px;white-space:pre-line;line-height:1.55}
+  input[type=text],input[type=number],input[type=date],select,textarea{
+    width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:4px;background:#fff;
+    font:15px/1.6 var(--sans);color:var(--ink)}
+  textarea{resize:vertical;font-family:var(--sans)}
+  textarea.body{min-height:340px;font:15px/1.85 var(--serif);font-size:16px}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+  .check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-soft);cursor:pointer}
+  .check input{width:17px;height:17px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;padding:8px;border:1px solid var(--line);
+    border-radius:4px;background:var(--surface)}
+  .toolbar button{padding:5px 10px;border:1px solid var(--line);border-radius:3px;background:#fff;
+    cursor:pointer;font-size:13px;color:var(--ink-soft)}
+  .toolbar button:hover{border-color:var(--accent);color:var(--accent)}
+  .toolbar .sep{width:1px;background:var(--line);margin:0 4px}
+  .sticky-bar{position:sticky;bottom:0;z-index:6;margin-top:10px;padding:10px 0 14px;
+    background:linear-gradient(to bottom, rgba(250,247,242,.75), var(--bg) 28%);}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .status{margin-bottom:10px;padding:12px 14px;border-radius:4px;font-size:14px;white-space:pre-wrap;
+    border:1px solid var(--line);background:var(--surface);display:none;font-family:var(--mono);
+    max-height:32vh;overflow:auto}
+  .status.show{display:block}
+  .status.ok{border-color:var(--ok);color:var(--ok)}
+  .status.err{border-color:var(--err);color:var(--err)}
+  .status.info{border-color:var(--line-strong);color:var(--ink-soft)}
+  .notice{padding:12px 14px;border:1px dashed var(--line-strong);border-radius:4px;background:var(--accent-soft);
+    font-size:13px;color:var(--ink-soft);margin-bottom:18px;line-height:1.7}
+  .legend{font-size:12px;color:var(--ink-mute);margin-top:22px;line-height:1.9}
+  .legend code{font-family:var(--mono);background:#fff;padding:1px 5px;border:1px solid var(--line);border-radius:3px}
+  .thumb{margin-top:8px;font-size:12px;color:var(--ink-mute)}
+  .thumb img{max-width:220px;border:1px solid var(--line);border-radius:4px;display:block;margin-top:6px}
+  @media (max-width:820px){ .layout{grid-template-columns:1fr} aside{border-right:0;border-bottom:1px solid var(--line)} }
+</style>
+</head>
+<body>
+<header>
+  <h1>MAP 写作台</h1>
+  <span class="sub">填表、写字、点发布 —— 不用碰任何代码</span>
+  <span class="grow"></span>
+  <button class="btn" id="btnPreview">本地预览</button>
+  <button class="btn" id="btnReload">重新载入</button>
+</header>
+
+<div class="layout">
+  <aside>
+    <h2>1. 选板块</h2>
+    <div class="tabs" id="tabs"></div>
+    <h2>这个板块的文章</h2>
+    <ul class="postlist" id="postlist"></ul>
+    <button class="btn primary" id="btnNew" style="width:100%;margin-top:12px">＋ 写新的一篇</button>
+  </aside>
+
+  <main>
+    <div class="notice">
+      怎么用：<b>① 左边选板块</b> → <b>② 点「写新的一篇」或点已有文章</b> → <b>③ 填上面几栏、下面写正文</b> →
+      <b>④ 点「保存」</b>（只存到本地）或 <b>「保存并发布」</b>（会推到线上，1~2 分钟后网站上就有了）。
+      草稿勾着就不会对外显示，写满意了再取消勾选。
+    </div>
+
+    <div id="form"></div>
+
+    <div class="field">
+      <label>正文</label>
+      <div class="toolbar" id="toolbar">
+        <button data-md="h2">小标题</button>
+        <button data-md="b">粗体</button>
+        <button data-md="i">斜体</button>
+        <button data-md="ul">列表</button>
+        <button data-md="quote">引用</button>
+        <button data-md="link">链接</button>
+        <span class="sep"></span>
+        <button data-md="note">提示框</button>
+        <button data-md="theorem">定理框</button>
+        <button data-md="proof">证明框</button>
+        <button data-md="eq">公式块</button>
+        <span class="sep"></span>
+        <button id="btnUpload">插入图片</button>
+      </div>
+      <textarea class="body" id="body" placeholder="在这里写正文。空一行就是新的一段。"></textarea>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+      <div class="thumb" id="thumb"></div>
+    </div>
+
+    <div class="sticky-bar">
+      <div class="status" id="status"></div>
+      <div class="actions">
+        <button class="btn primary" id="btnSave">保存</button>
+        <button class="btn primary" id="btnPublish">保存并发布</button>
+        <button class="btn" id="btnOpenLocal">在本地预览里看这篇</button>
+        <span style="font-size:13px;color:var(--ink-mute)" id="where"></span>
+      </div>
+    </div>
+
+    <div class="legend">
+      小贴士：<br>
+      · 想分小节就用工具栏的「小标题」，它会插入 <code>## 标题</code>。<br>
+      · 数学公式要现在 front matter 里勾上「渲染数学公式」，然后正文里写 <code>$x^2$</code>（行内）或 <code>$$…$$</code>（独占一行）。<br>
+      · 图片：点「插入图片」选文件，会自动存到 static/images/ 并插入正确的地址。<br>
+      · 文章开头的几行（标题、日期、标签……）就是所谓的 front matter，你在这里填表，工具会帮你写对格式。<br>
+      · 保存后如果没看到变化：确认「草稿」取消了勾选，再点「保存并发布」，等 1~2 分钟。
+    </div>
+  </main>
+</div>
+
+<script>
+let META = null;
+let CURRENT = null;      // { section, fields }
+let UNKNOWN_KEYS = [];
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function setStatus(text, kind) {
+  const el = $('status');
+  el.className = 'status show ' + (kind || 'info');
+  el.textContent = text;
+}
+
+/* ---------- 初始化 ---------- */
+async function boot() {
+  META = await (await fetch('/api/meta')).json();
+  $('tabs').innerHTML = META.sections.map((s) =>
+    `<button class="tab" data-key="${s.key}">${esc(s.label)}<small>${esc(s.note || '')}</small></button>`).join('');
+  $('tabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.tab');
+    if (b) selectSection(b.dataset.key);
+  });
+  $('btnNew').addEventListener('click', () => newPost());
+  $('btnSave').addEventListener('click', () => save(false));
+  $('btnPublish').addEventListener('click', () => save(true));
+  $('btnPreview').addEventListener('click', () => preview(false));
+  $('btnOpenLocal').addEventListener('click', () => preview(true));
+  $('btnReload').addEventListener('click', () => location.reload());
+  $('btnUpload').addEventListener('click', () => $('fileInput').click());
+  $('fileInput').addEventListener('change', uploadImage);
+  $('toolbar').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-md]');
+    if (b) insertMarkdown(b.dataset.md);
+  });
+  selectSection(META.sections[0].key);
+}
+
+async function selectSection(key) {
+  CURRENT = META.sections.find((s) => s.key === key);
+  [...document.querySelectorAll('.tab')].forEach((t) => t.classList.toggle('active', t.dataset.key === key));
+  renderForm({}, '');
+  const r = await (await fetch('/api/posts?section=' + encodeURIComponent(key))).json();
+  $('postlist').innerHTML = (r.posts || []).map((p) =>
+    `<li><button data-file="${esc(p.file)}">${esc(p.title)}<span class="meta">${esc(p.date)}${p.draft ? ' · 草稿' : ''}</span></button></li>`).join('')
+    || '<li style="font-size:13px;color:#8d857c">还没有文章</li>';
+  $('postlist').onclick = async (e) => {
+    const b = e.target.closest('button[data-file]');
+    if (!b) return;
+    const d = await (await fetch(`/api/post?section=${encodeURIComponent(key)}&file=${encodeURIComponent(b.dataset.file)}`)).json();
+    if (d.error) return setStatus('打开失败：' + d.error, 'err');
+    fillForm(d.data, d.body, b.dataset.file);
+  };
+  $('where').textContent = `content/${key}/`;
+}
+
+function newPost() {
+  const today = META.today;
+  const defaults = {};
+  CURRENT.fields.forEach((f) => { if (f.type === 'bool' && f.default === true) defaults[f.key] = true; });
+  defaults.date = today;
+  fillForm(defaults, '', today + '-post');
+  setStatus('新的一篇已经准备好。填好标题和正文，记得把文件名改成英文短名（可选）。', 'info');
+}
+
+/* ---------- 表单渲染 ---------- */
+function renderForm(data, body) {
+  UNKNOWN_KEYS = Object.keys(data).filter((k) => !CURRENT.fields.some((f) => f.key === k));
+  const html = CURRENT.fields.map((f) => {
+    const v = data[f.key];
+    const label = esc(f.label) + (f.required ? ' <span style="color:#8f3a2c">*</span>' : '');
+    const hint = f.hint ? `<div class="hint">${esc(f.hint)}</div>` : '';
+    let input = '';
+    if (f.type === 'textarea') {
+      input = `<textarea rows="${f.rows || 3}" data-k="${f.key}" placeholder="${esc(f.placeholder || '')}">${esc(v || '')}</textarea>`;
+    } else if (f.type === 'bool') {
+      input = `<label class="check"><input type="checkbox" data-k="${f.key}" ${v === true || (v === undefined && f.default === true) ? 'checked' : ''}> ${esc(f.label)}</label>`;
+      return `<div class="field">${input}${hint}</div>`;
+    } else if (f.type === 'select') {
+      input = `<select data-k="${f.key}">${f.options.map((o) => `<option ${v === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+    } else if (f.type === 'number') {
+      input = `<input type="number" data-k="${f.key}" value="${v == null ? '' : esc(v)}">`;
+    } else if (f.type === 'date') {
+      input = `<input type="date" data-k="${f.key}" value="${esc(v || META.today)}">`;
+    } else if (f.type === 'ingredients') {
+      input = `<textarea rows="${f.rows || 7}" data-k="${f.key}" placeholder="[主料]&#10;牛腩 700g&#10;番茄 3 个">${esc(ingredientsToText(v))}</textarea>`;
+    } else if (f.type === 'steps') {
+      input = `<textarea rows="${f.rows || 6}" data-k="${f.key}" placeholder="第一步写在这里">${esc(Array.isArray(v) ? v.join('\n') : (v || ''))}</textarea>`;
+    } else if (f.type === 'image') {
+      input = `<div class="row"><input type="text" data-k="${f.key}" value="${esc(v || '')}" placeholder="/images/xxx.jpg" style="flex:1;min-width:200px">
+               <button class="btn" onclick="pickImage('${f.key}')">上传</button></div>`;
+    } else if (f.type === 'tags') {
+      input = `<input type="text" data-k="${f.key}" value="${esc(Array.isArray(v) ? v.join(', ') : (v || ''))}" placeholder="${esc(f.placeholder || '')}">`;
+    } else {
+      input = `<input type="text" data-k="${f.key}" value="${esc(v == null ? '' : v)}" placeholder="${esc(f.placeholder || '')}">`;
+    }
+    return `<div class="field"><label>${label}</label>${input}${hint}</div>`;
+  }).join('');
+
+  const noteHtml = UNKNOWN_KEYS.length
+    ? `<div class="notice">这篇文章还有这些不常用的设置，<b>保存时会原样保留</b>：<code>${UNKNOWN_KEYS.map(esc).join('</code> <code>')}</code></div>`
+    : '';
+
+  $('form').innerHTML = noteHtml + html;
+  $('body').value = body || '';
+}
+
+function ingredientsToText(v) {
+  if (!Array.isArray(v)) return v || '';
+  return v.map((g) => {
+    if (g && typeof g === 'object') return `[${g.group || '材料'}]\n` + (g.items || []).join('\n');
+    return String(g);
+  }).join('\n');
+}
+
+function fillForm(data, body) {
+  CURRENT.__data = data;
+  renderForm(data, body);
+  CURRENT.__file = arguments[2] || '';
+  $('where').textContent = `content/${CURRENT.key}/${CURRENT.__file || ''}`;
+  setStatus('已载入：' + (data.title || CURRENT.__file), 'info');
+}
+
+/* ---------- 收集表单 → 保存 ---------- */
+function collect() {
+  const payload = { section: CURRENT.key, body: $('body').value };
+  CURRENT.fields.forEach((f) => {
+    const el = document.querySelector(`[data-k="${f.key}"]`);
+    if (!el) return;
+    payload[f.key] = f.type === 'bool' ? el.checked : el.value;
+  });
+  // 保留不常用字段
+  UNKNOWN_KEYS.forEach((k) => { payload[k] = CURRENT.__data ? CURRENT.__data[k] : undefined; });
+  const known = new Set(CURRENT.fields.map((f) => f.key));
+  payload.__keep = UNKNOWN_KEYS.filter((k) => !known.has(k));
+  return payload;
+}
+
+async function save(publish) {
+  const payload = collect();
+  const fname = document.querySelector('[data-k="__filename"]');
+  if (fname) payload.__filename = fname.value;
+  if (!payload.title || !String(payload.title).trim()) return setStatus('请先填标题。', 'err');
+
+  setStatus('正在保存…', 'info');
+  const r = await (await fetch('/api/save', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+  })).json();
+  if (r.error) return setStatus('保存失败：' + r.error, 'err');
+  CURRENT.__file = r.file;
+  setStatus(`已保存到 ${r.path}\n${publish ? '正在发布…' : '（还没发布到线上。满意后点「保存并发布」）'}`, 'ok');
+  selectSectionListRefresh();
+
+  if (publish) {
+    setStatus('已保存，正在推送到 GitHub（最多重试 5 次）…', 'info');
+    const p = await (await fetch('/api/publish', { method: 'POST' })).json();
+    setStatus(`已保存到 ${r.path}\n\n${p.log}\n\n${p.hint}`, p.ok ? 'ok' : 'err');
+  }
+}
+
+async function selectSectionListRefresh() {
+  const r = await (await fetch('/api/posts?section=' + encodeURIComponent(CURRENT.key))).json();
+  $('postlist').innerHTML = (r.posts || []).map((p) =>
+    `<li><button data-file="${esc(p.file)}">${esc(p.title)}<span class="meta">${esc(p.date)}${p.draft ? ' · 草稿' : ''}</span></button></li>`).join('');
+}
+
+/* ---------- 图片 ---------- */
+let imageTargetField = null;
+function pickImage(fieldKey) { imageTargetField = fieldKey; $('fileInput').click(); }
+
+async function uploadImage() {
+  const file = $('fileInput').files[0];
+  $('fileInput').value = '';
+  if (!file) return;
+  setStatus('正在上传图片…', 'info');
+  const dataUrl = await new Promise((res) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(file); });
+  const r = await (await fetch('/api/upload', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: file.name, dataUrl })
+  })).json();
+  if (r.error) return setStatus('上传失败：' + r.error, 'err');
+
+  if (imageTargetField) {
+    const el = document.querySelector(`[data-k="${imageTargetField}"]`);
+    if (el) el.value = r.url;
+    setStatus('图片已上传：' + r.url, 'ok');
+    imageTargetField = null;
+  } else {
+    insertAtCursor(`\n![图片](${r.url})\n`);
+    setStatus('图片已上传并插入正文：' + r.url, 'ok');
+  }
+  $('thumb').innerHTML = `<img src="${r.url}" alt="">`;
+}
+
+/* ---------- 排版按钮 ---------- */
+function insertAtCursor(text, wrapSelection) {
+  const ta = $('body');
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  const sel = ta.value.slice(s, e);
+  const out = wrapSelection ? wrapSelection(sel) : text;
+  ta.value = ta.value.slice(0, s) + out + ta.value.slice(e);
+  const pos = s + out.length;
+  ta.focus(); ta.setSelectionRange(pos, pos);
+}
+
+function insertMarkdown(kind) {
+  const S = (a, b) => (sel) => a + (sel || '文字') + b;
+  const map = {
+    h2: () => insertAtCursor('\n## 小标题\n'),
+    b: () => insertAtCursor(null, S('**', '**')),
+    i: () => insertAtCursor(null, S('*', '*')),
+    ul: () => insertAtCursor('\n- 第一项\n- 第二项\n'),
+    quote: () => insertAtCursor('\n> 引用的话\n'),
+    link: () => insertAtCursor(null, S('[链接文字](', ')')),
+    note: () => insertAtCursor('\n{{< note type="tip" title="小提示" >}}\n在这里写提示内容\n{{< /note >}}\n'),
+    theorem: () => insertAtCursor('\n{{< theorem title="定理名" number="1.1" >}}\n定理内容\n{{< /theorem >}}\n'),
+    proof: () => insertAtCursor('\n{{< proof >}}\n证明过程\n{{< /proof >}}\n'),
+    eq: () => insertAtCursor('\n$$\nx^2 + y^2 = z^2\n$$\n')
+  };
+  (map[kind] || (() => {}))();
+}
+
+/* ---------- 预览 ---------- */
+async function preview(openThis) {
+  const s = await (await fetch('/api/preview-status')).json();
+  if (!s.running) {
+    setStatus('正在启动本地预览（第一次要几秒）…', 'info');
+    await fetch('/api/preview-start', { method: 'POST' });
+    await new Promise((r) => setTimeout(r, 3500));
+  }
+  const slug = (CURRENT.__file || '').replace(/\.md$/, '');
+  const url = openThis && slug ? `http://localhost:1313/${CURRENT.key}/${slug}/` : 'http://localhost:1313/';
+  window.open(url, '_blank');
+  setStatus('已打开本地预览：' + url + '\n（如果显示 404，说明这篇文章还是草稿，或预览刚启动还没好，等两秒刷新）', 'info');
+}
+
+boot();
+</script>
+</body>
+</html>
