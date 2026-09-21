@@ -201,7 +201,9 @@
   function drawCoasts() {
     for (var i = 0; i < rings.length; i++) {
       var rg = rings[i];
-      if (zOf(rg.clat, rg.clon) < -0.12) { coastPaths[i].style.visibility = 'hidden'; continue; }
+      // 不能按"整环重心"剔除：非洲/欧亚这种大环的重心离环本身很远，
+      // 重心一转过去整条海岸线就会被误隐藏（看着像非洲突然消失）。
+      // 这里逐点判定，只画朝向观众的那几段。
       var d = '', run = [], k, s;
       for (k = 0; k < rg.pts.length; k++) {
         s = screen(rg.pts[k][0], rg.pts[k][1]);
