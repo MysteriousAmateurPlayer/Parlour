@@ -63,7 +63,7 @@ async function get(path, { timeout = 25000 } = {}) {
   line(home.text.includes('band--sections') && home.text.includes('card__title') ? 'PASS' : 'FAIL', '首页有版块卡片区');
   // 首页结构：简介在太阳上，下拉是地球仪，星野里有一颗特殊的星星（里版入口）
   line(home.text.includes('hero__sun-layer') && home.text.includes('sun-disc') ? 'PASS' : 'FAIL', '首页简介放在太阳上（含古典光芒）');
-  line(home.text.includes('globe-band') && home.text.includes('globe-stars') ? 'PASS' : 'FAIL', '首页第一屏露出地球（星图质感）');
+  line(home.text.includes('globe-band') && home.text.includes('sky-field') ? 'PASS' : 'FAIL', '首页第一屏露出地球（星图质感）');
   line(home.text.includes('globe-stage') && home.text.includes('globe-data') ? 'PASS' : 'FAIL', '首页有可旋转的地球仪');
   line(home.text.includes('vault-star') && home.text.includes('data-vault-open') ? 'PASS' : 'WARN', '首页有里版入口（特殊星星 + 弹窗）');
 
