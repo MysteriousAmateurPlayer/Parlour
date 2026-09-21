@@ -225,10 +225,12 @@
       var pts = outline(n.pc);
       var d = '';
       var sx = 0, sy = 0, k, s;
+      var maxZ = -1;
       var screenPts = [];
       for (k = 0; k < pts.length; k++) {
         s = screen(pts[k][0], pts[k][1]);
         screenPts.push(s);
+        if (s.z > maxZ) maxZ = s.z;      // 片区任意一部分还在正面就算可见
         sx += s.x; sy += s.y;
         d += (k ? 'L' : 'M') + s.x.toFixed(1) + ' ' + s.y.toFixed(1);
       }
@@ -239,7 +241,8 @@
 
       // 文字/图标不跟球面弯，那就越靠边越淡，到球体轮廓处正好淡成 0
       var fade = Math.max(0, Math.min(1, (c.z - 0.2) / 0.42));
-      var front = c.z > 0.02;
+      // 只要片区还有一部分朝向观众就画（透明度不变，像海岸线那样转过去而已）
+      var front = maxZ > 0.02;
       var show = front && fade > 0.04;
 
       n.path.style.visibility = front ? 'visible' : 'hidden';

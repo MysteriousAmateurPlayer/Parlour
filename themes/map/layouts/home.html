@@ -9,6 +9,8 @@
 {{- if eq $showGlobe nil }}{{ $showGlobe = true }}{{ end -}}
 {{- if $showGlobe }}{{ partial "globe.html" . }}{{ end }}
 
+{{ partial "sky-divider.html" . }}
+
 {{/* ---------- 2. 关于我预览（板块被删掉时自动隐藏） ---------- */}}
 {{- $about := $home.about -}}
 {{- if site.GetPage "/about" }}
@@ -49,6 +51,8 @@
   </div>
 </section>
 {{- end }}
+
+{{ partial "sky-divider.html" . }}
 
 {{/* ---------- 3. 版块卡片（来自 data/sections.yaml 里 home: true 的项，按 weight 排序） ---------- */}}
 {{- $homeSections := slice -}}
@@ -98,6 +102,8 @@
     </div>
   </div>
 </section>
+
+{{ partial "sky-divider.html" . }}
 
 {{/* ---------- 4. 最近的记录 ---------- */}}
 {{- $latest := $home.latest -}}

@@ -1,5 +1,22 @@
 <footer class="site-footer">
   <div class="wrap">
+    {{/* 天文仪器式的刻度带：细线 + 刻度 + 一组天体纹样 */}}
+    <div class="sky-scale" aria-hidden="true">
+      <span class="sky-scale__rule"></span>
+      <span class="sky-scale__body">
+        <span class="sky-scale__mark">{{ partial "icon.html" (dict "name" "sun-seal" "class" "icon icon--sm") }}</span>
+        <span class="sky-scale__tick"></span>
+        <span class="sky-scale__mark">{{ partial "icon.html" (dict "name" "star4" "class" "icon icon--xs") }}</span>
+        <span class="sky-scale__tick sky-scale__tick--short"></span>
+        <span class="sky-scale__mark">{{ partial "icon.html" (dict "name" "moon" "class" "icon icon--sm") }}</span>
+        <span class="sky-scale__tick sky-scale__tick--short"></span>
+        <span class="sky-scale__mark">{{ partial "icon.html" (dict "name" "planet" "class" "icon icon--sm") }}</span>
+        <span class="sky-scale__tick"></span>
+        <span class="sky-scale__mark">{{ partial "icon.html" (dict "name" "comet" "class" "icon icon--sm") }}</span>
+      </span>
+      <span class="sky-scale__rule"></span>
+    </div>
+
     <div class="site-footer__top">
       <div class="site-footer__brand">
         <span class="site-footer__mark">{{ site.Title }}</span>
@@ -25,23 +42,6 @@
         {{- end }}
       </ul>
       {{- end }}
-    </div>
-
-    <div class="site-footer__ornament" aria-hidden="true">
-      <span class="ornament__rule"></span>
-      <span class="ornament__motifs">
-        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "sun" "class" "icon icon--xs") }}</span>
-        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "sparkle" "class" "icon icon--xs") }}</span>
-        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "flower" "class" "icon icon--xs") }}</span>
-        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "leaf" "class" "icon icon--xs") }}</span>
-        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "globe" "class" "icon icon--xs") }}</span>
-        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "wave" "class" "icon icon--xs") }}</span>
-        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "comet" "class" "icon icon--xs") }}</span>
-        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "moon" "class" "icon icon--xs") }}</span>
-        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "mountain" "class" "icon icon--xs") }}</span>
-        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "daisy" "class" "icon icon--xs") }}</span>
-      </span>
-      <span class="ornament__rule"></span>
     </div>
 
     <div class="site-footer__bottom">

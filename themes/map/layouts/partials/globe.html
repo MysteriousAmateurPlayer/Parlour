@@ -36,6 +36,7 @@
          role="img" aria-label="可以旋转的地球，球面上的大陆轮廓与片区是各个板块">
       <defs>
         {{/* 四角星：星野与里版入口都用它 */}}
+        <path id="star5" d="M0 -10 L2.5 -3.4 L9.5 -3.1 L4 1.3 L5.9 8.1 L0 4.2 L-5.9 8.1 L-4 1.3 L-9.5 -3.1 L-2.5 -3.4 Z"/>
         <path id="star4" d="M0 -10 Q1.2 -1.2 10 0 Q1.2 1.2 0 10 Q-1.2 1.2 -10 0 Q-1.2 -1.2 0 -10 Z"/>
         <clipPath id="globe-clip"><circle cx="550" cy="430" r="400"/></clipPath>
         <filter id="globe-glow" x="-25%" y="-25%" width="150%" height="150%">
@@ -51,55 +52,295 @@
 
       {{/* ---------- 星野（小点 + 空心四角星，像古典星图） ---------- */}}
       <g class="globe-stars">
-          <circle cx="168" cy="866" r="1.7" style="opacity:0.58"/>
-          <use href="#star4" transform="translate(527,883) scale(0.63)" style="opacity:0.44"/>
-          <use href="#star4" transform="translate(1018,576) scale(0.54)" style="opacity:0.60"/>
-          <circle cx="153" cy="107" r="1.4" style="opacity:0.66"/>
-          <use href="#star4" transform="translate(1062,869) scale(0.73)" style="opacity:0.44"/>
-          <use href="#star4" transform="translate(683,888) scale(0.74)" style="opacity:0.76"/>
-          <use href="#star4" transform="translate(268,108) scale(0.69)" style="opacity:0.68"/>
-          <circle cx="198" cy="870" r="2.1" style="opacity:0.37"/>
-          <use href="#star4" transform="translate(855,886) scale(0.44)" style="opacity:0.40"/>
-          <use href="#star4" transform="translate(119,495) scale(0.52)" style="opacity:0.46"/>
-          <use href="#star4" transform="translate(708,876) scale(0.47)" style="opacity:0.39"/>
-          <use href="#star4" transform="translate(1026,423) scale(0.69)" style="opacity:0.76"/>
-          <use href="#star4" transform="translate(1036,578) scale(0.71)" style="opacity:0.64"/>
-          <circle cx="177" cy="861" r="1.2" style="opacity:0.67"/>
-          <circle cx="967" cy="251" r="1.2" style="opacity:0.65"/>
-          <use href="#star4" transform="translate(241,884) scale(0.66)" style="opacity:0.65"/>
-          <circle cx="985" cy="902" r="1.4" style="opacity:0.76"/>
-          <use href="#star4" transform="translate(932,879) scale(0.65)" style="opacity:0.43"/>
-          <circle cx="908" cy="811" r="2.1" style="opacity:0.48"/>
-          <use href="#star4" transform="translate(1021,905) scale(0.52)" style="opacity:0.57"/>
-          <circle cx="1034" cy="76" r="2.2" style="opacity:0.45"/>
-          <circle cx="1001" cy="166" r="1.2" style="opacity:0.36"/>
-          <circle cx="967" cy="908" r="1.2" style="opacity:0.77"/>
-          <use href="#star4" transform="translate(954,707) scale(0.51)" style="opacity:0.58"/>
-          <circle cx="88" cy="128" r="1.1" style="opacity:0.52"/>
-          <circle cx="475" cy="889" r="1.8" style="opacity:0.53"/>
-          <use href="#star4" transform="translate(870,78) scale(0.64)" style="opacity:0.72"/>
-          <use href="#star4" transform="translate(993,694) scale(0.53)" style="opacity:0.72"/>
-          <use href="#star4" transform="translate(999,139) scale(0.54)" style="opacity:0.64"/>
-          <circle cx="69" cy="31" r="1.9" style="opacity:0.64"/>
-          <use href="#star4" transform="translate(247,864) scale(0.64)" style="opacity:0.78"/>
-          <circle cx="53" cy="812" r="1.9" style="opacity:0.38"/>
-          <circle cx="116" cy="745" r="1.9" style="opacity:0.66"/>
-          <circle cx="95" cy="910" r="1.5" style="opacity:0.76"/>
-          <circle cx="999" cy="631" r="1.4" style="opacity:0.72"/>
-          <use href="#star4" transform="translate(709,860) scale(0.73)" style="opacity:0.49"/>
-          <circle cx="93" cy="412" r="1.7" style="opacity:0.73"/>
-          <circle cx="253" cy="889" r="1.6" style="opacity:0.57"/>
-          <use href="#star4" transform="translate(774,819) scale(0.59)" style="opacity:0.60"/>
-          <use href="#star4" transform="translate(889,885) scale(0.71)" style="opacity:0.44"/>
-          
-          <path class="chart__link" d="M985 902L967 908L1021 905L932 879"/>
-          <path class="chart__link" d="M774 819L709 860L708 876L855 886"/>
-          <path class="chart__link" d="M53 812L116 745L95 910L168 866"/>
-          <path class="chart__link" d="M475 889L527 883L683 888L253 889"/>
-          <circle class="chart__ring" cx="985" cy="902" r="13"/>
-          <circle class="chart__ring" cx="774" cy="819" r="13"/>
-          <circle class="chart__ring" cx="53" cy="812" r="13"/>
-          <circle class="chart__ring" cx="475" cy="889" r="13"/>
+        <g class="sky-constellation" data-cn="北斗七星">
+          <use href="#star4" transform="translate(79.7,141.0) scale(0.32)" style="opacity:0.91"/>
+          <use href="#star4" transform="translate(113.0,125.0) scale(0.32)" style="opacity:0.90"/>
+          <use href="#star4" transform="translate(194.4,119.1) scale(0.32)" style="opacity:0.90"/>
+          <use href="#star4" transform="translate(212.6,152.5) scale(0.30)" style="opacity:0.86"/>
+          <use href="#star4" transform="translate(199.3,150.7) scale(0.30)" style="opacity:0.85"/>
+          <use href="#star4" transform="translate(122.4,149.5) scale(0.28)" style="opacity:0.81"/>
+          <use href="#star4" transform="translate(189.2,143.2) scale(0.28)" style="opacity:0.80"/>
+          <use href="#star4" transform="translate(213.4,133.8) scale(0.26)" style="opacity:0.77"/>
+          <use href="#star4" transform="translate(128.8,119.7) scale(0.26)" style="opacity:0.76"/>
+          <use href="#star4" transform="translate(212.0,130.6) scale(0.24)" style="opacity:0.72"/>
+          <use href="#star4" transform="translate(195.5,151.5) scale(0.24)" style="opacity:0.71"/>
+          <use href="#star4" transform="translate(195.6,133.3) scale(0.24)" style="opacity:0.71"/>
+          <use href="#star4" transform="translate(69.3,110.9) scale(0.23)" style="opacity:0.69"/>
+          <use href="#star4" transform="translate(180.1,115.9) scale(0.23)" style="opacity:0.69"/>
+          <use href="#star4" transform="translate(238.6,106.2) scale(0.23)" style="opacity:0.69"/>
+          <path class="sky-figure" d="M64.4 110.0L55.2 106.2L55.0 110.6L61.6 112.8L64.4 110.0L69.3 110.9L73.1 111.8L76.1 116.3"/>
+          <path class="sky-figure" d="M245.0 112.8L244.0 117.6L240.5 129.6L240.5 130.9"/>
+          <path class="sky-figure" d="M244.0 117.6L239.4 120.3L233.3 122.7"/>
+          <path class="sky-figure" d="M239.4 120.3L232.7 121.6"/>
+          <path class="sky-figure" d="M238.6 106.2L226.9 105.1L219.1 107.0L229.4 108.4L238.4 110.6"/>
+          <path class="sky-figure" d="M238.4 110.6L229.5 112.5L227.0 114.4L222.8 117.4"/>
+          <path class="sky-figure" d="M223.3 118.1L227.0 114.4"/>
+          <use href="#star4" class="sky-star" transform="translate(64.4,110.0) scale(0.41)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(55.2,106.2) scale(0.58)" style="opacity:0.78"/>
+          <use href="#star4" class="sky-star" transform="translate(55.0,110.6) scale(0.52)" style="opacity:0.73"/>
+          <use href="#star4" class="sky-star" transform="translate(61.6,112.8) scale(0.51)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(64.4,110.0) scale(0.41)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(69.3,110.9) scale(0.58)" style="opacity:0.78"/>
+          <use href="#star4" class="sky-star" transform="translate(73.1,111.8) scale(0.53)" style="opacity:0.74"/>
+          <use href="#star4" class="sky-star" transform="translate(76.1,116.3) scale(0.57)" style="opacity:0.77"/>
+          <use href="#star4" class="sky-star" transform="translate(245.0,112.8) scale(0.51)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(244.0,117.6) scale(0.37)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(240.5,129.6) scale(0.39)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(240.5,130.9) scale(0.36)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(244.0,117.6) scale(0.37)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(239.4,120.3) scale(0.44)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(233.3,122.7) scale(0.44)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(239.4,120.3) scale(0.44)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(232.7,121.6) scale(0.40)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(238.6,106.2) scale(0.58)" style="opacity:0.78"/>
+          <use href="#star4" class="sky-star" transform="translate(226.9,105.1) scale(0.37)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(219.1,107.0) scale(0.41)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(229.4,108.4) scale(0.36)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(238.4,110.6) scale(0.52)" style="opacity:0.73"/>
+          <use href="#star4" class="sky-star" transform="translate(238.4,110.6) scale(0.52)" style="opacity:0.73"/>
+          <use href="#star4" class="sky-star" transform="translate(229.5,112.5) scale(0.27)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(227.0,114.4) scale(0.43)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(222.8,117.4) scale(0.43)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(223.3,118.1) scale(0.38)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(227.0,114.4) scale(0.43)" style="opacity:0.72"/>
+          <text class="sky-name" x="150" y="236">北斗七星</text>
+        </g>
+        <g class="sky-constellation" data-cn="猎户座">
+          <use href="#star4" transform="translate(1040.4,235.5) scale(0.39)" style="opacity:1.08"/>
+          <use href="#star4" transform="translate(932.5,194.7) scale(0.31)" style="opacity:0.88"/>
+          <use href="#star4" transform="translate(980.9,119.9) scale(0.30)" style="opacity:0.85"/>
+          <use href="#star4" transform="translate(886.6,76.3) scale(0.28)" style="opacity:0.80"/>
+          <use href="#star4" transform="translate(1056.4,294.2) scale(0.24)" style="opacity:0.73"/>
+          <use href="#star4" transform="translate(945.1,125.0) scale(0.24)" style="opacity:0.71"/>
+          <use href="#star4" transform="translate(946.5,18.3) scale(0.24)" style="opacity:0.71"/>
+          <use href="#star4" transform="translate(958.3,161.2) scale(0.24)" style="opacity:0.70"/>
+          <use href="#star4" transform="translate(963.7,164.7) scale(0.23)" style="opacity:0.70"/>
+          <use href="#star4" transform="translate(1068.0,281.9) scale(0.23)" style="opacity:0.69"/>
+          <use href="#star4" transform="translate(986.1,-59.9) scale(0.23)" style="opacity:0.68"/>
+          <use href="#star4" transform="translate(1031.5,76.8) scale(0.22)" style="opacity:0.67"/>
+          <use href="#star4" transform="translate(1013.7,241.4) scale(0.22)" style="opacity:0.67"/>
+          <use href="#star4" transform="translate(972.1,201.7) scale(0.22)" style="opacity:0.66"/>
+          <use href="#star4" transform="translate(953.3,156.8) scale(0.21)" style="opacity:0.64"/>
+          <use href="#star4" transform="translate(954.2,240.8) scale(0.19)" style="opacity:0.60"/>
+          <path class="sky-figure" d="M995.7 84.6L980.0 58.3L991.3 58.9L1000.9 87.3L989.5 109.2L980.9 119.9L945.1 125.0L909.2 106.8"/>
+          <path class="sky-figure" d="M913.5 147.2L908.4 143.7L904.8 128.6L903.1 122.1L904.1 112.8L909.2 106.8L910.9 90.7L920.7 81.6L926.8 80.7"/>
+          <path class="sky-figure" d="M932.5 194.7L944.4 166.9L953.3 156.8L945.1 125.0L957.1 107.8L980.9 119.9L963.7 164.7L972.1 201.7"/>
+          <path class="sky-figure" d="M963.7 164.7L958.3 161.2L953.3 156.8"/>
+          <use href="#star4" class="sky-star" transform="translate(995.7,84.6) scale(0.29)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(980.0,58.3) scale(0.29)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(991.3,58.9) scale(0.26)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(1000.9,87.3) scale(0.29)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(989.5,109.2) scale(0.32)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(980.9,119.9) scale(0.72)" style="opacity:0.92"/>
+          <use href="#star4" class="sky-star" transform="translate(945.1,125.0) scale(0.59)" style="opacity:0.80"/>
+          <use href="#star4" class="sky-star" transform="translate(909.2,106.8) scale(0.26)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(913.5,147.2) scale(0.28)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(908.4,143.7) scale(0.37)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(904.8,128.6) scale(0.37)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(903.1,122.1) scale(0.42)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(904.1,112.8) scale(0.30)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(909.2,106.8) scale(0.26)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(910.9,90.7) scale(0.33)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(920.7,81.6) scale(0.26)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(926.8,80.7) scale(0.25)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(932.5,194.7) scale(0.72)" style="opacity:0.94"/>
+          <use href="#star4" class="sky-star" transform="translate(944.4,166.9) scale(0.41)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(953.3,156.8) scale(0.53)" style="opacity:0.73"/>
+          <use href="#star4" class="sky-star" transform="translate(945.1,125.0) scale(0.59)" style="opacity:0.80"/>
+          <use href="#star4" class="sky-star" transform="translate(957.1,107.8) scale(0.40)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(980.9,119.9) scale(0.72)" style="opacity:0.92"/>
+          <use href="#star4" class="sky-star" transform="translate(963.7,164.7) scale(0.58)" style="opacity:0.79"/>
+          <use href="#star4" class="sky-star" transform="translate(972.1,201.7) scale(0.55)" style="opacity:0.75"/>
+          <use href="#star4" class="sky-star" transform="translate(963.7,164.7) scale(0.58)" style="opacity:0.79"/>
+          <use href="#star4" class="sky-star" transform="translate(958.3,161.2) scale(0.59)" style="opacity:0.79"/>
+          <use href="#star4" class="sky-star" transform="translate(953.3,156.8) scale(0.53)" style="opacity:0.73"/>
+          <text class="sky-name" x="952" y="232">猎户座</text>
+        </g>
+        <g class="sky-constellation" data-cn="仙后座">
+          <use href="#star4" transform="translate(356.7,-3.7) scale(0.14)" style="opacity:0.49"/>
+          <path class="sky-figure" d="M620.0 25.2L579.3 64.5L537.8 59.0L514.7 106.8L470.0 76.9"/>
+          <use href="#star4" class="sky-star" transform="translate(620.0,25.2) scale(0.41)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(579.3,64.5) scale(0.48)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(537.8,59.0) scale(0.54)" style="opacity:0.74"/>
+          <use href="#star4" class="sky-star" transform="translate(514.7,106.8) scale(0.53)" style="opacity:0.74"/>
+          <use href="#star4" class="sky-star" transform="translate(470.0,76.9) scale(0.52)" style="opacity:0.73"/>
+          <text class="sky-name" x="545" y="159">仙后座</text>
+        </g>
+        <g class="sky-constellation" data-cn="天鹅座">
+          <use href="#star4" transform="translate(56.0,817.3) scale(0.32)" style="opacity:0.90"/>
+          <use href="#star4" transform="translate(140.3,996.4) scale(0.28)" style="opacity:0.81"/>
+          <use href="#star4" transform="translate(198.1,778.4) scale(0.26)" style="opacity:0.76"/>
+          <use href="#star4" transform="translate(176.2,808.4) scale(0.21)" style="opacity:0.64"/>
+          <use href="#star4" transform="translate(10.0,741.2) scale(0.21)" style="opacity:0.64"/>
+          <use href="#star4" transform="translate(269.8,990.4) scale(0.20)" style="opacity:0.62"/>
+          <use href="#star4" transform="translate(203.6,846.1) scale(0.20)" style="opacity:0.61"/>
+          <use href="#star4" transform="translate(135.2,986.0) scale(0.18)" style="opacity:0.58"/>
+          <use href="#star4" transform="translate(133.7,779.2) scale(0.18)" style="opacity:0.56"/>
+          <use href="#star4" transform="translate(336.9,868.5) scale(0.17)" style="opacity:0.55"/>
+          <use href="#star4" transform="translate(88.5,966.5) scale(0.17)" style="opacity:0.55"/>
+          <use href="#star4" transform="translate(117.4,882.1) scale(0.17)" style="opacity:0.54"/>
+          <use href="#star4" transform="translate(96.7,644.3) scale(0.17)" style="opacity:0.54"/>
+          <use href="#star4" transform="translate(234.1,868.5) scale(0.16)" style="opacity:0.52"/>
+          <path class="sky-figure" d="M234.1 868.5L203.6 846.1L176.2 808.4L133.7 779.2L116.3 739.7L101.9 729.9"/>
+          <path class="sky-figure" d="M198.1 778.4L176.2 808.4L146.6 839.4L117.4 882.1"/>
+          <use href="#star4" class="sky-star" transform="translate(234.1,868.5) scale(0.42)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(203.6,846.1) scale(0.50)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(176.2,808.4) scale(0.53)" style="opacity:0.74"/>
+          <use href="#star4" class="sky-star" transform="translate(133.7,779.2) scale(0.46)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(116.3,739.7) scale(0.36)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(101.9,729.9) scale(0.36)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(198.1,778.4) scale(0.64)" style="opacity:0.83"/>
+          <use href="#star4" class="sky-star" transform="translate(176.2,808.4) scale(0.53)" style="opacity:0.74"/>
+          <use href="#star4" class="sky-star" transform="translate(146.6,839.4) scale(0.35)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(117.4,882.1) scale(0.44)" style="opacity:0.72"/>
+          <text class="sky-name" x="168" y="915">天鹅座</text>
+        </g>
+        <g class="sky-constellation" data-cn="天琴座">
+          <use href="#star4" transform="translate(907.3,765.7) scale(0.32)" style="opacity:0.90"/>
+          <use href="#star4" transform="translate(984.7,872.9) scale(0.16)" style="opacity:0.52"/>
+          <use href="#star4" transform="translate(953.5,861.0) scale(0.14)" style="opacity:0.48"/>
+          <path class="sky-figure" d="M934.8 786.4L933.5 751.1L907.3 765.7L934.8 786.4L969.1 798.9L984.7 872.9L953.5 861.0L934.8 786.4"/>
+          <use href="#star4" class="sky-star" transform="translate(934.8,786.4) scale(0.30)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(933.5,751.1) scale(0.27)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(907.3,765.7) scale(0.72)" style="opacity:0.96"/>
+          <use href="#star4" class="sky-star" transform="translate(934.8,786.4) scale(0.30)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(969.1,798.9) scale(0.31)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(984.7,872.9) scale(0.42)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(953.5,861.0) scale(0.39)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(934.8,786.4) scale(0.30)" style="opacity:0.72"/>
+          <text class="sky-name" x="946" y="899">天琴座</text>
+        </g>
+        <g class="sky-constellation" data-cn="天蝎座">
+          <use href="#star4" transform="translate(-94.7,615.2) scale(0.32)" style="opacity:0.91"/>
+          <use href="#star4" transform="translate(34.1,423.7) scale(0.27)" style="opacity:0.78"/>
+          <use href="#star4" transform="translate(-94.7,615.2) scale(0.25)" style="opacity:0.74"/>
+          <use href="#star4" transform="translate(109.4,483.1) scale(0.24)" style="opacity:0.71"/>
+          <use href="#star4" transform="translate(113.7,515.9) scale(0.23)" style="opacity:0.68"/>
+          <use href="#star4" transform="translate(-0.0,402.5) scale(0.21)" style="opacity:0.63"/>
+          <use href="#star4" transform="translate(58.4,467.4) scale(0.21)" style="opacity:0.63"/>
+          <use href="#star4" transform="translate(-92.0,540.3) scale(0.21)" style="opacity:0.63"/>
+          <use href="#star4" transform="translate(-99.5,511.2) scale(0.20)" style="opacity:0.63"/>
+          <use href="#star4" transform="translate(119.8,493.8) scale(0.20)" style="opacity:0.62"/>
+          <use href="#star4" transform="translate(82.1,364.1) scale(0.20)" style="opacity:0.61"/>
+          <use href="#star4" transform="translate(43.2,335.4) scale(0.19)" style="opacity:0.60"/>
+          <use href="#star4" transform="translate(6.0,386.8) scale(0.19)" style="opacity:0.60"/>
+          <path class="sky-figure" d="M-1.8 421.9L-0.0 402.5L6.0 386.8"/>
+          <path class="sky-figure" d="M-0.0 402.5L24.4 419.0L34.1 423.7L41.7 433.6L58.4 467.4L60.4 488.3L63.6 512.3L84.2 517.2L113.7 515.9L125.8 499.9L119.8 493.8L109.4 483.1"/>
+          <use href="#star4" class="sky-star" transform="translate(-1.8,421.9) scale(0.46)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(-0.0,402.5) scale(0.52)" style="opacity:0.73"/>
+          <use href="#star4" class="sky-star" transform="translate(6.0,386.8) scale(0.49)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(-0.0,402.5) scale(0.52)" style="opacity:0.73"/>
+          <use href="#star4" class="sky-star" transform="translate(24.4,419.0) scale(0.46)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(34.1,423.7) scale(0.66)" style="opacity:0.85"/>
+          <use href="#star4" class="sky-star" transform="translate(41.7,433.6) scale(0.46)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(58.4,467.4) scale(0.52)" style="opacity:0.73"/>
+          <use href="#star4" class="sky-star" transform="translate(60.4,488.3) scale(0.44)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(63.6,512.3) scale(0.38)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(84.2,517.2) scale(0.41)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(113.7,515.9) scale(0.57)" style="opacity:0.77"/>
+          <use href="#star4" class="sky-star" transform="translate(125.8,499.9) scale(0.45)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(119.8,493.8) scale(0.51)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(109.4,483.1) scale(0.60)" style="opacity:0.80"/>
+          <text class="sky-name" x="62" y="545">天蝎座</text>
+        </g>
+        <g class="sky-constellation" data-cn="狮子座">
+          <use href="#star4" transform="translate(990.0,486.9) scale(0.25)" style="opacity:0.74"/>
+          <use href="#star4" transform="translate(1003.7,447.8) scale(0.22)" style="opacity:0.66"/>
+          <use href="#star4" transform="translate(1108.5,473.9) scale(0.21)" style="opacity:0.65"/>
+          <use href="#star4" transform="translate(1067.4,444.4) scale(0.19)" style="opacity:0.60"/>
+          <use href="#star4" transform="translate(-500.1,491.9) scale(0.18)" style="opacity:0.56"/>
+          <use href="#star4" transform="translate(1067.5,469.7) scale(0.15)" style="opacity:0.51"/>
+          <use href="#star4" transform="translate(-507.9,529.4) scale(0.15)" style="opacity:0.50"/>
+          <use href="#star4" transform="translate(999.8,430.0) scale(0.15)" style="opacity:0.49"/>
+          <use href="#star4" transform="translate(988.8,463.0) scale(0.15)" style="opacity:0.49"/>
+          <use href="#star4" transform="translate(1072.5,381.9) scale(0.15)" style="opacity:0.49"/>
+          <path class="sky-figure" d="M990.0 486.9L988.8 463.0L1003.7 447.8L1067.4 444.4L1108.5 473.9L1067.5 469.7L990.0 486.9"/>
+          <path class="sky-figure" d="M1003.7 447.8L999.8 430.0L971.6 417.1L963.5 428.2"/>
+          <use href="#star4" class="sky-star" transform="translate(990.0,486.9) scale(0.63)" style="opacity:0.82"/>
+          <use href="#star4" class="sky-star" transform="translate(988.8,463.0) scale(0.39)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(1003.7,447.8) scale(0.55)" style="opacity:0.76"/>
+          <use href="#star4" class="sky-star" transform="translate(1067.4,444.4) scale(0.49)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(1108.5,473.9) scale(0.54)" style="opacity:0.75"/>
+          <use href="#star4" class="sky-star" transform="translate(1067.5,469.7) scale(0.41)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(990.0,486.9) scale(0.63)" style="opacity:0.82"/>
+          <use href="#star4" class="sky-star" transform="translate(1003.7,447.8) scale(0.55)" style="opacity:0.76"/>
+          <use href="#star4" class="sky-star" transform="translate(999.8,430.0) scale(0.40)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(971.6,417.1) scale(0.35)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(963.5,428.2) scale(0.45)" style="opacity:0.72"/>
+          <text class="sky-name" x="1036" y="542">狮子座</text>
+        </g>
+        <g class="sky-constellation" data-cn="飞马座">
+          <use href="#star4" transform="translate(379.6,869.0) scale(0.28)" style="opacity:0.81"/>
+          <use href="#star4" transform="translate(480.0,865.2) scale(0.20)" style="opacity:0.62"/>
+          <use href="#star4" transform="translate(375.6,862.4) scale(0.18)" style="opacity:0.58"/>
+          <use href="#star4" transform="translate(482.5,963.7) scale(0.18)" style="opacity:0.56"/>
+          <path class="sky-figure" d="M502.9 776.9L532.1 788.1L550.5 796.2L607.7 792.4L612.0 845.1L551.4 845.0L535.4 856.5L530.7 861.6L503.0 879.1L480.0 865.2"/>
+          <path class="sky-figure" d="M551.4 845.0L550.5 796.2L538.3 809.4L535.2 813.3L500.2 806.6L480.4 805.4"/>
+          <use href="#star4" class="sky-star" transform="translate(502.9,776.9) scale(0.30)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(532.1,788.1) scale(0.45)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(550.5,796.2) scale(0.51)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(607.7,792.4) scale(0.55)" style="opacity:0.75"/>
+          <use href="#star4" class="sky-star" transform="translate(612.0,845.1) scale(0.46)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(551.4,845.0) scale(0.50)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(535.4,856.5) scale(0.31)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(530.7,861.6) scale(0.40)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(503.0,879.1) scale(0.39)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(480.0,865.2) scale(0.51)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(551.4,845.0) scale(0.50)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(550.5,796.2) scale(0.51)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(538.3,809.4) scale(0.39)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(535.2,813.3) scale(0.34)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(500.2,806.6) scale(0.36)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(480.4,805.4) scale(0.32)" style="opacity:0.72"/>
+          <text class="sky-name" x="546" y="910">飞马座</text>
+        </g>
+        <g class="sky-constellation" data-cn="双子座">
+          <use href="#star4" transform="translate(132.6,-54.4) scale(0.32)" style="opacity:0.90"/>
+          <use href="#star4" transform="translate(174.8,129.4) scale(0.30)" style="opacity:0.85"/>
+          <use href="#star4" transform="translate(295.6,31.2) scale(0.26)" style="opacity:0.77"/>
+          <use href="#star4" transform="translate(283.8,12.8) scale(0.24)" style="opacity:0.72"/>
+          <use href="#star4" transform="translate(141.9,134.4) scale(0.24)" style="opacity:0.71"/>
+          <use href="#star4" transform="translate(143.1,28.4) scale(0.24)" style="opacity:0.71"/>
+          <use href="#star4" transform="translate(154.0,170.3) scale(0.24)" style="opacity:0.70"/>
+          <use href="#star4" transform="translate(159.0,173.9) scale(0.23)" style="opacity:0.70"/>
+          <use href="#star4" transform="translate(179.6,-49.4) scale(0.23)" style="opacity:0.68"/>
+          <use href="#star4" transform="translate(221.5,86.5) scale(0.22)" style="opacity:0.67"/>
+          <use href="#star4" transform="translate(149.4,166.0) scale(0.21)" style="opacity:0.64"/>
+          <use href="#star4" transform="translate(179.8,-12.6) scale(0.19)" style="opacity:0.59"/>
+          <use href="#star4" transform="translate(205.3,57.4) scale(0.18)" style="opacity:0.56"/>
+          <use href="#star4" transform="translate(155.6,63.9) scale(0.17)" style="opacity:0.55"/>
+          <path class="sky-figure" d="M196.4 57.5L205.3 57.4L228.3 45.0L258.1 20.6L283.8 12.8L295.6 31.2L285.3 36.6L268.0 60.0L250.4 66.7L221.5 86.5L229.8 103.2"/>
+          <path class="sky-figure" d="M268.0 60.0L265.7 85.9"/>
+          <use href="#star4" class="sky-star" transform="translate(196.4,57.5) scale(0.41)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(205.3,57.4) scale(0.46)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(228.3,45.0) scale(0.44)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(258.1,20.6) scale(0.29)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(283.8,12.8) scale(0.60)" style="opacity:0.80"/>
+          <use href="#star4" class="sky-star" transform="translate(295.6,31.2) scale(0.65)" style="opacity:0.84"/>
+          <use href="#star4" class="sky-star" transform="translate(285.3,36.6) scale(0.33)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(268.0,60.0) scale(0.39)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(250.4,66.7) scale(0.33)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(221.5,86.5) scale(0.56)" style="opacity:0.77"/>
+          <use href="#star4" class="sky-star" transform="translate(229.8,103.2) scale(0.41)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(268.0,60.0) scale(0.39)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(265.7,85.9) scale(0.38)" style="opacity:0.72"/>
+          <text class="sky-name" x="246" y="122">双子座</text>
+        </g>
+        <g class="sky-constellation" data-cn="南十字">
+          <use href="#star4" transform="translate(805.4,910.2) scale(0.28)" style="opacity:0.81"/>
+          <use href="#star4" transform="translate(834.1,873.5) scale(0.26)" style="opacity:0.76"/>
+          <use href="#star4" transform="translate(811.6,845.8) scale(0.24)" style="opacity:0.72"/>
+          <use href="#star4" transform="translate(789.9,863.4) scale(0.18)" style="opacity:0.57"/>
+          <use href="#star4" transform="translate(832.2,964.0) scale(0.17)" style="opacity:0.54"/>
+          <use href="#star4" transform="translate(798.3,881.2) scale(0.14)" style="opacity:0.48"/>
+          <path class="sky-figure" d="M834.1 873.5L789.9 863.4"/>
+          <path class="sky-figure" d="M805.4 910.2L811.6 845.8"/>
+          <use href="#star4" class="sky-star" transform="translate(834.1,873.5) scale(0.64)" style="opacity:0.83"/>
+          <use href="#star4" class="sky-star" transform="translate(789.9,863.4) scale(0.47)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(805.4,910.2) scale(0.69)" style="opacity:0.88"/>
+          <use href="#star4" class="sky-star" transform="translate(811.6,845.8) scale(0.60)" style="opacity:0.80"/>
+          <text class="sky-name" x="812" y="924">南十字</text>
+        </g>
       </g>
 
       {{/* ---------- 那颗"稍微不一样"的星星：里版入口（只是旁边多一颗小卫星） ---------- */}}
@@ -108,8 +349,7 @@
         <title>{{ $gate.title | default "里版" }}入口</title>
         <circle class="vault-star__hit" cx="930" cy="118" r="30"/>
         <g class="vault-star__art" transform="translate(930,118)">
-          <use href="#star4" class="vault-star__core" transform="scale(0.58)"/>
-          <circle class="vault-star__moon" cx="12.5" cy="6.5" r="2"/>
+          <use href="#star5" class="vault-star__core" transform="scale(0.62)"/>
         </g>
       </a>
 
