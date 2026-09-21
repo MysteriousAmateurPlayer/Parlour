@@ -75,6 +75,9 @@
   /* 地球仪：纸底上的镂空线稿（星图质感），不做夜空反色 */
   --globe-overlap: clamp(10rem, 40vh, 30rem);   /* 地球往上顶进主视觉多少 */
   --globe-star: color-mix(in srgb, var(--ink) 78%, transparent);
+  /* 星流点缀：在雅致基底上加一点偏金的暖色 */
+  --flow-streak: color-mix(in srgb, #b08a4a 62%, var(--ink));
+  --flow-spark: #c99a3f;
   --globe-coast: color-mix(in srgb, var(--ink) 24%, transparent);   /* 地理层要淡，让位给拼图 */
   --ring-line: color-mix(in srgb, var(--ink) 20%, transparent);
   --chart-line: color-mix(in srgb, var(--ink) 28%, transparent);
@@ -131,6 +134,9 @@
   --code-punct: #9aa0a8;
   --code-error: #e08080;
   --code-hl: rgba(208, 138, 116, 0.1);
+  /* 星流点缀：夜间的偏金暖色 */
+  --flow-streak: color-mix(in srgb, #e8c98d 72%, var(--ink));
+  --flow-spark: #eccb8a;
 }
 
 /* --------------------------------------------------------------------------
@@ -501,12 +507,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
   text-decoration: none;
   transition: color 0.25s var(--ease);
 }
-.hero-act:hover { color: var(--accent); background: none; border: 0; }
+.hero-act:hover { background: none; border: 0; }   /* 图标保持本色，只让线与字变色 */
 .hero-act:hover .hero-act__label { color: var(--accent); }
 /* 内部元素不吃事件：悬停目标只有 <a> 的盒子，避免命中区抖动 */
 .hero-act__ring, .hero-act__icon, .hero-act__label { pointer-events: none; }
 .hero-act__ring { transition: transform 0.3s var(--ease); }
-.hero-act:hover .hero-act__ring { transform: scale(1.07); }
+
 /* 两个按钮落在星轨椭圆左右两个焦点上 */
 .hero-act--left { left: 19%; }
 .hero-act--right { right: 19%; }

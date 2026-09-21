@@ -181,8 +181,8 @@
   }
   function readColors() {
     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    colStreak = toRgba(cssColor('--ink', dark ? '#e9e4db' : '#221f1c'), dark ? 0.42 : 0.3);
-    colSpark = toRgba(cssColor('--accent', dark ? '#d08a74' : '#8f3a2c'), dark ? 0.85 : 0.6);
+    colStreak = toRgba(cssColor('--flow-streak', dark ? '#e8c98d' : '#b08a4a'), dark ? 0.55 : 0.42);
+    colSpark = toRgba(cssColor('--flow-spark', dark ? '#eccb8a' : '#c99a3f'), dark ? 0.95 : 0.8);
   }
 
   var STRANDS = 7;                                   // 七股丝缕，缠绕在星轨上
@@ -212,7 +212,18 @@
   function resize() {
     var r = back.getBoundingClientRect();
     W = Math.max(1, r.width); H = Math.max(1, r.height);
-    cx = W / 2; cy = H / 2; rx = W / 2; ry = H / 2;
+    cx = W / 2; cy = H / 2;
+    // ① 用星轨外轨的真实离心率，别用整个图层外框（否则形状对不上）
+    rx = W / 2; ry = H / 2;
+    var ringSvg = document.querySelector('.hero__star-ring');
+    if (ringSvg) {
+      var o = (ringSvg.getAttribute('data-outer') || '').split(',').map(Number);
+      var vb = (ringSvg.getAttribute('viewBox') || '0 0 1600 560').split(/\s+/).map(Number);
+      if (o.length === 2 && vb.length === 4 && vb[2] && vb[3]) {
+        rx = W * (o[0] / vb[2]);
+        ry = H * (o[1] / vb[3]);
+      }
+    }
     back.width = Math.round(W * dpr); back.height = Math.round(H * dpr);
     front.width = back.width; front.height = back.height;
     cb.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -252,15 +263,24 @@
       var ctx = near ? cf : cb;
       if (!near && Math.hypot(q[0] - cx, q[1] - cy) < sunR * 1.02) continue;   // 背面被太阳遮住
       var depth = near ? 1 : 0.52;               // 远侧更小更暗 → 立体
-      var fade = 1 - p.age / p.life;
+      var fadeIn = Math.min(1, p.age / 60);
+      var fadeOut = Math.min(1, (p.life - p.age) / 90);
+      var fade = fadeIn * fadeOut;   // ② 两端都是渐变
       var tw = 0.65 + 0.35 * Math.sin(p.tw + t0 * 0.001 * p.tws);
+      // ④ 拖尾用分段递变：尾细尾淡、头粗头亮 → 有粗细与透明度的渐变
+      var SEG = 4;
       ctx.strokeStyle = p.hot ? colSpark : colStreak;
-      ctx.globalAlpha = Math.max(0.05, (p.hot ? 0.85 : 0.5) * fade * tw * depth);
-      ctx.lineWidth = (p.hot ? 1.5 : 1.05) * depth;
-      ctx.beginPath();
-      ctx.moveTo(q0[0], q0[1]);
-      ctx.lineTo(q[0], q[1]);
-      ctx.stroke();
+      for (var sg = 0; sg < SEG; sg++) {
+        var k1 = sg / SEG, k2 = (sg + 1) / SEG;
+        var xa = q0[0] + (q[0] - q0[0]) * k1, ya = q0[1] + (q[1] - q0[1]) * k1;
+        var xb = q0[0] + (q[0] - q0[0]) * k2, yb = q0[1] + (q[1] - q0[1]) * k2;
+        ctx.globalAlpha = Math.max(0.03, (p.hot ? 0.85 : 0.5) * fade * tw * depth * (0.22 + 0.78 * k2));
+        ctx.lineWidth = (p.hot ? 1.5 : 1.05) * depth * (0.35 + 0.65 * k2);
+        ctx.beginPath();
+        ctx.moveTo(xa, ya);
+        ctx.lineTo(xb, yb);
+        ctx.stroke();
+      }
       if (p.hot) {                               // 星芒：一个亮点 + 十字
         ctx.globalAlpha = Math.max(0.08, 0.9 * fade * tw * depth);
         ctx.lineWidth = 1;
