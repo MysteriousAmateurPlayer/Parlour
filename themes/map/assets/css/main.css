@@ -391,22 +391,29 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding-block-start: clamp(3.5rem, 15vh, 9.5rem);   /* 让太阳连星轨一起完整露出来 */
   padding-block-end: clamp(1rem, 2vh, 2rem);
   text-align: center;
-  overflow: hidden;
+  overflow: visible;   /* 星轨与流场可以和星座一样溢出页面边框 */
 }
 
 /* 背景：一圈极淡的同心光晕，像被灯照着的纸 */
 
 .hero__inner { position: relative; z-index: 1; }
 
-/* 首屏的粒子流场：大量微小粒子在流场里涌动，形成波浪与涡流 */
+/* 首屏粒子流场：分前后两层，构成绕星盘的 3D 流
+   —— 背面那层在太阳之下（被太阳遮住），正面那层在太阳之上 */
 .hero__flow {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 0;
+  /* 收紧到星轨椭圆内：超出椭圆的粒子直接裁掉 */
+  clip-path: ellipse(50% 50% at 50% 50%);
 }
+.hero__flow--back { z-index: 0; }
+.hero__flow--front { z-index: 2; }
+/* 文字压在两层流场之上 */
+.hero__sun-wrap > .hero__kicker,
+.hero__sun-wrap > .hero__name { z-index: 3; }
 
 .hero__ornament {
   position: relative;

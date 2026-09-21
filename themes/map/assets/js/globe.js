@@ -444,6 +444,7 @@
       el: el, rx: o[0], ry: o[1], a: parseFloat(el.getAttribute('data-a')) || 0,
       glyph: glyph,
       bob: el.getAttribute('data-bob') === '1',
+      tilt: parseFloat(el.getAttribute('data-tilt')) || 0,   // 固定倾角：旋转时朝向不变
       axis: el.getAttribute('data-kind') === 'axis',
       sp: isNaN(sp) ? 1 : sp          // 星尘速度略有差异 → 缓慢流动
     };
@@ -473,7 +474,7 @@
       // 沿环做正弦上下浮动：相位随角度累进，整整一圈正好 7 个波长
       if (it.bob) y += 9 * Math.sin(7 * a + now * 0.0006);
       var th = Math.atan2(it.rx * Math.sin(a), it.ry * Math.cos(a)) * 180 / Math.PI;
-      it.el.setAttribute('transform', 'translate(' + x.toFixed(1) + ',' + y.toFixed(1) + ') rotate(' + (it.glyph ? th * 0.22 : th).toFixed(2) + ')');
+      it.el.setAttribute('transform', 'translate(' + x.toFixed(1) + ',' + y.toFixed(1) + ') rotate(' + (it.glyph ? it.tilt : th).toFixed(2) + ')');
     }
   }
 

@@ -141,34 +141,27 @@
 
 
 /* ==========================================================================
-   首屏粒子流场：无散度流场（正弦叠加 + 绕太阳的涡旋）驱动大量粒子，
-   画成短短的流线，叠加成波浪与大海涡流般的流动星空。
+   首屏粒子流场：紧贴太阳星轨的椭圆盘面，分"背面/正面"两层绘制，
+   从而有 3D 层次——背面那一半被太阳盘面遮住，正面那一半压在太阳之上。
+   粒子沿椭圆切向流动并带径向脉动，聚成一股一股的丝缕；其中一部分是闪耀的星芒。
    ========================================================================== */
 (function () {
-  var cv = document.querySelector('.hero__flow');
-  if (!cv || !cv.getContext) return;
-  var ctx = cv.getContext('2d');
+  var back = document.querySelector('.hero__flow--back');
+  var front = document.querySelector('.hero__flow--front');
+  if (!back || !front || !back.getContext) return;
+  var cb = back.getContext('2d'), cf = front.getContext('2d');
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var dpr = Math.min(2, window.devicePixelRatio || 1);
-  var W = 0, H = 0, parts = [], color = 'rgba(255,255,255,.8)', glow = 'rgba(255,255,255,.5)';
 
-  /* CSS 变量里可能是 color-mix(...) 表达式，直接丢给 canvas 是非法值（会变成黑色看不见）。
-     用一个隐藏探针元素把变量的真实颜色算出来。 */
+  var W = 0, H = 0, cx = 0, cy = 0, rx = 0, ry = 0, sunR = 0;
+  var parts = [];
+  var colStreak = 'rgba(240,235,225,.5)', colSpark = 'rgba(230,185,138,.9)';
+
+  /* CSS 变量里可能是 color-mix(...)，用探针取真实颜色 */
   var probe = document.createElement('span');
   probe.setAttribute('aria-hidden', 'true');
   probe.style.cssText = 'position:absolute;left:-9999px;top:0;width:0;height:0';
   document.body.appendChild(probe);
-  function cssColor(varName, fallback) {
-    var v = '';
-    try {
-      probe.style.color = '';
-      probe.style.color = 'var(' + varName + ')';
-      v = getComputedStyle(probe).color;
-    } catch (e) { v = ''; }
-    if (!v || v === 'rgba(0, 0, 0, 0)' || v === 'transparent') return fallback;
-    return v;
-  }
-  /* canvas 不接受 color-mix(...)，所以只读实色变量并自己拼 rgba */
   function toRgba(c, a) {
     c = (c || '').trim();
     var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(c);
@@ -178,123 +171,117 @@
       return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')';
     }
     var m2 = /^rgba?\(([^)]+)\)$/.exec(c);
-    if (m2) {
-      var p = m2[1].split(',').map(function (x) { return x.trim(); });
-      return 'rgba(' + p[0] + ',' + p[1] + ',' + p[2] + ',' + a + ')';
-    }
-    return 'rgba(' + (a > 0.5 ? '240,235,225' : '60,55,48') + ',' + a + ')';
+    if (m2) { var p = m2[1].split(','); return 'rgba(' + p[0].trim() + ',' + p[1].trim() + ',' + p[2].trim() + ',' + a + ')'; }
+    return 'rgba(240,235,225,' + a + ')';
+  }
+  function cssColor(name, fallback) {
+    var v = '';
+    try { probe.style.color = ''; probe.style.color = 'var(' + name + ')'; v = getComputedStyle(probe).color; } catch (e) {}
+    return (!v || v === 'rgba(0, 0, 0, 0)') ? fallback : v;
   }
   function readColors() {
     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    var ink = cssColor('--ink', dark ? '#e9e4db' : '#221f1c');
-    var acc = cssColor('--accent', dark ? '#d08a74' : '#8f3a2c');
-    color = toRgba(ink, dark ? 0.5 : 0.4);
-    glow = toRgba(acc, dark ? 0.75 : 0.6);
+    colStreak = toRgba(cssColor('--ink', dark ? '#e9e4db' : '#221f1c'), dark ? 0.42 : 0.3);
+    colSpark = toRgba(cssColor('--accent', dark ? '#d08a74' : '#8f3a2c'), dark ? 0.85 : 0.6);
+  }
+
+  function spawn() {
+    return {
+      a: Math.random() * Math.PI * 2,
+      t: 0.1 + Math.pow(Math.random(), 0.7) * 0.9,   // 0.1~1.0：紧贴椭圆及其内部
+      w: Math.random() * Math.PI * 2,                // 径向脉动相位 → 丝缕
+      spin: 0.7 + Math.random() * 0.8,               // 角速度差异 → 一股一股
+      age: 0, life: 140 + Math.random() * 420,
+      hot: Math.random() < 0.24,                     // 闪耀的星芒
+      tw: Math.random() * Math.PI * 2, tws: 0.5 + Math.random() * 1.7
+    };
+  }
+
+  function pt(p, dA) {
+    var a = p.a + (dA || 0);
+    var t = p.t + Math.sin(a * 7 + p.w) * 0.055;      // 径向脉动：七道丝缕
+    if (t > 1.06) t = 1.06; if (t < 0.04) t = 0.04;
+    return [cx + rx * t * Math.cos(a), cy + ry * t * Math.sin(a), Math.sin(a)];
   }
 
   function resize() {
-    var r = cv.getBoundingClientRect();
-    W = Math.max(1, Math.round(r.width));
-    H = Math.max(1, Math.round(r.height));
-    cv.width = Math.round(W * dpr);
-    cv.height = Math.round(H * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var n = Math.max(280, Math.min(720, Math.round(W * H / 1900)));
+    var r = back.getBoundingClientRect();
+    W = Math.max(1, r.width); H = Math.max(1, r.height);
+    cx = W / 2; cy = H / 2; rx = W / 2; ry = H / 2;
+    back.width = Math.round(W * dpr); back.height = Math.round(H * dpr);
+    front.width = back.width; front.height = back.height;
+    cb.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cf.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // 太阳盘面半径（换算到画布局部坐标）：背面的粒子落在这里就不画 → 被太阳挡住
+    var disc = document.querySelector('.sun-disc');
+    var dr = disc ? disc.getBoundingClientRect() : null;
+    sunR = (dr && r.width) ? (dr.width / 2) * (W / r.width) : W * 0.17;
+    var n = Math.max(200, Math.min(620, Math.round((W + H) * 0.62)));
     parts = [];
     for (var i = 0; i < n; i++) parts.push(spawn());
   }
 
-  function spawn() {
-    var x = Math.random() * W, y = Math.random() * H;
-    return {
-      x: x,
-      y: y,
-      px: x, py: y,
-      life: 60 + Math.random() * 240,
-      age: 0,
-      hot: Math.random() < 0.14
-    };
-  }
-
-  /* 流场：u = ∂ψ/∂y，v = -∂ψ/∂x（无散度），再叠加绕太阳的涡旋 */
-  function field(x, y, t, out) {
-    var u = Math.cos(y / 68 + t * 0.00030) * 0.38
-          + Math.cos((x + y) / 118 + t * 0.00022) * 0.12;
-    var v = Math.sin(x / 82 - t * 0.00026) * 0.30
-          + Math.cos((x + y) / 118 + t * 0.00022) * 0.12;
-    var cx = W * 0.5, cy = H * 0.30;
-    var dx = x - cx, dy = y - cy;
-    var d2 = dx * dx + dy * dy + 4200;
-    var k = -2600 / d2;                      // 涡旋强度
-    u += -dy * k * 0.0016;
-    v += dx * k * 0.0016;
-    out[0] = u * 380;
-    out[1] = v * 380;
-  }
-
-  var tmp = [0, 0];
-  /* 先推进若干步、再画一帧：这样首屏立刻就有流场（也让无头截图能验证） */
-  function advance(now, steps) {
+  var t0 = 0;
+  function advance(steps) {
     for (var s = 0; s < steps; s++) {
       for (var i = 0; i < parts.length; i++) {
         var p = parts[i];
-        field(p.x, p.y, now, tmp);
-        p.x += tmp[0] * 0.016;
-        p.y += tmp[1] * 0.016;
+        p.a += 0.019 * (0.45 + p.spin) / (0.3 + p.t);   // 内圈快外圈慢 → 盘面旋转感
         p.age++;
-        if (p.age > p.life || p.x < -40 || p.x > W + 40 || p.y < -40 || p.y > H + 40) parts[i] = spawn();
+        if (p.age > p.life) parts[i] = spawn();
       }
-      now += 16;
+      t0 += 16;
     }
-    return now;
   }
 
-  function drawOnce(now) {
-    ctx.clearRect(0, 0, W, H);
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.lineCap = 'round';
+  function drawFrame() {
+    cb.clearRect(0, 0, W, H);
+    cf.clearRect(0, 0, W, H);
+    cb.globalCompositeOperation = 'lighter';
+    cf.globalCompositeOperation = 'lighter';
+    cb.lineCap = cf.lineCap = 'round';
     for (var i = 0; i < parts.length; i++) {
       var p = parts[i];
-      p.px = p.x - 0.0001; p.py = p.y;
-      field(p.x, p.y, now, tmp);
-      p.x += tmp[0] * 0.016;
-      p.y += tmp[1] * 0.016;
-      p.age++;
-      if (p.age > p.life || p.x < -40 || p.x > W + 40 || p.y < -40 || p.y > H + 40) {
-        parts[i] = spawn();
-        continue;
-      }
-      var speed = Math.hypot(tmp[0], tmp[1]);
-      var a = Math.min(0.92, 0.3 + speed / 110) * (1 - p.age / p.life);
-      // 沿运动方向拉出一段轨迹：这才是"潮水动线"的关键（只画一步就是一个点）
-      var TRAIL = 0.055;
-      ctx.strokeStyle = p.hot ? glow : color;
-      ctx.globalAlpha = Math.max(0.15, a);
-      ctx.lineWidth = p.hot ? 2 : 1.3;
+      var q = pt(p, 0), q0 = pt(p, -0.055 * (0.45 + p.spin) / (0.3 + p.t));
+      var near = q[2] >= 0;                      // 椭圆下半 = 近侧（压在太阳之上）
+      var ctx = near ? cf : cb;
+      if (!near && Math.hypot(q[0] - cx, q[1] - cy) < sunR * 1.02) continue;   // 背面被太阳遮住
+      var depth = near ? 1 : 0.52;               // 远侧更小更暗 → 立体
+      var fade = 1 - p.age / p.life;
+      var tw = 0.65 + 0.35 * Math.sin(p.tw + t0 * 0.001 * p.tws);
+      ctx.strokeStyle = p.hot ? colSpark : colStreak;
+      ctx.globalAlpha = Math.max(0.05, (p.hot ? 0.85 : 0.5) * fade * tw * depth);
+      ctx.lineWidth = (p.hot ? 1.5 : 1.05) * depth;
       ctx.beginPath();
-      ctx.moveTo(p.x - tmp[0] * TRAIL, p.y - tmp[1] * TRAIL);
-      ctx.lineTo(p.x, p.y);
+      ctx.moveTo(q0[0], q0[1]);
+      ctx.lineTo(q[0], q[1]);
       ctx.stroke();
+      if (p.hot) {                               // 星芒：一个亮点 + 十字
+        ctx.globalAlpha = Math.max(0.08, 0.9 * fade * tw * depth);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(q[0] - 3.4, q[1]); ctx.lineTo(q[0] + 3.4, q[1]);
+        ctx.moveTo(q[0], q[1] - 3.4); ctx.lineTo(q[0], q[1] + 3.4);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(q[0], q[1], 0.9 + 0.7 * tw, 0, Math.PI * 2);
+        ctx.fillStyle = colSpark;
+        ctx.fill();
+      }
     }
-    ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = 'source-over';
-  }
-
-  function frame(now) {
-    drawOnce(now);
-    raf = requestAnimationFrame(frame);
+    cb.globalAlpha = cf.globalAlpha = 1;
+    cb.globalCompositeOperation = cf.globalCompositeOperation = 'source-over';
   }
 
   var raf = 0, visible = true;
   readColors();
   resize();
-  // 预热：先让粒子在流场里跑一会儿，再画一帧
-  var t0 = 0;
-  t0 = advance(t0, 90);
-  drawOnce(t0);
-  if (reduce) return;              // 减少动效：只留这一帧静态流场
+  advance(120);          // 预热：首屏立刻就有流场（无头截图也能验证）
+  drawFrame();
+  if (reduce) return;    // 减少动效：只保留这一帧静态流场
+  function frame() { advance(1); drawFrame(); raf = requestAnimationFrame(frame); }
   raf = requestAnimationFrame(frame);
-  window.addEventListener('resize', function () { resize(); }, { passive: true });
+  window.addEventListener('resize', function () { resize(); advance(40); drawFrame(); }, { passive: true });
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (es) {
       es.forEach(function (e) {
@@ -302,7 +289,7 @@
         if (visible && !raf) raf = requestAnimationFrame(frame);
         if (!visible && raf) { cancelAnimationFrame(raf); raf = 0; }
       });
-    }, { threshold: 0 }).observe(cv);
+    }, { threshold: 0 }).observe(back);
   }
   new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 })();
