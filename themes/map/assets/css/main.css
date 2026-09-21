@@ -34,7 +34,7 @@
   --measure: 40rem;
   --header-h: 4.25rem;
   --hero-max: 52rem;          /* 主视觉的高度上限 */
-  --sun-d: clamp(15rem, 27vw, 24rem);  /* 太阳盘面直径（比地球小得多） */
+  --sun-d: clamp(13rem, 24vw, 20.5rem);  /* 太阳盘面直径（文字精简后适度收小） */
   --hero-text-w: min(17rem, 74vw);     /* 简介文字宽度 */
   --radius: 2px;
   --radius-lg: 4px;
@@ -420,20 +420,23 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 .hero__kicker {
-  font-family: var(--font-sans);
-  font-size: var(--step--1);
-  letter-spacing: 0.38em;
-  text-transform: uppercase;
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  text-transform: none;
   color: var(--ink-mute);
-  margin-bottom: clamp(1rem, 2.5vw, 1.75rem);
+  margin-bottom: clamp(0.4rem, 1.1vw, 0.7rem);
 }
 
 .hero__name {
-  font-size: clamp(2.4rem, 9vw, 4.6rem);
+  font-family: var(--font-serif);
+  /* 站名是 7 个汉字，字号要按盘面直径收着给 */
+  font-size: clamp(1.15rem, 3.1vw, 2rem);
   font-weight: 500;
-  line-height: 1;
-  letter-spacing: 0.16em;
-  text-indent: 0.16em; /* 抵消字距造成的视觉偏移 */
+  line-height: 1.15;
+  letter-spacing: 0.1em;
+  text-indent: 0.1em; /* 抵消字距造成的视觉偏移 */
   margin: 0;
 }
 
@@ -449,12 +452,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
   }
 }
 
-.hero__tagline {
-  margin-top: clamp(0.9rem, 2vw, 1.35rem);
-  font-size: var(--step-1);
-  color: var(--ink-soft);
-  letter-spacing: 0.14em;
-}
 
 .hero__divider {
   display: flex;
@@ -470,13 +467,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
   transform: rotate(45deg);
 }
 
-.hero__intro {
-  max-width: var(--hero-text-w);
-  margin-inline: auto;
-  color: var(--ink-soft);
-  font-size: clamp(0.92rem, 0.86rem + 0.3vw, 1.02rem);
-  line-height: 1.75;
-}
 
 .hero__actions {
   margin-top: clamp(1.5rem, 3vw, 2.5rem);
@@ -783,14 +773,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
   transform: translate(-50%, -50%);
 }
 .sun-ray--spike path {
-  fill: color-mix(in srgb, var(--accent) 24%, transparent);
-  stroke: color-mix(in srgb, var(--accent) 46%, transparent);
+  fill: color-mix(in srgb, var(--accent) 33%, transparent);
+  stroke: color-mix(in srgb, var(--accent) 58%, transparent);
   stroke-width: 0.8;
   stroke-linejoin: round;
 }
 .sun-ray--flame path {
   fill: none;
-  stroke: color-mix(in srgb, var(--accent) 40%, transparent);
+  stroke: color-mix(in srgb, var(--accent) 54%, transparent);
   stroke-width: 1.1;
   stroke-linecap: round;
 }

@@ -24,7 +24,8 @@
 {{- /* ---------- 标题与描述 ---------- */ -}}
 {{- $title := "" -}}
 {{- if .IsHome -}}
-  {{- $title = printf "%s · %s" site.Title (site.Params.tagline | default site.Params.description) -}}
+  {{- /* 首页标签页标题在 data/home.yaml 的 hero.tabTitle 里改 */ -}}
+  {{- $title = (index (index hugo.Data.home "hero") "tabTitle") | default site.Title -}}
 {{- else if eq .Kind "404" -}}
   {{- $title = printf "页面不存在 · %s" site.Title -}}
 {{- else if and (eq .Kind "taxonomy") (eq .Data.Singular "tag") -}}

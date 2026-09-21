@@ -32,17 +32,18 @@ try {
   ok('首页文案能解析成表单值', !!values['hero.name'], `名字=${values['hero.name']}`);
   ok('段落是多行文本', values['about.paragraphs'].includes('\n'), `${values['about.paragraphs'].split('\n').length} 段`);
   ok('速览是「名目 | 内容」', values['about.facts'].includes('|'), JSON.stringify(values['about.facts'].split('\n')[0]));
-  ok('字段表覆盖了 17 项', W.SITE_HOME_FIELDS.length === 17, String(W.SITE_HOME_FIELDS.length));
+  ok('字段表覆盖了 16 项', W.SITE_HOME_FIELDS.length === 16, String(W.SITE_HOME_FIELDS.length));
 
   const probe = { ...values };
-  probe['hero.tagline'] = '__测试定位语__';
+  probe['hero.tabTitle'] = '__测试标签页标题__';
   probe['about.paragraphs'] = '第一段。\n第二段。';
   probe['about.facts'] = '名目甲 | 内容甲\n名目乙 | 内容乙';
   probe['latest.count'] = '4';
   W.saveHome(probe);
 
   const saved = W.readHome();
-  ok('定位语写入正确', saved.hero.tagline === '__测试定位语__');
+  ok('标签页标题写入正确', saved.hero.tabTitle === '__测试标签页标题__');
+  ok('太阳上的前缀与站名都在', !!saved.hero.kicker && !!saved.hero.name, `${saved.hero.kicker} / ${saved.hero.name}`);
   ok('段落数量正确', Array.isArray(saved.about.paragraphs) && saved.about.paragraphs.length === 2);
   ok('速览结构正确', saved.about.facts.length === 2 && saved.about.facts[0].label === '名目甲' && saved.about.facts[1].value === '内容乙');
   ok('显示条数是数字', saved.latest.count === 4 && typeof saved.latest.count === 'number');

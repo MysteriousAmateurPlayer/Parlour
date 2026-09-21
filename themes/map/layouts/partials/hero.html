@@ -1,7 +1,7 @@
 {{- $hero := hugo.Data.home.hero -}}
 <section class="hero">
   <div class="wrap hero__inner">
-    {{/* 简介放在一个典雅的太阳上（盘面用 CSS，光芒是古典的锥形 + 火焰形交替） */}}
+    {{/* 站名放在一个典雅的太阳上（盘面用 CSS，光芒是古典的锥形 + 火焰形交替） */}}
     <div class="hero__sun-wrap">
       {{/* 太阳与地球之间那一圈星星（很扁的星轨） */}}
       <span class="hero__ring-layer" aria-hidden="true">{{ partial "star-ring.html" . }}</span>
@@ -17,13 +17,9 @@
         <span class="hero__name-text">{{ $hero.name }}</span>
       </h1>
 
-      <p class="hero__tagline reveal" style="--d:160ms">{{ $hero.tagline }}</p>
-
-      <p class="hero__intro reveal" style="--d:240ms">{{ $hero.intro }}</p>
-
     </div>
 
-    {{/* 两个按钮放在太阳外面（太阳上只留姓名与简介，盘面才装得下） */}}
+    {{/* 两个按钮放在太阳外面（太阳上只留"MAP的"与站名，盘面才装得下） */}}
     {{- if or $hero.primary $hero.secondary }}
     <div class="hero__actions reveal" style="--d:320ms">
       {{- with $hero.primary }}

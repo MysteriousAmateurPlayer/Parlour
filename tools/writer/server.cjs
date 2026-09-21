@@ -156,10 +156,9 @@ const PAGES_SETTINGS_BLOCK = `  # ==============================================
             label: 主视觉（首屏）
             type: object
             fields:
-              - { name: kicker, label: 名字上方的小字, type: string }
-              - { name: name, label: 名字（超大字）, type: string }
-              - { name: tagline, label: 一行定位语, type: string }
-              - { name: intro, label: 自我介绍正文, type: text }
+              - { name: kicker, label: 太阳上的小字前缀, type: string }
+              - { name: name, label: 太阳上的大标题, type: string }
+              - { name: tabTitle, label: 浏览器标签页标题（仅首页）, type: string }
               - name: primary
                 label: 主按钮（实心）
                 type: object
@@ -406,10 +405,9 @@ const SOCIALS_FILE = path.join(ROOT, 'data', 'socials.yaml');
 
 // 首页文案的字段表（dotted path → 类型），前端照着渲染表单
 const SITE_HOME_FIELDS = [
-  { group: '主视觉（首屏）', key: 'hero.kicker', label: '名字上方的小字', type: 'string' },
-  { group: '主视觉（首屏）', key: 'hero.name', label: '名字（超大字）', type: 'string', hint: '就是页面正中那个大写名字' },
-  { group: '主视觉（首屏）', key: 'hero.tagline', label: '一行定位语', type: 'string' },
-  { group: '主视觉（首屏）', key: 'hero.intro', label: '自我介绍正文', type: 'text' },
+  { group: '主视觉（首屏）', key: 'hero.kicker', label: '太阳上的小字前缀', type: 'string', hint: '例如「MAP的」，字号很小' },
+  { group: '主视觉（首屏）', key: 'hero.name', label: '太阳上的大标题', type: 'string', hint: '真正的站名，字号最大' },
+  { group: '主视觉（首屏）', key: 'hero.tabTitle', label: '浏览器标签页标题', type: 'string', hint: '只影响首页那个标签页' },
   { group: '主视觉（首屏）', key: 'hero.primary.label', label: '主按钮文字（实心）', type: 'string' },
   { group: '主视觉（首屏）', key: 'hero.primary.url', label: '主按钮链接', type: 'string', hint: '站内写 /about/ 这样就行' },
   { group: '主视觉（首屏）', key: 'hero.secondary.label', label: '次按钮文字（描边）', type: 'string' },
