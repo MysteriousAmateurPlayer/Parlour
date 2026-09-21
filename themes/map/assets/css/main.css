@@ -880,6 +880,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .sky-season { display: none; }
 .sky-season.is-active { display: inline; }
 /* 星座图形连线与名称：像古典星图 */
+.sky-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 24;          /* 透明热区：把悬停判定放大，细线也好抓 */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: stroke;
+}
 .sky-figure {
   fill: none;
   stroke: var(--chart-line);

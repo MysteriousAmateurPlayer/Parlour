@@ -61,6 +61,13 @@
     if (rq !== null && rq !== '' && !isNaN(parseFloat(rq))) { theta = parseFloat(rq); autoRotate = false; }
   } catch (e) {}
   var active = false, dragging = false, lastX = 0, moved = 0;
+  var resumeTimer = null;
+  /* 手动拖动或按钮转动后，停手一会儿就恢复默认的缓慢自转 */
+  function scheduleResume() {
+    if (reduceMotion) return;
+    if (resumeTimer) clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(function () { autoRotate = true; }, 3200);
+  }
 
   var SVGNS = 'http://www.w3.org/2000/svg';
   function el(name, attrs) {
@@ -358,6 +365,7 @@
       if (!dragging) return;
       dragging = false;
       stage.classList.remove('is-dragging');
+      scheduleResume();
     });
   });
   piecesG.addEventListener('click', function (e) {
@@ -373,7 +381,7 @@
       var e = 1 - Math.pow(1 - k, 3);
       theta = start + (target - start) * e;
       render();
-      if (k < 1) requestAnimationFrame(step);
+      if (k < 1) requestAnimationFrame(step); else scheduleResume();
     })(t0);
   }
   Array.prototype.forEach.call(document.querySelectorAll('[data-globe-rotate]'), function (btn) {
