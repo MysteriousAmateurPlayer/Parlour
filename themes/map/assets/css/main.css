@@ -870,9 +870,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* 整片星空（星座 + 背景星）绕地球缓慢环行；转到地球背后会被遮罩挡住 */
 .sky-turn {
   animation: sky-turn 480s linear infinite;
-
   transform-box: view-box;
-  transform-origin: 550px 430px;
+  /* 必须与地球圆心一致：画布改成 1500×1300 后圆心是 (750,640)，
+     这里如果还写旧值，整片星空就会绕错点转（看着像圆心在漂） */
+  transform-origin: 750px 640px;
 }
 @keyframes sky-turn { to { transform: rotate(360deg); } }
 /* 星座按季节显隐：默认不显示，JS 按当前日期点亮当季那一组 */
