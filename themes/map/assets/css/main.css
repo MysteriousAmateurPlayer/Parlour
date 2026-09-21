@@ -76,8 +76,9 @@
   --globe-overlap: clamp(10rem, 40vh, 30rem);   /* 地球往上顶进主视觉多少 */
   --globe-star: color-mix(in srgb, var(--ink) 78%, transparent);
   /* 星流点缀：在雅致基底上加一点偏金的暖色 */
-  --flow-streak: color-mix(in srgb, #b08a4a 62%, var(--ink));
-  --flow-spark: #c99a3f;
+  /* 日间：星流沿用原来的墨色搭配，不做金色化 */
+  --flow-streak: var(--ink);
+  --flow-spark: var(--accent);
   --globe-coast: color-mix(in srgb, var(--ink) 24%, transparent);   /* 地理层要淡，让位给拼图 */
   --ring-line: color-mix(in srgb, var(--ink) 20%, transparent);
   --chart-line: color-mix(in srgb, var(--ink) 28%, transparent);
@@ -110,17 +111,17 @@
   --ink-mute: #857f76;
   --line: #2b2e34;
   --line-strong: #3a3e46;
-  --accent: #d08a74;
-  --accent-ink: #e0a08d;
-  --accent-soft: rgba(208, 138, 116, 0.1);
+  --accent: #d9b26a;            /* 夜间：暖红 → 古金 */
+  --accent-ink: #e7cd97;        /* 夜间：浅金 */
+  --accent-soft: rgba(217, 178, 106, 0.1);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.7);
   --shadow-lg: 0 28px 60px -32px rgba(0, 0, 0, 0.8);
   --grain-opacity: 0.045;
 
-  --sun-core: rgba(208, 138, 116, 0.16);
-  --sun-edge: rgba(208, 138, 116, 0.4);
-  --sun-edge-inner: rgba(208, 138, 116, 0.2);
+  --sun-core: rgba(217, 178, 106, 0.16);
+  --sun-edge: rgba(222, 186, 116, 0.4);
+  --sun-edge-inner: rgba(222, 186, 116, 0.2);
 
   --code-bg: #1f2126;
   --code-border: #2e3238;
@@ -856,12 +857,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
   left: 50%;
   top: 50%;
   width: min(88vw, 84rem);
-  aspect-ratio: 1600 / 560;
+  aspect-ratio: 1636 / 596;
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 0;
 }
-.hero__star-ring { display: block; width: 100%; height: 100%; }
+.hero__star-ring { display: block; width: 100%; height: 100%; overflow: visible; }
 /* 太阳的星轨图纸：三条轨道静止，刻度与天体整体绕太阳转 */
 .ring-orbit { fill: none; stroke: var(--ring-line); }
 .ring-orbit--outer { stroke-width: 1.2; opacity: 0.55; }

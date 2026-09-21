@@ -186,15 +186,25 @@
   }
 
   var STRANDS = 7;                                   // 七股丝缕，缠绕在星轨上
+  // 每股一套固定参数：速度、径向相位、纵向（离椭圆）相位 —— 组内一致、组间有别
+  var strandSpeed = [], strandPh = [], strandVert = [];
+  (function () {
+    for (var i = 0; i < STRANDS; i++) {
+      strandSpeed.push(0.86 + Math.random() * 0.3);   // 股间速度略有差别
+      strandPh.push(Math.random() * Math.PI * 2);
+      strandVert.push(Math.random() * Math.PI * 2);
+    }
+  })();
   function spawn(i) {
     var s = (i == null ? Math.floor(Math.random() * STRANDS) : i % STRANDS);
     return {
       a: Math.random() * Math.PI * 2,
       s: s,
       // 每股占一条窄带：0.82~1.02，正好缠在星轨椭圆上（不进入内侧，不会挡太阳）
-      t: 0.82 + (s + 0.5) / STRANDS * 0.2 + (Math.random() - 0.5) * 0.012,
+      t: 0.82 + (s + 0.5) / STRANDS * 0.2 + (Math.random() - 0.5) * 0.02,
       sw: s * (Math.PI * 2 / STRANDS),               // 每股自己的相位 → 分股
-      spin: 0.9 + Math.random() * 0.6,               // 股内速度略快于星轨
+      jit: (Math.random() - 0.5) * 0.05,             // 组内极小差异
+      spin: 0.9 + Math.random() * 0.2,               // 组内速度基本一致
       age: 0, life: 400 + Math.random() * 700,
       hot: Math.random() < 0.24,                     // 闪耀的星芒
       tw: Math.random() * Math.PI * 2, tws: 0.4 + Math.random() * 1.2
@@ -202,11 +212,16 @@
   }
 
   function pt(p, dA) {
-    var a = p.a + (dA || 0);
-    // 同一股共用同一条波形 → 聚成一股一股，而不是均匀铺满
-    var t = p.t + 0.016 * Math.sin(3 * a + p.sw + t0 * 0.00004);
-    if (t > 1.05) t = 1.05; if (t < 0.78) t = 0.78;
-    return [cx + rx * t * Math.cos(a), cy + ry * t * Math.sin(a), Math.sin(a)];
+    var a = p.a + (dA || 0) + p.jit;
+    var s = p.s;
+    // 径向摆动（粗细成股）：同一股共用一条波形
+    var t = p.t + 0.026 * Math.sin(3 * a + strandPh[s] + t0 * 0.00005);
+    if (t > 1.07) t = 1.07; if (t < 0.76) t = 0.76;
+    var x = cx + rx * t * Math.cos(a);
+    var y = cy + ry * t * Math.sin(a);
+    // 纵向偏移：让流束不再严格贴着椭圆，而是像流体一样上下浮动
+    y += ry * 0.055 * Math.sin(2 * a + strandVert[s] - t0 * 0.00006) + ry * 0.02 * Math.sin(5 * a + strandPh[s]);
+    return [x, y, Math.sin(a)];
   }
 
   function resize() {
@@ -232,7 +247,7 @@
     var disc = document.querySelector('.sun-disc');
     var dr = disc ? disc.getBoundingClientRect() : null;
     sunR = (dr && r.width) ? (dr.width / 2) * (W / r.width) : W * 0.17;
-    var n = Math.max(220, Math.min(560, Math.round((W + H) * 0.6)));
+    var n = Math.max(320, Math.min(950, Math.round((W + H) * 1.05)));
     parts = [];
     for (var i = 0; i < n; i++) parts.push(spawn(i));
   }
@@ -242,7 +257,7 @@
     for (var s = 0; s < steps; s++) {
       for (var i = 0; i < parts.length; i++) {
         var p = parts[i];
-        p.a += 0.00042 * (0.55 + p.spin * 0.5);   // 与星轨同量级：仅略快，氛围宁静
+        p.a += 0.00055 * (0.85 + strandSpeed[p.s] * 0.35) * p.spin;   // 提速 30%，仍与星轨同量级
         p.age++;
         if (p.age > p.life) parts[i] = spawn(p.s);
       }
@@ -258,7 +273,7 @@
     cb.lineCap = cf.lineCap = 'round';
     for (var i = 0; i < parts.length; i++) {
       var p = parts[i];
-      var q = pt(p, 0), q0 = pt(p, -0.055 * (0.45 + p.spin) / (0.3 + p.t));
+      var q = pt(p, 0), q0 = pt(p, -0.03 * (0.45 + p.spin) / (0.3 + p.t));   // 拖尾更短，视觉比重更低
       var near = q[2] >= 0;                      // 椭圆下半 = 近侧（压在太阳之上）
       var ctx = near ? cf : cb;
       if (!near && Math.hypot(q[0] - cx, q[1] - cy) < sunR * 1.02) continue;   // 背面被太阳遮住
@@ -268,14 +283,14 @@
       var fade = fadeIn * fadeOut;   // ② 两端都是渐变
       var tw = 0.65 + 0.35 * Math.sin(p.tw + t0 * 0.001 * p.tws);
       // ④ 拖尾用分段递变：尾细尾淡、头粗头亮 → 有粗细与透明度的渐变
-      var SEG = 4;
+      var SEG = 2;
       ctx.strokeStyle = p.hot ? colSpark : colStreak;
       for (var sg = 0; sg < SEG; sg++) {
         var k1 = sg / SEG, k2 = (sg + 1) / SEG;
         var xa = q0[0] + (q[0] - q0[0]) * k1, ya = q0[1] + (q[1] - q0[1]) * k1;
         var xb = q0[0] + (q[0] - q0[0]) * k2, yb = q0[1] + (q[1] - q0[1]) * k2;
-        ctx.globalAlpha = Math.max(0.03, (p.hot ? 0.85 : 0.5) * fade * tw * depth * (0.22 + 0.78 * k2));
-        ctx.lineWidth = (p.hot ? 1.5 : 1.05) * depth * (0.35 + 0.65 * k2);
+        ctx.globalAlpha = Math.max(0.02, (p.hot ? 0.6 : 0.34) * fade * tw * depth * (0.2 + 0.8 * k2));
+        ctx.lineWidth = (p.hot ? 1.1 : 0.8) * depth * (0.3 + 0.7 * k2);
         ctx.beginPath();
         ctx.moveTo(xa, ya);
         ctx.lineTo(xb, yb);
