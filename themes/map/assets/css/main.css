@@ -379,6 +379,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
    05 首页：主视觉
    -------------------------------------------------------------------------- */
 .hero {
+     /* 与地球区同底色，全站一致 */
   position: relative;
   display: flex;
   flex-direction: column;
@@ -393,15 +394,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 /* 背景：一圈极淡的同心光晕，像被灯照着的纸 */
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(60% 45% at 50% 32%, var(--accent-soft), transparent 70%),
-    radial-gradient(90% 60% at 50% 110%, var(--bg-soft), transparent 60%);
-  pointer-events: none;
-}
 
 .hero__inner { position: relative; }
 
@@ -873,14 +865,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
   stroke-width: 0.9;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-.sky-name {
-  fill: var(--globe-star);
-  font-family: var(--font-sans);
-  font-size: 15px;
-  letter-spacing: 0.34em;
-  text-anchor: middle;
-  opacity: 0.85;
 }
 .chart__link {
   fill: none;
@@ -2117,7 +2101,7 @@ body.is-modal-open { overflow: hidden; }
 
 /* 页面两侧：赤纬刻度栏（像手稿页边的仪器刻度，只在宽屏出现） */
 .sky-margins { display: none; }
-@media (min-width: 82rem) {
+@media (min-width: 96rem) {
   .sky-margins {
     display: block;
     position: fixed;

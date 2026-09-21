@@ -29,14 +29,19 @@
   var capacity = Math.max(items.length, parseInt(data.capacity, 10) || 12, cols * 2);
   var rows = Math.max(2, Math.ceil(capacity / cols));
 
-  var LAT_TOP = 66;
-  var LAT_BOTTOM = -66;
+  var LAT_TOP = 78;                // 片区一直铺到接近极地，首屏球冠里也能看到板块
+  var LAT_BOTTOM = -78;
   var bandH = (LAT_TOP - LAT_BOTTOM) / rows;
   var lonW = 360 / cols;
 
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var theta = -60;                 // 起始角度：正对亚洲/非洲这一侧，大陆看得清楚
   var autoRotate = !reduceMotion;
+  // ?rotate=90 可以直接打开某个角度（方便分享特定视角，也便于自检）
+  try {
+    var rq = new URLSearchParams(window.location.search).get('rotate');
+    if (rq !== null && rq !== '' && !isNaN(parseFloat(rq))) { theta = parseFloat(rq); autoRotate = false; }
+  } catch (e) {}
   var active = false, dragging = false, lastX = 0, moved = 0;
 
   var SVGNS = 'http://www.w3.org/2000/svg';
@@ -259,7 +264,9 @@
         var gr = grads[idx];
         gr.setAttribute('cx', mx.toFixed(1));
         gr.setAttribute('cy', my.toFixed(1));
-        gr.setAttribute('r', (rmax * 0.82).toFixed(1));
+        // 半径必须有下限：贴到球体边缘时投影会退化，r=0 的渐变会让整块闪没
+        var rr = rmax > 2 ? rmax * 0.82 : 2;
+        gr.setAttribute('r', rr.toFixed(1));
       }
 
       if (!n.icon) return;
@@ -274,7 +281,8 @@
 
     // 远的先画、近的后画，避免球体边缘互相压盖
     var order = nodes.slice().sort(function (a, b) { return a.cz - b.cz; });
-    var sig = order.map(function (n) { return n.pc.lon1 + ':' + n.pc.lat1; }).join('|');
+    // 签名要跟着真实深度变，否则片区的绘制顺序永远停在第一帧（转到边缘会互相压盖、看着像跳）
+    var sig = order.map(function (n) { return n.pc.lon1 + ':' + n.pc.lat1 + ':' + n.cz.toFixed(3); }).join('|');
     if (sig !== lastOrder) {
       lastOrder = sig;
       order.forEach(function (n) { piecesG.appendChild(n.g); });
