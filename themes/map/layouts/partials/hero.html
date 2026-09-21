@@ -1,13 +1,10 @@
 {{- $hero := hugo.Data.home.hero -}}
-{{- $showScene := site.Params.appearance.showHeroScene -}}
-{{- if eq $showScene nil }}{{ $showScene = true }}{{ end -}}
 <section class="hero">
   <div class="wrap hero__inner">
-    {{/* 简介放在一个典雅的太阳上（盘面 + 长短相间的光线，全部用 CSS 图层） */}}
+    {{/* 简介放在一个典雅的太阳上（盘面用 CSS，光芒是古典的锥形 + 火焰形交替） */}}
     <div class="hero__sun-wrap">
       <span class="hero__sun-layer" aria-hidden="true">
-        <span class="sun-rays sun-rays--long"></span>
-        <span class="sun-rays sun-rays--short"></span>
+        {{ partial "sun-rays.html" . }}
         <span class="sun-disc"></span>
       </span>
 
@@ -35,14 +32,10 @@
       </div>
       {{- end }}
     </div>
-
-    {{- if $showScene }}
-    {{ partial "hero-scene.html" . }}
-    {{- end }}
   </div>
 
-  {{- if and site.Params.appearance.showScrollHint (not $showScene) }}
-  <a class="scroll-hint" href="#sections" aria-label="向下浏览版块">
+  {{- if site.Params.appearance.showScrollHint }}
+  <a class="scroll-hint" href="#globe" aria-label="向下看完整的地球">
     <span class="scroll-hint__text">向下</span>
     {{ partial "icon.html" (dict "name" "arrow-down" "class" "icon icon--sm") }}
   </a>

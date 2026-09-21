@@ -1,0 +1,16 @@
+{{- /* 古典太阳的光芒：16 根锥形长芒（实心，从盘边向外收成尖）+ 16 根火焰形短芒（只有描边）交替。
+       盘面本身用 CSS 画（见 .sun-disc），这里只负责光芒。
+       颜色走 CSS 变量（--accent 的浓淡），明暗主题自动切换。 */ -}}
+<svg class="hero__sun-rays" viewBox="-500 -500 1000 1000" aria-hidden="true" focusable="false">
+  <g class="sun-ray sun-ray--spike">
+    {{- range $i := seq 0 15 }}
+    <path d="M-3.6 -334 L0 -396 L3.6 -334 Z" transform="rotate({{ mul $i 22.5 }})"/>
+    {{- end }}
+  </g>
+  <g class="sun-ray sun-ray--flame">
+    {{- range $i := seq 0 15 }}
+    <path d="M0 -334 C5.4 -347 5.4 -363 0 -377 C-5.4 -363 -5.4 -347 0 -334 Z"
+          transform="rotate({{ add (mul $i 22.5) 11.25 }})"/>
+    {{- end }}
+  </g>
+</svg>

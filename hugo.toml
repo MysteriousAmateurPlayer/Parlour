@@ -46,6 +46,8 @@ summaryLength = 72
     showThemeToggle = true
     # 首页是否显示往下滚动的提示
     showScrollHint = true
+    # 首页下拉那颗可旋转的地球（球面上的拼图片区就是各板块）
+    showGlobe = true
 
   # ---- 里版 / 解谜入口 ----
   [params.vault]

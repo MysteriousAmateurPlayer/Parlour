@@ -173,19 +173,21 @@
 
       var c = screen((n.pc.lat1 + n.pc.lat2) / 2, (n.pc.lon1 + n.pc.lon2) / 2);
       n.cz = c.z;
+      // 文字不跟球面弯，那就越靠边越淡，到球体轮廓处正好淡成 0
+      // （否则横平竖直的字贴在球体边缘很难看）
+      var fade = Math.max(0, Math.min(1, (c.z - 0.16) / 0.42));
       var front = c.z > 0.02;
+      var show = front && fade > 0.04;
+
       n.path.style.visibility = front ? 'visible' : 'hidden';
       n.g.style.pointerEvents = front ? 'auto' : 'none';
-
-      var show = front && (!n.item || c.z > 0.06);
       n.text.style.visibility = show ? 'visible' : 'hidden';
       if (!show) return;
 
-      var depth = Math.max(0, Math.min(1, (c.z - 0.05) / 0.85));
       n.text.setAttribute('x', c.x.toFixed(1));
       n.text.setAttribute('y', (c.y + 1).toFixed(1));
-      n.text.setAttribute('font-size', (18 + depth * 10).toFixed(1));
-      n.text.style.opacity = (0.32 + depth * 0.68).toFixed(2);
+      n.text.setAttribute('font-size', (17 + fade * 9).toFixed(1));
+      n.text.style.opacity = fade.toFixed(2);
     });
 
     // 远的先画、近的后画，避免球体边缘互相压盖
@@ -247,7 +249,7 @@
   });
 
   /* ---------- 只在可见时自转（省电） ---------- */
-  var host = stage.closest ? (stage.closest('.cosmos') || stage) : stage;
+  var host = stage.closest ? (stage.closest('.globe-band') || stage) : stage;
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
