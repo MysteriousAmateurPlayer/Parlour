@@ -360,5 +360,23 @@
     requestAnimationFrame(loop);
   })();
 
+
+  /* ---------- 按时间选择当季星座（北半球；?season=spring|summer|autumn|winter 可指定） ---------- */
+  function applySeason() {
+    var groups = document.querySelectorAll('.sky-season');
+    if (!groups.length) return;
+    var want = null;
+    try { want = new URLSearchParams(window.location.search).get('season'); } catch (e) {}
+    if (!want) {
+      var m = new Date().getMonth() + 1;
+      want = (m >= 3 && m <= 5) ? 'spring' : (m >= 6 && m <= 8) ? 'summer' : (m >= 9 && m <= 11) ? 'autumn' : 'winter';
+    }
+    Array.prototype.forEach.call(groups, function (g) {
+      if (g.getAttribute('data-season') === want) g.classList.add('is-active');
+      else g.classList.remove('is-active');
+    });
+  }
+  applySeason();
+
   render();
 })();

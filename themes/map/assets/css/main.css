@@ -67,7 +67,6 @@
   --shadow-lg: 0 28px 60px -32px rgba(34, 31, 28, 0.42);
   --grain-opacity: 0.05;
 
-
   /* 承载简介的太阳 */
   --sun-core: rgba(143, 58, 44, 0.13);
   --sun-edge: rgba(143, 58, 44, 0.34);
@@ -119,7 +118,6 @@
   --sun-core: rgba(208, 138, 116, 0.16);
   --sun-edge: rgba(208, 138, 116, 0.4);
   --sun-edge-inner: rgba(208, 138, 116, 0.2);
-
 
   --code-bg: #1f2126;
   --code-border: #2e3238;
@@ -813,8 +811,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .ring-orbit--inner { stroke-width: 0.9; stroke-dasharray: 1 5; opacity: 0.75; }
 .ring-marks {
   animation: ring-turn 300s linear infinite;
+
   transform-box: view-box;
-  transform-origin: 800px 280px;
+  /* 刻度/天体用的是"相对圆心"的坐标，所以旋转原点必须取局部原点 0 0 */
+  transform-origin: 0 0;
 }
 @keyframes ring-turn { to { transform: rotate(360deg); } }
 .ring-tick { stroke: var(--ring-line); stroke-width: 0.9; }
@@ -869,14 +869,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 /* 星座（静止的图形） */
 .sky-figures { color: var(--globe-star); }
-/* 背景星：绕着地球缓慢流动（转到地球背后时被遮罩挡住，像星星落到地平线下） */
-.sky-drift {
-  color: var(--globe-star);
+/* 整片星空（星座 + 背景星）绕地球缓慢环行；转到地球背后会被遮罩挡住 */
+.sky-turn {
   animation: sky-turn 480s linear infinite;
+
   transform-box: view-box;
   transform-origin: 550px 430px;
 }
 @keyframes sky-turn { to { transform: rotate(360deg); } }
+/* 星座按季节显隐：默认不显示，JS 按当前日期点亮当季那一组 */
+.sky-season { display: none; }
+.sky-season.is-active { display: inline; }
 /* 星座图形连线与名称：像古典星图 */
 .sky-figure {
   fill: none;
