@@ -428,6 +428,7 @@
   var items = svg.querySelectorAll('.ring-item');
   if (!items.length) return;
 
+  var sunRsvg = -1;
   var CX = parseFloat(svg.getAttribute('data-cx')) || 800;
   var CY = parseFloat(svg.getAttribute('data-cy')) || 280;
   var orbits = {
@@ -459,14 +460,35 @@
       var it = list[i];
       var a = it.a + t * it.sp;
       if (it.axis) {
+        // 太阳盘面半径（换成 SVG 单位）：背面的轴线落进盘面就不画 → 不会被太阳"穿透"
+        if (sunRsvg < 0) {
+          var disc = document.querySelector('.sun-disc');
+          var layer = svg.getBoundingClientRect();
+          sunRsvg = (disc && layer.width) ? (disc.getBoundingClientRect().width / 2) * (1600 / layer.width) : 0;
+        }
         // 四条轴线：两端贴内外椭圆，随环一起转，看起来就是被压扁在椭圆上运动
         var oi = orbits.inner, oo = orbits.outer;
         var ax1 = CX + oi[0] * 0.6 * Math.cos(a), ay1 = CY + oi[1] * 0.6 * Math.sin(a);
         var ax2 = CX + oo[0] * 1.008 * Math.cos(a), ay2 = CY + oo[1] * 1.008 * Math.sin(a);
         var mx = ax1 + (ax2 - ax1) * 0.74, my = ay1 + (ay2 - ay1) * 0.74;
-        it.el.firstChild.setAttribute('d',
-          'M' + ax1.toFixed(1) + ' ' + ay1.toFixed(1) + 'L' + ax2.toFixed(1) + ' ' + ay2.toFixed(1) +
-          'M' + (mx - 5).toFixed(1) + ' ' + my.toFixed(1) + 'H' + (mx + 5).toFixed(1));
+        var d = '';
+        if (Math.sin(a) < 0 && sunRsvg > 0) {
+          // 远侧：把落在太阳盘面内的部分剪掉
+          var N = 18, run = false;
+          for (var s2 = 0; s2 <= N; s2++) {
+            var k2 = s2 / N;
+            var px2 = ax1 + (ax2 - ax1) * k2, py2 = ay1 + (ay2 - ay1) * k2;
+            var inside = Math.hypot(px2 - CX, py2 - CY) < sunRsvg * 1.02;
+            if (inside) { run = false; continue; }
+            d += (run ? 'L' : 'M') + px2.toFixed(1) + ' ' + py2.toFixed(1);
+            run = true;
+          }
+          d += 'M' + (mx - 5).toFixed(1) + ' ' + my.toFixed(1) + 'H' + (mx + 5).toFixed(1);
+        } else {
+          d = 'M' + ax1.toFixed(1) + ' ' + ay1.toFixed(1) + 'L' + ax2.toFixed(1) + ' ' + ay2.toFixed(1) +
+              'M' + (mx - 5).toFixed(1) + ' ' + my.toFixed(1) + 'H' + (mx + 5).toFixed(1);
+        }
+        it.el.firstChild.setAttribute('d', d);
         continue;
       }
       var x = CX + it.rx * Math.cos(a);

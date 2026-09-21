@@ -185,22 +185,27 @@
     colSpark = toRgba(cssColor('--accent', dark ? '#d08a74' : '#8f3a2c'), dark ? 0.85 : 0.6);
   }
 
-  function spawn() {
+  var STRANDS = 7;                                   // 七股丝缕，缠绕在星轨上
+  function spawn(i) {
+    var s = (i == null ? Math.floor(Math.random() * STRANDS) : i % STRANDS);
     return {
       a: Math.random() * Math.PI * 2,
-      t: 0.1 + Math.pow(Math.random(), 0.7) * 0.9,   // 0.1~1.0：紧贴椭圆及其内部
-      w: Math.random() * Math.PI * 2,                // 径向脉动相位 → 丝缕
-      spin: 0.7 + Math.random() * 0.8,               // 角速度差异 → 一股一股
-      age: 0, life: 140 + Math.random() * 420,
+      s: s,
+      // 每股占一条窄带：0.82~1.02，正好缠在星轨椭圆上（不进入内侧，不会挡太阳）
+      t: 0.82 + (s + 0.5) / STRANDS * 0.2 + (Math.random() - 0.5) * 0.012,
+      sw: s * (Math.PI * 2 / STRANDS),               // 每股自己的相位 → 分股
+      spin: 0.9 + Math.random() * 0.6,               // 股内速度略快于星轨
+      age: 0, life: 400 + Math.random() * 700,
       hot: Math.random() < 0.24,                     // 闪耀的星芒
-      tw: Math.random() * Math.PI * 2, tws: 0.5 + Math.random() * 1.7
+      tw: Math.random() * Math.PI * 2, tws: 0.4 + Math.random() * 1.2
     };
   }
 
   function pt(p, dA) {
     var a = p.a + (dA || 0);
-    var t = p.t + Math.sin(a * 7 + p.w) * 0.055;      // 径向脉动：七道丝缕
-    if (t > 1.06) t = 1.06; if (t < 0.04) t = 0.04;
+    // 同一股共用同一条波形 → 聚成一股一股，而不是均匀铺满
+    var t = p.t + 0.016 * Math.sin(3 * a + p.sw + t0 * 0.00004);
+    if (t > 1.05) t = 1.05; if (t < 0.78) t = 0.78;
     return [cx + rx * t * Math.cos(a), cy + ry * t * Math.sin(a), Math.sin(a)];
   }
 
@@ -216,9 +221,9 @@
     var disc = document.querySelector('.sun-disc');
     var dr = disc ? disc.getBoundingClientRect() : null;
     sunR = (dr && r.width) ? (dr.width / 2) * (W / r.width) : W * 0.17;
-    var n = Math.max(200, Math.min(620, Math.round((W + H) * 0.62)));
+    var n = Math.max(220, Math.min(560, Math.round((W + H) * 0.6)));
     parts = [];
-    for (var i = 0; i < n; i++) parts.push(spawn());
+    for (var i = 0; i < n; i++) parts.push(spawn(i));
   }
 
   var t0 = 0;
@@ -226,9 +231,9 @@
     for (var s = 0; s < steps; s++) {
       for (var i = 0; i < parts.length; i++) {
         var p = parts[i];
-        p.a += 0.019 * (0.45 + p.spin) / (0.3 + p.t);   // 内圈快外圈慢 → 盘面旋转感
+        p.a += 0.00042 * (0.55 + p.spin * 0.5);   // 与星轨同量级：仅略快，氛围宁静
         p.age++;
-        if (p.age > p.life) parts[i] = spawn();
+        if (p.age > p.life) parts[i] = spawn(p.s);
       }
       t0 += 16;
     }
