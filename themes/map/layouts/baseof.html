@@ -6,6 +6,40 @@
 </head>
 <body class="kind-{{ .Kind }}{{ with .Section }} section-{{ . }}{{ end }}{{ if .IsHome }} is-home{{ end }}{{ if .Params.private }} is-private{{ end }}">
   <a class="skip-link" href="#main">跳到主要内容</a>
+  <div class="page-motifs" aria-hidden="true">
+      <span class="page-motifs__side page-motifs__side--left">
+        <span class="page-motifs__rule"></span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "sun" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "sparkle" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "flower" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "wave" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "globe" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "leaf" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "comet" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "moon" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "mountain" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "daisy" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "sparkle" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "sun" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__rule"></span>
+      </span>
+      <span class="page-motifs__side page-motifs__side--right">
+        <span class="page-motifs__rule"></span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "sun" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "sparkle" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "flower" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "wave" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "globe" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "leaf" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "comet" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "moon" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "mountain" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "daisy" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "sparkle" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__motif">{{ partial "icon.html" (dict "name" "sun" "class" "icon icon--xs") }}</span>
+        <span class="page-motifs__rule"></span>
+      </span>
+  </div>
   {{- partial "header.html" . -}}
   <main id="main" class="site-main">
     {{- block "main" . }}{{ end -}}

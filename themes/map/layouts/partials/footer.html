@@ -27,6 +27,23 @@
       {{- end }}
     </div>
 
+    <div class="site-footer__ornament" aria-hidden="true">
+      <span class="ornament__rule"></span>
+      <span class="ornament__motifs">
+        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "sun" "class" "icon icon--xs") }}</span>
+        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "sparkle" "class" "icon icon--xs") }}</span>
+        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "flower" "class" "icon icon--xs") }}</span>
+        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "leaf" "class" "icon icon--xs") }}</span>
+        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "globe" "class" "icon icon--xs") }}</span>
+        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "wave" "class" "icon icon--xs") }}</span>
+        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "comet" "class" "icon icon--xs") }}</span>
+        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "moon" "class" "icon icon--xs") }}</span>
+        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "mountain" "class" "icon icon--xs") }}</span>
+        <span class="ornament__motif">{{ partial "icon.html" (dict "name" "daisy" "class" "icon icon--xs") }}</span>
+      </span>
+      <span class="ornament__rule"></span>
+    </div>
+
     <div class="site-footer__bottom">
       <p class="copyright">
         © {{ if site.Params.since }}{{ site.Params.since }}–{{ end }}{{ now.Year }} {{ site.Params.author | default site.Title }} ·

@@ -75,12 +75,13 @@
 
   /* 地球仪：纸底上的镂空线稿（星图质感），不做夜空反色 */
   --globe-overlap: clamp(8rem, 30vh, 22rem);   /* 地球往上顶进主视觉多少 */
-  --globe-star: color-mix(in srgb, var(--ink) 52%, transparent);
+  --globe-star: color-mix(in srgb, var(--ink) 68%, transparent);
   --globe-star-strong: color-mix(in srgb, var(--accent) 38%, var(--ink));
-  --globe-coast: color-mix(in srgb, var(--ink) 46%, transparent);
-  --ring-line: color-mix(in srgb, var(--ink) 16%, transparent);
+  --globe-coast: color-mix(in srgb, var(--ink) 24%, transparent);   /* 地理层要淡，让位给拼图 */
+  --ring-line: color-mix(in srgb, var(--ink) 20%, transparent);
+  --chart-line: color-mix(in srgb, var(--ink) 28%, transparent);
   --globe-fill: color-mix(in srgb, var(--accent) 4%, transparent);
-  --globe-line: color-mix(in srgb, var(--ink) 20%, transparent);
+  --globe-line: color-mix(in srgb, var(--ink) 15%, transparent);
   --globe-line-strong: color-mix(in srgb, var(--ink) 36%, transparent);
   --globe-label: var(--ink);
 
@@ -257,6 +258,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .site-header.is-scrolled { border-bottom-color: var(--line); }
 
 .site-header__inner {
+  /* 页眉比正文列宽一些，导航才不会挤成一列一列 */
+  max-width: min(92rem, 100%);
   height: var(--header-h);
   display: flex;
   align-items: center;
@@ -341,6 +344,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .icon { width: 1.16em; height: 1.16em; flex: none; }
 .icon--sm { width: 0.95em; height: 0.95em; }
+.icon--xs { width: 0.8em; height: 0.8em; }
 .icon--flip { transform: scaleX(-1); }
 
 /* 明暗切换按钮：两个图标按当前主题显示其一 */
@@ -857,7 +861,19 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* 星野：纸上的墨色，像古典星图 */
 .globe-stars { color: var(--globe-star); }
 .globe-stars circle { fill: currentColor; }
-.globe-stars use { fill: none; stroke: currentColor; stroke-width: 0.9; }
+.globe-stars use { fill: none; stroke: currentColor; stroke-width: 1; }
+.chart__link {
+  fill: none;
+  stroke: var(--chart-line);
+  stroke-width: 0.8;
+  stroke-dasharray: 3 4;
+}
+.chart__ring {
+  fill: none;
+  stroke: var(--chart-line);
+  stroke-width: 0.8;
+  opacity: 0.8;
+}
 
 /* 那颗"稍微不一样"的星星：里版入口（只多一颗小卫星） */
 .vault-star { color: var(--globe-star-strong); cursor: pointer; transition: color 0.3s var(--ease); }
@@ -885,7 +901,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .globe__coast {
   fill: none;
   stroke: var(--globe-coast);
-  stroke-width: 1.3;
+  stroke-width: 1;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
@@ -917,14 +933,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
   stroke: var(--cell-accent, var(--accent));
 }
 .globe__link:focus-visible { outline: none; }
-.globe__link:focus-visible .globe__icon { stroke-width: 0.34; }
+.globe__link:focus-visible .globe__icon { stroke-width: 0.72; }
 
 /* 片区里的图标 */
 .globe__icon {
   color: var(--globe-label);
   fill: none;
   stroke: currentColor;
-  stroke-width: 0.24;
+  stroke-width: 0.55;
   stroke-linecap: round;
   stroke-linejoin: round;
   pointer-events: none;
@@ -1983,6 +1999,10 @@ body.is-modal-open { overflow: hidden; }
 
 [hidden] { display: none !important; }
 
+@media (max-width: 80rem) {
+  .brand__tag, .brand__divider { display: none; }
+}
+
 @media (max-width: 60rem) {
   .nav { display: none; }
   .nav-toggle { display: inline-grid; }
@@ -2000,4 +2020,94 @@ body.is-modal-open { overflow: hidden; }
   .site-header, .site-footer, .scroll-hint, .hero__actions, .band--vault, .article-foot { display: none; }
   body { background: #fff; color: #000; }
   .prose { max-width: none; }
+}
+
+/* --------------------------------------------------------------------------
+   22 装饰：太阳徽记、自然科学纹样（页眉 / 页脚 / 页面两侧）
+   -------------------------------------------------------------------------- */
+/* 页眉站名前的太阳徽记 */
+.brand__emblem {
+  display: inline-grid;
+  place-items: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  margin-right: 0.1rem;
+  color: color-mix(in srgb, var(--accent) 82%, var(--ink));
+  opacity: 0.9;
+  transition: transform 0.6s var(--ease);
+}
+.brand:hover .brand__emblem { transform: rotate(24deg); }
+.brand__emblem .icon { width: 1.05rem; height: 1.05rem; }
+
+/* 页脚：一条细线夹着一排自然科学的纹样 */
+.site-footer__ornament {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 1.4rem);
+  margin-top: clamp(1.75rem, 4vw, 2.75rem);
+  color: var(--ink-mute);
+}
+.ornament__rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--line-strong));
+}
+.ornament__rule:last-child { background: linear-gradient(to left, transparent, var(--line-strong)); }
+.ornament__motifs {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.6rem, 1.7vw, 1.15rem);
+}
+.ornament__motif {
+  display: inline-grid;
+  place-items: center;
+  color: color-mix(in srgb, var(--accent) 58%, var(--ink-mute));
+  opacity: 0.78;
+  transition: opacity 0.3s var(--ease), transform 0.4s var(--ease);
+}
+.ornament__motif:hover { opacity: 1; transform: translateY(-2px); }
+.ornament__motif .icon { width: 0.98rem; height: 0.98rem; }
+
+/* 页面两侧：像手稿页边的纹样栏（只在很宽的屏幕上出现） */
+.page-motifs { display: none; }
+@media (min-width: 82rem) {
+  .page-motifs {
+    display: block;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .page-motifs__side {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .page-motifs__side--left { left: clamp(1rem, 2.1vw, 2.3rem); }
+  .page-motifs__side--right { right: clamp(1rem, 2.1vw, 2.3rem); }
+  .page-motifs__rule {
+    width: 1px;
+    height: 2.6rem;
+    background: linear-gradient(to bottom, transparent, var(--line-strong));
+  }
+  .page-motifs__side--right .page-motifs__rule {
+    background: linear-gradient(to top, transparent, var(--line-strong));
+  }
+  .page-motifs__motif {
+    display: inline-grid;
+    place-items: center;
+    color: color-mix(in srgb, var(--accent) 52%, var(--ink-mute));
+    opacity: 0.5;
+    transition: opacity 0.35s var(--ease), color 0.35s var(--ease);
+  }
+  .page-motifs__motif:nth-child(3n) { opacity: 0.34; }
+  .page-motifs__motif .icon { width: 0.86rem; height: 0.86rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand__emblem, .ornament__motif, .page-motifs__motif { transition: none; }
 }

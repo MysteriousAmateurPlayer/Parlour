@@ -165,16 +165,31 @@
   });
 
   /* ---------- 每帧更新 ---------- */
+  // 把一段连续可见的点画成平滑曲线（Catmull-Rom 转三次贝塞尔），海岸线就不会那么锐利
+  function smoothRun(run) {
+    if (run.length < 2) return '';
+    if (run.length === 2) return 'M' + run[0].x.toFixed(1) + ' ' + run[0].y.toFixed(1) + 'L' + run[1].x.toFixed(1) + ' ' + run[1].y.toFixed(1);
+    var d = 'M' + run[0].x.toFixed(1) + ' ' + run[0].y.toFixed(1);
+    for (var i = 0; i < run.length - 1; i++) {
+      var p0 = run[i - 1] || run[i], p1 = run[i], p2 = run[i + 1], p3 = run[i + 2] || p2;
+      var c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+      var c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+      d += 'C' + c1x.toFixed(1) + ' ' + c1y.toFixed(1) + ' ' + c2x.toFixed(1) + ' ' + c2y.toFixed(1) + ' ' + p2.x.toFixed(1) + ' ' + p2.y.toFixed(1);
+    }
+    return d;
+  }
+
   function drawCoasts() {
     for (var i = 0; i < rings.length; i++) {
       var rg = rings[i];
       if (zOf(rg.clat, rg.clon) < -0.12) { coastPaths[i].style.visibility = 'hidden'; continue; }
-      var d = '', drawn = false;
-      for (var k = 0; k < rg.pts.length; k++) {
-        var s = screen(rg.pts[k][0], rg.pts[k][1]);
-        if (s.z >= 0) { d += (drawn ? 'L' : 'M') + s.x.toFixed(1) + ' ' + s.y.toFixed(1); drawn = true; }
-        else drawn = false;
+      var d = '', run = [], k, s;
+      for (k = 0; k < rg.pts.length; k++) {
+        s = screen(rg.pts[k][0], rg.pts[k][1]);
+        if (s.z >= 0) run.push(s);
+        else { if (run.length > 1) d += smoothRun(run); run = []; }
       }
+      if (run.length > 1) d += smoothRun(run);
       coastPaths[i].setAttribute('d', d);
       coastPaths[i].style.visibility = d ? 'visible' : 'hidden';
     }
