@@ -1,0 +1,154 @@
+{{- /* 地球仪区块：下拉后露出完整的地球，周边一圈星野。
+       · 地球是正交投影的 SVG（无第三方库），可以拖动 / 按钮沿地轴旋转
+       · 球面上的"拼图片区"= 各个板块，点击进入；多出来的空位留给以后的板块
+       · 星野里有一颗长得不太一样的星星 —— 那是里版入口
+       渲染逻辑在 assets/js/globe.js */ -}}
+{{- $vault := site.GetPage "/vault" -}}
+{{- $vaultUrl := "" -}}
+{{- with $vault }}{{ $vaultUrl = .RelPermalink }}{{ end -}}
+{{- if not $vaultUrl }}{{ $vaultUrl = partial "link.html" "/vault/" }}{{ end -}}
+{{- $gate := site.Params.vault -}}
+
+{{- $sections := slice -}}
+{{- range $key, $meta := hugo.Data.sections -}}
+  {{- if and $meta.home (ne $key "vault") -}}
+    {{- $sec := site.GetPage (printf "/%s" $key) -}}
+    {{- $href := partial "link.html" (printf "/%s/" $key) -}}
+    {{- with $sec }}{{ $href = .RelPermalink }}{{ end -}}
+    {{- $sections = $sections | append (dict
+          "key" $key
+          "title" ($meta.title | default ($key | humanize | title))
+          "numeral" ($meta.numeral | default "")
+          "accent" ($meta.accent | default "#8a6f63")
+          "href" $href
+          "weight" ($meta.weight | default 100)) -}}
+  {{- end -}}
+{{- end -}}
+{{- $sections = sort $sections "weight" -}}
+{{- $globeData := dict "capacity" 12 "cols" 4 "sections" $sections -}}
+
+<section class="cosmos" id="globe" aria-labelledby="globe-title">
+  <div class="wrap">
+    <header class="block-head block-head--cosmos">
+      <p class="block-head__kicker">Globe</p>
+      <h2 class="block-head__title" id="globe-title">转动这个地球</h2>
+      <p class="block-head__lede">
+        球面上每一块区域是一类记录，点一下就能进去；空着的几块留给以后的板块。
+      </p>
+    </header>
+
+    <div class="cosmos__stage">
+      <svg class="cosmos__svg" viewBox="0 0 900 760" preserveAspectRatio="xMidYMid meet"
+           role="img" aria-label="可以旋转的地球仪，球面上是各个板块">
+        <defs>
+          <radialGradient id="globe-sphere-grad" cx="50%" cy="34%" r="72%">
+            <stop class="globe-sphere-0" offset="0"/>
+            <stop class="globe-sphere-1" offset="1"/>
+          </radialGradient>
+          <clipPath id="globe-clip"><circle cx="450" cy="380" r="290"/></clipPath>
+          <filter id="globe-glow" x="-25%" y="-25%" width="150%" height="150%">
+            <feGaussianBlur stdDeviation="9"/>
+          </filter>
+        </defs>
+
+        {{/* ---------- 星野 ---------- */}}
+        <g class="cosmos__stars">
+      <circle cx="99" cy="634" r="1.0" style="opacity:0.48"/>
+      <circle cx="50" cy="104" r="1.9" style="opacity:0.29"/>
+      <circle cx="597" cy="51" r="2.1" style="opacity:0.56"/>
+      <circle cx="123" cy="575" r="1.9" style="opacity:0.63"/>
+      <circle cx="251" cy="726" r="1.9" style="opacity:0.35"/>
+      <circle cx="40" cy="359" r="1.7" style="opacity:0.23"/>
+      <circle cx="753" cy="31" r="0.9" style="opacity:0.46"/>
+      <circle cx="526" cy="49" r="1.2" style="opacity:0.45"/>
+      <circle cx="51" cy="637" r="1.7" style="opacity:0.60"/>
+      <circle cx="801" cy="690" r="1.3" style="opacity:0.47"/>
+      <circle cx="46" cy="290" r="1.6" style="opacity:0.35"/>
+      <circle cx="82" cy="329" r="1.9" style="opacity:0.28"/>
+      <circle cx="96" cy="582" r="1.5" style="opacity:0.40"/>
+      <circle cx="569" cy="46" r="1.3" style="opacity:0.59"/>
+      <circle cx="61" cy="431" r="1.0" style="opacity:0.63"/>
+      <circle cx="233" cy="87" r="1.0" style="opacity:0.25"/>
+      <circle cx="361" cy="44" r="1.5" style="opacity:0.44"/>
+      <circle cx="68" cy="135" r="1.3" style="opacity:0.37"/>
+      <circle cx="833" cy="447" r="2.2" style="opacity:0.36"/>
+      <circle cx="166" cy="584" r="2.2" style="opacity:0.36"/>
+      <circle cx="138" cy="596" r="1.4" style="opacity:0.45"/>
+      <circle cx="106" cy="705" r="0.8" style="opacity:0.21"/>
+      <circle cx="41" cy="684" r="1.2" style="opacity:0.67"/>
+      <circle cx="316" cy="33" r="1.6" style="opacity:0.28"/>
+      <circle cx="828" cy="602" r="0.7" style="opacity:0.43"/>
+      <circle cx="149" cy="642" r="0.9" style="opacity:0.65"/>
+      <circle cx="68" cy="363" r="1.4" style="opacity:0.39"/>
+      <circle cx="226" cy="674" r="1.0" style="opacity:0.22"/>
+      <circle cx="106" cy="238" r="0.8" style="opacity:0.19"/>
+      <circle cx="830" cy="607" r="1.4" style="opacity:0.44"/>
+      <circle cx="827" cy="270" r="1.7" style="opacity:0.49"/>
+      <circle cx="825" cy="637" r="2.0" style="opacity:0.36"/>
+      <circle cx="843" cy="423" r="1.6" style="opacity:0.65"/>
+      <circle cx="765" cy="614" r="1.5" style="opacity:0.68"/>
+      <circle cx="759" cy="669" r="0.8" style="opacity:0.64"/>
+      <circle cx="56" cy="714" r="1.5" style="opacity:0.51"/>
+      <circle cx="334" cy="686" r="1.7" style="opacity:0.65"/>
+      <circle cx="79" cy="55" r="1.3" style="opacity:0.19"/>
+      <circle cx="836" cy="632" r="2.1" style="opacity:0.23"/>
+      <circle cx="585" cy="676" r="2.2" style="opacity:0.36"/>
+      <circle cx="197" cy="627" r="1.8" style="opacity:0.23"/>
+      <circle cx="67" cy="482" r="2.0" style="opacity:0.19"/>
+      <circle cx="683" cy="714" r="1.5" style="opacity:0.19"/>
+      <circle cx="225" cy="108" r="1.2" style="opacity:0.50"/>
+      <circle cx="185" cy="55" r="2.0" style="opacity:0.21"/>
+      <circle cx="772" cy="452" r="1.1" style="opacity:0.24"/>
+        </g>
+
+        {{/* ---------- 那颗"长得不太一样"的星星：里版入口 ---------- */}}
+        <a class="vault-star" href="{{ $vaultUrl }}" {{ if $gate.enabled }}data-vault-open{{ end }}
+           aria-label="里版入口：这颗星星和别的长得不太一样">
+          <title>里版入口</title>
+          <circle class="vault-star__hit" cx="742" cy="148" r="34"/>
+          <g class="vault-star__art" transform="translate(742,148)">
+            <ellipse class="vault-star__orbit" cx="0" cy="0" rx="21" ry="7.5" transform="rotate(-24)"/>
+            <path class="vault-star__core" d="M0 -13 C 1.1 -4.6 1.9 -3.9 10.5 0 C 1.9 3.9 1.1 4.6 0 13 C -1.1 4.6 -1.9 3.9 -10.5 0 C -1.9 -3.9 -1.1 -4.6 0 -13 Z"/>
+            <circle class="vault-star__moon" cx="18.6" cy="-8.1" r="2.1"/>
+          </g>
+        </a>
+
+        {{/* ---------- 地球（球体与网格是静态的，片区由 JS 画） ---------- */}}
+        <g class="globe" id="globe-stage" data-cx="450" data-cy="380" data-r="290">
+          <circle class="globe__atmos" cx="450" cy="380" r="292" filter="url(#globe-glow)"/>
+          <circle class="globe__sphere" cx="450" cy="380" r="290" fill="url(#globe-sphere-grad)"/>
+          <g clip-path="url(#globe-clip)">
+            <g class="globe__grid" id="globe-grid"></g>
+            <g class="globe__pieces" id="globe-pieces"></g>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <div class="cosmos__controls">
+      <button class="cosmos__btn" type="button" data-globe-rotate="-1" aria-label="向左转动地球">
+        <span aria-hidden="true">↺</span><span>左转</span>
+      </button>
+      <span class="cosmos__hint">拖动地球可以旋转</span>
+      <button class="cosmos__btn" type="button" data-globe-rotate="1" aria-label="向右转动地球">
+        <span>右转</span><span aria-hidden="true">↻</span>
+      </button>
+    </div>
+
+    {{/* 给键盘与读屏用户留一份普通的文字索引（同时利于搜索引擎） */}}
+    <ul class="cosmos__index">
+      {{- range $sections }}
+      <li>
+        <a href="{{ .href }}" style="--accent: {{ .accent }}">
+          {{- with .numeral }}<span class="cosmos__index-numeral">{{ . }}</span>{{ end -}}
+          <span>{{ .title }}</span>
+        </a>
+      </li>
+      {{- end }}
+    </ul>
+  </div>
+
+  {{- /* safeJS 是必须的：在 <script> 里 Go 模板会把 JSON 再包成字符串并转义引号，
+         那样前端 JSON.parse 拿到的是字符串而不是对象。 */ -}}
+  <script type="application/json" id="globe-data">{{ $globeData | jsonify | safeJS }}</script>
+</section>

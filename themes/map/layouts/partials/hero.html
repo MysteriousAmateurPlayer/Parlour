@@ -3,41 +3,38 @@
 {{- if eq $showScene nil }}{{ $showScene = true }}{{ end -}}
 <section class="hero">
   <div class="wrap hero__inner">
-    <div class="hero__ornament" aria-hidden="true">
-      <span class="hero__ornament-line hero__ornament-line--left"></span>
-      <span class="hero__ornament-dot"></span>
-      <span class="hero__ornament-line hero__ornament-line--right"></span>
-    </div>
+    {{/* 简介放在一个典雅的太阳上（盘面 + 长短相间的光线，全部用 CSS 图层） */}}
+    <div class="hero__sun-wrap">
+      <span class="hero__sun-layer" aria-hidden="true">
+        <span class="sun-rays sun-rays--long"></span>
+        <span class="sun-rays sun-rays--short"></span>
+        <span class="sun-disc"></span>
+      </span>
 
-    <p class="hero__kicker reveal" style="--d:0ms">{{ $hero.kicker }}</p>
+      <p class="hero__kicker reveal" style="--d:0ms">{{ $hero.kicker }}</p>
 
-    <h1 class="hero__name reveal" style="--d:80ms">
-      <span class="hero__name-text">{{ $hero.name }}</span>
-    </h1>
+      <h1 class="hero__name reveal" style="--d:80ms">
+        <span class="hero__name-text">{{ $hero.name }}</span>
+      </h1>
 
-    <p class="hero__tagline reveal" style="--d:160ms">{{ $hero.tagline }}</p>
+      <p class="hero__tagline reveal" style="--d:160ms">{{ $hero.tagline }}</p>
 
-    <div class="hero__divider reveal" style="--d:240ms" aria-hidden="true">
-      <span class="hero__divider-rule"></span>
-      <span class="hero__divider-gem"></span>
-      <span class="hero__divider-rule"></span>
-    </div>
+      <p class="hero__intro reveal" style="--d:240ms">{{ $hero.intro }}</p>
 
-    <p class="hero__intro reveal" style="--d:320ms">{{ $hero.intro }}</p>
-
-    {{- if or $hero.primary $hero.secondary }}
-    <div class="hero__actions reveal" style="--d:400ms">
-      {{- with $hero.primary }}
-      <a class="btn btn--primary" href="{{ partial "link.html" .url }}">
-        <span>{{ .label }}</span>
-        {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
-      </a>
-      {{- end }}
-      {{- with $hero.secondary }}
-      <a class="btn btn--ghost" href="{{ partial "link.html" .url }}"><span>{{ .label }}</span></a>
+      {{- if or $hero.primary $hero.secondary }}
+      <div class="hero__actions reveal" style="--d:320ms">
+        {{- with $hero.primary }}
+        <a class="btn btn--primary" href="{{ partial "link.html" .url }}">
+          <span>{{ .label }}</span>
+          {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
+        </a>
+        {{- end }}
+        {{- with $hero.secondary }}
+        <a class="btn btn--ghost" href="{{ partial "link.html" .url }}"><span>{{ .label }}</span></a>
+        {{- end }}
+      </div>
       {{- end }}
     </div>
-    {{- end }}
 
     {{- if $showScene }}
     {{ partial "hero-scene.html" . }}

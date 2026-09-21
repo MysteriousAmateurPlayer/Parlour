@@ -1,8 +1,13 @@
 {{ define "main" }}
 {{- $home := hugo.Data.home -}}
 
-{{/* ---------- 1. 主视觉 ---------- */}}
+{{/* ---------- 1. 主视觉（太阳 + 天际线） ---------- */}}
 {{ partial "hero.html" . }}
+
+{{/* ---------- 1.5 地球仪：下拉露出完整的地球，球面上的片区就是板块入口 ---------- */}}
+{{- $showGlobe := site.Params.appearance.showGlobe -}}
+{{- if eq $showGlobe nil }}{{ $showGlobe = true }}{{ end -}}
+{{- if $showGlobe }}{{ partial "globe.html" . }}{{ end }}
 
 {{/* ---------- 2. 关于我预览（板块被删掉时自动隐藏） ---------- */}}
 {{- $about := $home.about -}}

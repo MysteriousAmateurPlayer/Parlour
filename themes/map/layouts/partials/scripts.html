@@ -20,3 +20,9 @@
 {{- $vault := resources.Get "js/vault-gate.js" | minify | fingerprint "sha512" -}}
 <script src="{{ $vault.RelPermalink }}" integrity="{{ $vault.Data.Integrity }}" crossorigin="anonymous" defer></script>
 {{- end }}
+
+{{- /* 地球仪：只有首页需要 */ -}}
+{{- if .IsHome }}
+{{- $globe := resources.Get "js/globe.js" | minify | fingerprint "sha512" -}}
+<script src="{{ $globe.RelPermalink }}" integrity="{{ $globe.Data.Integrity }}" crossorigin="anonymous" defer></script>
+{{- end }}

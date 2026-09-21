@@ -58,6 +58,21 @@ check('顶部导航第一项是首页', navTitles[0] === '首页', navTitles.joi
 check('导航项与配置一致', navTitles.slice(1).join('|') === navSections.map((s) => s.title).join('|'),
   navSections.map((s) => s.title).join(' / '));
 
+// ---------- 首页结构：太阳上的简介 + 可旋转的地球仪 ----------
+check('首页简介放在太阳上', home.includes('hero__sun-layer') && home.includes('sun-disc'));
+check('首页有地球仪舞台', home.includes('globe-stage') && home.includes('globe-clip'));
+const globeJson = (home.match(/id="?globe-data"?[^>]*>([\s\S]*?)<\/script>/) || [])[1] || '';
+let globeSections = -1, globeCapacity = 0;
+try {
+  const gj = JSON.parse(globeJson);
+  globeSections = (gj.sections || []).length;
+  globeCapacity = gj.capacity || 0;
+} catch (e) { globeSections = -1; }
+check('地球仪数据可解析', globeSections >= 0, globeSections < 0 ? 'JSON 解析失败' : `${globeSections} 个板块`);
+check('地球仪覆盖全部首页板块', globeSections === homeSections.length, `${globeSections} / ${homeSections.length}`);
+check('地球仪留了空位给以后的板块', globeCapacity > homeSections.length, `capacity=${globeCapacity}`);
+check('星野里有里版入口那颗特殊的星星', home.includes('vault-star'));
+
 // ---------- 样式 ----------
 const cssFiles = fs.readdirSync(path.join(PUB, 'css'));
 const cssBody = fs.readFileSync(path.join(PUB, 'css', cssFiles[0]), 'utf8');

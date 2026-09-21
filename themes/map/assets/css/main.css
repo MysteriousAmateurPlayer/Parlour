@@ -33,7 +33,9 @@
   --page: 74rem;
   --measure: 40rem;
   --header-h: 4.25rem;
-  --hero-max: 46rem;          /* 主视觉的高度上限 */
+  --hero-max: 52rem;          /* 主视觉的高度上限 */
+  --sun-d: clamp(26rem, 78vw, 34rem);  /* 太阳盘面的直径（简介就放在它上面） */
+  --hero-text-w: min(24rem, 78vw);     /* 简介的文字宽度 */
   --radius: 2px;
   --radius-lg: 4px;
 
@@ -72,6 +74,24 @@
   --scene-horizon: rgba(143, 58, 44, 0.5);
   --scene-line: rgba(90, 78, 66, 0.5);
   --scene-star: #8d857c;
+
+  /* 承载简介的太阳 */
+  --sun-core: rgba(143, 58, 44, 0.13);
+  --sun-edge: rgba(143, 58, 44, 0.34);
+  --sun-edge-inner: rgba(143, 58, 44, 0.16);
+  --sun-ray: rgba(143, 58, 44, 0.42);
+
+  /* 地球仪所在的宇宙带（两种主题都是深色，只调深浅） */
+  --cosmos-bg: #171b22;
+  --cosmos-ink: #e9e4db;
+  --cosmos-ink-soft: #a9a49c;
+  --cosmos-accent: #d08a74;
+  --cosmos-line: rgba(233, 228, 219, 0.14);
+  --cosmos-line-strong: rgba(233, 228, 219, 0.3);
+  --cosmos-star: #e9e4db;
+  --cosmos-star-soft: #b9b3a9;
+  --cosmos-sphere-0: #27313d;
+  --cosmos-sphere-1: #111821;
 
   /* 代码高亮（明亮） */
   --code-bg: #f6f2ea;
@@ -112,6 +132,13 @@
   --scene-horizon: rgba(208, 138, 116, 0.5);
   --scene-line: rgba(180, 173, 162, 0.35);
   --scene-star: #9aa1aa;
+
+  --sun-core: rgba(208, 138, 116, 0.16);
+  --sun-edge: rgba(208, 138, 116, 0.4);
+  --sun-edge-inner: rgba(208, 138, 116, 0.2);
+  --sun-ray: rgba(208, 138, 116, 0.44);
+
+  --cosmos-bg: #0e1218;
 
   --code-bg: #1f2126;
   --code-border: #2e3238;
@@ -466,7 +493,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 .hero__intro {
-  max-width: 34rem;
+  max-width: var(--hero-text-w);
   margin-inline: auto;
   color: var(--ink-soft);
   font-size: var(--step-0);
@@ -787,41 +814,239 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .scene__band--faint { opacity: 0.18; }
 
-/* 三个小图标 */
-.scene-icon {
-  color: var(--ink-mute);
-  cursor: pointer;
-  transition: color 0.35s var(--ease);
+/* --------------------------------------------------------------------------
+   06.6 承载简介的太阳（盘面 + 长短相间的光线）
+   -------------------------------------------------------------------------- */
+.hero__sun-wrap {
+  position: relative;
+  display: block;
+  margin-block: auto;          /* 在天际线之上、剩余空间里居中 */
 }
-.scene-icon__hit { fill: none; stroke: none; pointer-events: all; }
-.scene-icon__ring {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1;
-  opacity: 0.32;
-  transition: opacity 0.35s var(--ease), stroke-width 0.35s var(--ease);
+
+.hero__sun-layer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--sun-d);
+  height: var(--sun-d);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
 }
-.scene-icon__art {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform 0.4s var(--ease);
-  transform-box: fill-box;
-  transform-origin: center;
+
+/* 盘面：极淡的暖光，边缘一圈细线，里面再套一圈 */
+.sun-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid var(--sun-edge);
+  background: radial-gradient(circle closest-side at 50% 42%,
+    color-mix(in srgb, var(--sun-core) 92%, transparent) 0%,
+    color-mix(in srgb, var(--sun-core) 46%, transparent) 52%,
+    color-mix(in srgb, var(--sun-core) 14%, transparent) 86%,
+    transparent 100%);
+  box-shadow: 0 0 90px -30px color-mix(in srgb, var(--accent) 45%, transparent);
 }
-.scene-icon:hover,
-.scene-icon:focus-visible { color: var(--accent); }
-.scene-icon:hover .scene-icon__ring,
-.scene-icon:focus-visible .scene-icon__ring { opacity: 0.95; stroke-width: 1.4; }
-.scene-icon:hover .scene-icon__art,
-.scene-icon:focus-visible .scene-icon__art { transform: scale(1.07); }
-.scene-icon:focus-visible { outline: none; }
-.scene-icon:focus-visible .scene-icon__ring { stroke-dasharray: 3 3; }
+.sun-disc::after {
+  content: "";
+  position: absolute;
+  inset: 4.2%;
+  border-radius: 50%;
+  border: 1px solid var(--sun-edge-inner);
+}
+
+/* 光线：用 conic-gradient 画一圈细线，再用 mask 只留外圈那一环 */
+.sun-rays {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(from 0deg,
+    var(--sun-ray) 0 0.5deg, transparent 0.5deg 15deg);
+  /* 注意 closest-side：circle 默认按"最远角"算半径，会比元素半径大 1.41 倍，遮罩就废了 */
+  -webkit-mask: radial-gradient(circle closest-side, transparent 0 76.5%, #000 77% 100%);
+  mask: radial-gradient(circle closest-side, transparent 0 76.5%, #000 77% 100%);
+}
+.sun-rays--long { width: calc(var(--sun-d) * 1.3); }
+.sun-rays--short {
+  width: calc(var(--sun-d) * 1.18);
+  background: repeating-conic-gradient(from 7.5deg,
+    var(--sun-ray) 0 0.5deg, transparent 0.5deg 15deg);
+  -webkit-mask: radial-gradient(circle closest-side, transparent 0 84.5%, #000 85% 100%);
+  mask: radial-gradient(circle closest-side, transparent 0 84.5%, #000 85% 100%);
+}
+
+/* 文字压在太阳之上 */
+.hero__sun-wrap > *:not(.hero__sun-layer) {
+  position: relative;
+  z-index: 1;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .scene-icon__art, .scene-icon__ring { transition: none; }
+  .sun-rays { transition: none; }
+}
+
+/* --------------------------------------------------------------------------
+   06.7 地球仪：深色宇宙带 + 可旋转的地球 + 拼图式板块
+   -------------------------------------------------------------------------- */
+.cosmos {
+  position: relative;
+  padding-block: clamp(3rem, 7vw, 5.5rem);
+  background-color: var(--cosmos-bg);
+  /* 上下各一段渐变，和纸色页面柔顺衔接 */
+  background-image:
+    linear-gradient(to bottom, var(--bg) 0, transparent 3.5rem),
+    linear-gradient(to top, var(--bg) 0, transparent 3.5rem);
+  color: var(--cosmos-ink);
+}
+.block-head--cosmos .block-head__kicker { color: var(--cosmos-accent); }
+.block-head--cosmos .block-head__title { color: var(--cosmos-ink); }
+.block-head--cosmos .block-head__lede { color: var(--cosmos-ink-soft); }
+.cosmos .block-head { margin-inline: auto; text-align: center; }
+
+.cosmos__stage {
+  max-width: 58rem;
+  margin: 0 auto;
+}
+.cosmos__svg {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1200 / 760;
+  touch-action: none;                    /* 拖动时不要触发页面滚动 */
+  cursor: grab;
+}
+.cosmos__svg:active { cursor: grabbing; }
+.cosmos__svg.is-dragging { cursor: grabbing; }
+
+.cosmos__stars circle { fill: var(--cosmos-star); }
+
+/* 那颗"长得不太一样"的星星：里版入口 */
+.vault-star { color: var(--cosmos-star-soft); cursor: pointer; transition: color 0.3s var(--ease); }
+.vault-star__hit { fill: none; stroke: none; pointer-events: all; }
+.vault-star__core {
+  fill: color-mix(in srgb, var(--cosmos-accent) 30%, transparent);
+  stroke: currentColor;
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+}
+.vault-star__orbit {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.9;
+  opacity: 0.55;
+  stroke-dasharray: 2 3;
+}
+.vault-star__moon { fill: currentColor; opacity: 0.8; }
+.vault-star:hover, .vault-star:focus-visible { color: var(--cosmos-accent); }
+.vault-star:focus-visible { outline: none; }
+.vault-star:focus-visible .vault-star__orbit { opacity: 1; stroke-dasharray: none; }
+
+/* 地球本体 */
+.globe__atmos {
+  fill: none;
+  stroke: var(--cosmos-accent);
+  opacity: 0.16;
+  stroke-width: 8;
+}
+.globe__sphere { stroke: var(--cosmos-line-strong); stroke-width: 1; }
+.globe-sphere-0 { stop-color: var(--cosmos-sphere-0); }
+.globe-sphere-1 { stop-color: var(--cosmos-sphere-1); }
+
+.globe__line {
+  fill: none;
+  stroke: var(--cosmos-line);
+  stroke-width: 0.8;
+}
+.globe__line--meridian { opacity: 0.7; }
+
+.globe__piece {
+  fill: color-mix(in srgb, var(--cell-accent, var(--cosmos-accent)) 32%, transparent);
+  stroke: color-mix(in srgb, var(--cell-accent, var(--cosmos-accent)) 72%, transparent);
+  stroke-width: 1;
+  transition: fill 0.3s var(--ease);
+}
+.globe__piece--empty {
+  fill: color-mix(in srgb, var(--cosmos-ink) 7%, transparent);
+  stroke: var(--cosmos-line-strong);
+  stroke-dasharray: 3 4;
+  opacity: 0.85;
+}
+.globe__link:hover .globe__piece,
+.globe__link:focus-visible .globe__piece {
+  fill: color-mix(in srgb, var(--cell-accent, var(--cosmos-accent)) 52%, transparent);
+  stroke: var(--cell-accent, var(--cosmos-accent));
+}
+.globe__link:focus-visible { outline: none; }
+.globe__link:focus-visible .globe__label { text-decoration: underline; }
+.globe__label {
+  fill: var(--cosmos-ink);
+  font-family: var(--font-sans);
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 控制条 */
+.cosmos__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.75rem, 3vw, 1.5rem);
+  margin-top: clamp(0.75rem, 2vw, 1.5rem);
+}
+.cosmos__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.05rem;
+  border: 1px solid var(--cosmos-line-strong);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--cosmos-ink-soft);
+  font-family: var(--font-sans);
+  font-size: var(--step--1);
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.cosmos__btn:hover { color: var(--cosmos-accent); border-color: var(--cosmos-accent); }
+.cosmos__hint {
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  color: var(--cosmos-ink-soft);
+  opacity: 0.75;
+}
+
+/* 文字索引（键盘 / 读屏 / 搜索引擎都能用） */
+.cosmos__index {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 0.85rem;
+  margin: clamp(1.75rem, 4vw, 2.75rem) 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-sans);
+  font-size: var(--step--1);
+}
+.cosmos__index a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--cosmos-line);
+  border-radius: 999px;
+  color: var(--cosmos-ink-soft);
+  transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.cosmos__index a:hover { color: var(--cosmos-accent); border-color: var(--cosmos-accent); }
+.cosmos__index-numeral { color: var(--accent); opacity: 0.9; }
+
+@media (max-width: 47.99rem) {
+  .cosmos__svg { aspect-ratio: auto; height: clamp(22rem, 92vw, 28rem); }
 }
 
 /* --------------------------------------------------------------------------
