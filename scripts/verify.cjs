@@ -42,20 +42,26 @@ console.log(`板块配置：共 ${list.length} 个（导航 ${navSections.length
 
 // ---------- 首页 ----------
 const home = read('index.html');
+// 压缩后的 HTML 会把单词属性写成无引号（class=nav__link），先规范化再做正则提取
+const homeNorm = home.replace(/(\s[a-zA-Z_:][-a-zA-Z0-9_:.]*)=([^\s"'>]+)/g, '$1="$2"');
 check('首页有主视觉', home.includes('hero__name'));
 check('首页有五个房间区块', home.includes('band--sections'));
 check('首页有最新记录', home.includes('post-row__title'));
 check('首页有明暗切换按钮', home.includes('id="theme-toggle"'));
 check('首页未加 noindex', !home.includes('name="robots"'));
 
-const cardTitles = [...home.matchAll(/card__title">([^<]+)</g)].map((m) => m[1]);
+const cardTitles = [...homeNorm.matchAll(/card__title">([^<]+)</g)].map((m) => m[1]);
 check(`首页卡片数 = ${homeSections.length}`, cardTitles.length === homeSections.length, cardTitles.join(' / '));
 check('首页卡片标题与配置一致', cardTitles.join('|') === homeSections.map((s) => s.title).join('|'),
   homeSections.map((s) => s.title).join(' / '));
 
-// 导航项现在带板块图标，标题包在 <span> 里；首页那一项没有图标、是纯文字，两种都要认
-const navTitles = [...home.matchAll(/class="nav__link[^"]*" href="[^"]*"[^>]*>(?:[\s\S]*?<span>([^<]+)<\/span>|([^<]+))/g)]
-  .map((m) => (m[1] || m[2] || '').trim());
+// 导航项现在带板块图标，标题包在 <span> 里；首页那一项是纯文字。
+// 注意：必须先把每个 <a> 块切出来再取文字，否则正则会跨到下一条导航里去。
+const navTitles = [...homeNorm.matchAll(/<a class="nav__link[^"]*"[^>]*>([\s\S]*?)<\/a>/g)]
+  .map((m) => {
+    const sp = m[1].match(/<span>([^<]+)<\/span>/);
+    return (sp ? sp[1] : m[1].replace(/<[^>]*>/g, '')).trim();
+  });
 check('顶部导航第一项是首页', navTitles[0] === '首页', navTitles.join(' / '));
 check('导航项与配置一致', navTitles.slice(1).join('|') === navSections.map((s) => s.title).join('|'),
   navSections.map((s) => s.title).join(' / '));
