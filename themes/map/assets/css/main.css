@@ -73,7 +73,7 @@
   --sun-edge-inner: rgba(143, 58, 44, 0.16);
 
   /* 地球仪：纸底上的镂空线稿（星图质感），不做夜空反色 */
-  --globe-overlap: clamp(8rem, 30vh, 22rem);   /* 地球往上顶进主视觉多少 */
+  --globe-overlap: clamp(10rem, 40vh, 30rem);   /* 地球往上顶进主视觉多少 */
   --globe-star: color-mix(in srgb, var(--ink) 78%, transparent);
   --globe-coast: color-mix(in srgb, var(--ink) 24%, transparent);   /* 地理层要淡，让位给拼图 */
   --ring-line: color-mix(in srgb, var(--ink) 20%, transparent);
@@ -301,6 +301,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
   letter-spacing: 0.1em;
 }
 .nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.36rem;
   position: relative;
   padding-block: 0.4rem;
   color: var(--ink-soft);
@@ -841,7 +844,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* 舞台比正文更宽：地球要够大才有气势 */
 .globe-band__stage {
   width: 100%;
-  max-width: 78rem;
+  max-width: 90rem;
   margin-inline: auto;
 }
 
@@ -953,21 +956,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
   stroke: var(--cell-accent, var(--accent));
 }
 .globe__link:focus-visible { outline: none; }
-.globe__link:focus-visible .globe__names {
-  fill: var(--globe-label);
-  font-family: var(--font-serif);
-  letter-spacing: 0.22em;
-  pointer-events: none;
-  user-select: none;
-}
-.globe__icon { stroke-width: 0.72; }
+.globe__link:focus-visible .globe__icon { stroke-width: 0.72; }
 
 /* 片区里的图标 */
 .globe__icon {
   color: var(--globe-label);
   fill: none;
   stroke: currentColor;
-  stroke-width: 0.55;
+  stroke-width: 1.1;
   stroke-linecap: round;
   stroke-linejoin: round;
   pointer-events: none;
@@ -2048,6 +2044,14 @@ body.is-modal-open { overflow: hidden; }
   body { background: #fff; color: #000; }
   .prose { max-width: none; }
 }
+.nav__icon {
+  color: color-mix(in srgb, var(--accent) 60%, var(--ink-mute));
+  opacity: 0.85;
+  transition: color 0.25s var(--ease), opacity 0.25s var(--ease);
+}
+.nav__link:hover .nav__icon,
+.nav__link.is-active .nav__icon { color: var(--accent); opacity: 1; }
+
 /* --------------------------------------------------------------------------
    22 装饰：太阳与天文主题（页眉徽记 / 页脚刻度带 / 页边赤纬刻度 / 分节纹样）
    -------------------------------------------------------------------------- */

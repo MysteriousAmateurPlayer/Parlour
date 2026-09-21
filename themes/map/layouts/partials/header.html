@@ -15,7 +15,7 @@
       <a class="nav__link{{ if $homeActive }} is-active{{ end }}" href="{{ site.Home.RelPermalink }}"{{ if $homeActive }} aria-current="page"{{ end }}>首页</a>
       {{- range $item := partial "nav-items.html" . }}
         {{- $active := eq $current.Section $item.key }}
-        <a class="nav__link{{ if $active }} is-active{{ end }}" href="{{ $item.href }}"{{ if $active }} aria-current="page"{{ end }}>{{ $item.title }}</a>
+        <a class="nav__link{{ if $active }} is-active{{ end }}" href="{{ $item.href }}"{{ if $active }} aria-current="page"{{ end }}>{{ partial "icon.html" (dict "name" $item.icon "class" "icon icon--xs nav__icon") }}<span>{{ $item.title }}</span></a>
       {{- end }}
     </nav>
 
@@ -43,7 +43,7 @@
       <nav class="mobile-nav__links" aria-label="移动端导航">
         <a class="mobile-nav__link" href="{{ site.Home.RelPermalink }}">首页</a>
         {{- range $item := partial "nav-items.html" . }}
-        <a class="mobile-nav__link" href="{{ $item.href }}">{{ $item.title }}</a>
+        <a class="mobile-nav__link" href="{{ $item.href }}">{{ partial "icon.html" (dict "name" $item.icon "class" "icon icon--sm") }}<span>{{ $item.title }}</span></a>
         {{- end }}
         {{- if and site.Params.vault.enabled $vaultPage }}
         <a class="mobile-nav__link mobile-nav__link--vault" href="{{ $vaultPage.RelPermalink }}" data-vault-open>

@@ -53,7 +53,8 @@ check(`首页卡片数 = ${homeSections.length}`, cardTitles.length === homeSect
 check('首页卡片标题与配置一致', cardTitles.join('|') === homeSections.map((s) => s.title).join('|'),
   homeSections.map((s) => s.title).join(' / '));
 
-const navTitles = [...home.matchAll(/class="nav__link[^"]*" href="[^"]*"[^>]*>([^<]+)</g)].map((m) => m[1]);
+// 导航项现在带板块图标，标题包在 <span> 里：取 span 内的文字
+const navTitles = [...home.matchAll(/class="nav__link[^"]*" href="[^"]*"[^>]*>[\s\S]*?<span>([^<]+)<\/span>/g)].map((m) => m[1]);
 check('顶部导航第一项是首页', navTitles[0] === '首页', navTitles.join(' / '));
 check('导航项与配置一致', navTitles.slice(1).join('|') === navSections.map((s) => s.title).join('|'),
   navSections.map((s) => s.title).join(' / '));

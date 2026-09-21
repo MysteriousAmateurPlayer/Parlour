@@ -1,6 +1,6 @@
 {{- /* 顶部导航与页脚用的板块列表
        来源：data/sections.yaml，只取 nav: true 的，按 weight 从小到大
-       每一项：key / title / href（已带 /仓库名/ 子路径）
+       每一项：key / title / icon / href（已带 /仓库名/ 子路径）
        用法：{{ range partial "nav-items.html" . }} … {{ end }} */ -}}
 {{- $items := slice -}}
 {{- range $key, $meta := hugo.Data.sections -}}
@@ -11,6 +11,7 @@
     {{- $items = $items | append (dict
           "key" $key
           "title" ($meta.title | default ($key | humanize | title))
+          "icon" ($meta.icon | default "link")
           "href" $href
           "weight" ($meta.weight | default 100)) -}}
   {{- end -}}

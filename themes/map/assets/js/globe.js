@@ -116,12 +116,26 @@
     return (t > 0.4 && t < 0.6) ? Math.sin((t - 0.4) / 0.2 * Math.PI) * TAB : 0;
   }
   var SAMPLES = 14;
-  function outline(pc) {
-    var pts = [], n, t;
-    for (n = 0; n <= SAMPLES; n++) { t = n / SAMPLES; pts.push([pc.lat1, pc.lon1 + (pc.lon2 - pc.lon1) * t]); }
-    for (n = 1; n <= SAMPLES; n++) { t = n / SAMPLES; pts.push([pc.lat1 + (pc.lat2 - pc.lat1) * t, pc.lon2 + tabBump(t)]); }
-    for (n = 1; n <= SAMPLES; n++) { t = n / SAMPLES; pts.push([pc.lat2, pc.lon2 - (pc.lon2 - pc.lon1) * t]); }
-    for (n = 1; n < SAMPLES; n++) { t = n / SAMPLES; pts.push([pc.lat2 + (pc.lat1 - pc.lat2) * t, pc.lon1 + tabBump(t)]); }
+
+  /* 可见范围在经纬度上就是个区间：(lon + theta) ∈ [-90°, 90°]。
+     所以把片区的经度区间与它求交，按交出来的矩形采样边界即可：
+       · 不需要裁剪、不需要补弧，永远不会自交
+       · 沿经线的那两条边投影出来正好落在球体轮廓上（z=0），边缘天然正确 */
+  function cellOutline(pc) {
+    var L1 = pc.lon1 + theta, L2 = pc.lon2 + theta;
+    var mid = (L1 + L2) / 2;
+    var k = Math.round(mid / 360) * 360;
+    L1 -= k; L2 -= k;
+    if (L2 < -90 || L1 > 90) return null;              // 整块都在背面
+    var a = Math.max(L1, -90), b = Math.min(L2, 90);
+    if (b - a < 0.05) return null;                     // 只剩一条线
+    var leftClip = a > L1 + 1e-6, rightClip = b < L2 - 1e-6;
+    var lonA = a - theta, lonB = b - theta;
+    var pts = [], n, t, S = SAMPLES;
+    for (n = 0; n <= S; n++) { t = n / S; pts.push([pc.lat1, lonA + (lonB - lonA) * t]); }
+    for (n = 1; n <= S; n++) { t = n / S; pts.push([pc.lat1 + (pc.lat2 - pc.lat1) * t, lonB + (rightClip ? 0 : tabBump(t))]); }
+    for (n = 1; n <= S; n++) { t = n / S; pts.push([pc.lat2, lonB - (lonB - lonA) * t]); }
+    for (n = 1; n < S; n++) { t = n / S; pts.push([pc.lat2 + (pc.lat1 - pc.lat2) * t, lonA + (leftClip ? 0 : tabBump(t))]); }
     return pts;
   }
 
@@ -150,11 +164,6 @@
       'class': 'globe__piece' + (pc.item ? '' : ' globe__piece--empty'),
       fill: pc.item ? 'url(#piece-grad-' + idx + ')' : 'none'
     });
-    var label = pc.item ? el('text', {
-      'class': 'globe__names',
-      'text-anchor': 'middle'
-    }) : null;
-    if (label) label.textContent = pc.item.title;
     var icon = pc.item ? el('use', {
       'class': 'globe__icon',
       href: '#globe-icon-' + pc.item.key
@@ -166,13 +175,12 @@
       t.textContent = pc.item.title + ' · 进入板块';
       a.appendChild(t); a.appendChild(path);
       if (icon) a.appendChild(icon);
-      if (label) a.appendChild(label);
       g.appendChild(a);
     } else {
       g.appendChild(path);
     }
     piecesG.appendChild(g);
-    return { g: g, path: path, icon: icon, label: label, pc: pc, item: pc.item, cz: -1, wasFront: null };
+    return { g: g, path: path, icon: icon, pc: pc, item: pc.item, cz: -1, wasFront: null };
   });
 
   /* ---------- 每帧更新 ---------- */
@@ -231,40 +239,52 @@
   }
 
   var lastOrder = '';
+
+  function polyArea(poly) {
+    var s = 0;
+    for (var i = 0; i < poly.length; i++) {
+      var a = poly[i], b = poly[(i + 1) % poly.length];
+      s += a.x * b.y - b.x * a.y;
+    }
+    return Math.abs(s) / 2;
+  }
+  function toPath(poly) {
+    var d = 'M' + poly[0].x.toFixed(1) + ' ' + poly[0].y.toFixed(1);
+    for (var i = 1; i < poly.length; i++) d += 'L' + poly[i].x.toFixed(1) + ' ' + poly[i].y.toFixed(1);
+    return d + 'Z';
+  }
+
   function drawPieces() {
     nodes.forEach(function (n, idx) {
-      var pts = outline(n.pc);
-      var d = '';
-      var sx = 0, sy = 0, k, s;
-      var maxZ = -1;
-      var screenPts = [];
+      var pts = cellOutline(n.pc);
+      if (!pts) {
+        if (n.wasFront !== false) {
+          n.path.style.visibility = 'hidden';
+          n.g.style.pointerEvents = 'none';
+          if (n.icon) n.icon.style.visibility = 'hidden';
+          n.wasFront = false;
+        }
+        return;
+      }
+      if (n.wasFront !== true) {
+        n.path.style.visibility = 'visible';
+        n.g.style.pointerEvents = 'auto';
+        n.wasFront = true;
+      }
+
+      // 投影 + 生成路径（不做任何裁剪，交出来的矩形本身就是可见区域）
+      var screenPts = [], sx = 0, sy = 0, k, s;
       for (k = 0; k < pts.length; k++) {
         s = screen(pts[k][0], pts[k][1]);
         screenPts.push(s);
-        if (s.z > maxZ) maxZ = s.z;      // 片区任意一部分还在正面就算可见
         sx += s.x; sy += s.y;
-        d += (k ? 'L' : 'M') + s.x.toFixed(1) + ' ' + s.y.toFixed(1);
       }
+      n.path.setAttribute('d', toPath(screenPts));
 
       var c = screen((n.pc.lat1 + n.pc.lat2) / 2, (n.pc.lon1 + n.pc.lon2) / 2);
       n.cz = c.z;
-
-      // 文字/图标不跟球面弯，那就越靠边越淡，到球体轮廓处正好淡成 0
       var fade = Math.max(0, Math.min(1, (c.z - 0.2) / 0.42));
-      // 只要片区还有一部分朝向观众就画（透明度不变，像海岸线那样转过去而已）
-      var front = maxZ > 0.02;
-      var show = front && fade > 0.04;
 
-      if (front !== n.wasFront) {
-        n.path.style.visibility = front ? 'visible' : 'hidden';
-        n.g.style.pointerEvents = front ? 'auto' : 'none';
-        n.wasFront = front;
-      }
-      if (!front) { if (n.icon) n.icon.style.visibility = 'hidden'; if (n.label) n.label.style.visibility = 'hidden'; return; }   // 背面：完全不碰 DOM
-
-      n.path.setAttribute('d', d + 'Z');
-
-      // 渐变跟着片区走：中心在片区重心，半径约到片区边缘 → 颜色从中心向外淡出
       if (n.item) {
         var mx = sx / screenPts.length, my = sy / screenPts.length;
         var rmax = 1;
@@ -275,34 +295,22 @@
         var gr = grads[idx];
         gr.setAttribute('cx', mx.toFixed(1));
         gr.setAttribute('cy', my.toFixed(1));
-        // 半径必须有下限：贴到球体边缘时投影会退化，r=0 的渐变会让整块闪没
-        var rr = rmax > 2 ? rmax * 0.82 : 2;
-        gr.setAttribute('r', rr.toFixed(1));
+        gr.setAttribute('r', (rmax > 2 ? rmax * 0.82 : 2).toFixed(1));
       }
 
       if (!n.icon) return;
-      var showAll = show;
-      n.icon.style.visibility = showAll ? 'visible' : 'hidden';
-      if (n.label) n.label.style.visibility = showAll ? 'visible' : 'hidden';
-      if (!showAll) return;
+      var show = fade > 0.04;
+      n.icon.style.visibility = show ? 'visible' : 'hidden';
+      if (!show) return;
       n.icon.style.opacity = fade.toFixed(2);
       var size = 58 + fade * 40;
       var sc = size / 24;
       n.icon.setAttribute('transform',
         'translate(' + c.x.toFixed(1) + ',' + c.y.toFixed(1) + ') scale(' + sc.toFixed(2) + ') translate(-12,-12)');
-      // 板块名：图标下方，同样按 fade 缩放与淡出
-      if (n.label) {
-        n.label.style.opacity = (fade * 0.9).toFixed(2);
-        n.label.setAttribute('x', c.x.toFixed(1));
-        n.label.setAttribute('y', (c.y + size * 0.62).toFixed(1));
-        n.label.setAttribute('font-size', (20 + fade * 9).toFixed(1));
-      }
     });
 
-    // 远的先画、近的后画，避免球体边缘互相压盖
+    // 远的先画、近的后画（签名只用身份序列：相对顺序变了才动 DOM）
     var order = nodes.slice().sort(function (a, b) { return a.cz - b.cz; });
-    // 签名只用「身份序列」：相对顺序变了才动 DOM。
-    // （早前一版把 cz 也写进签名，导致每帧都重排 12 个节点，转动时抖动/出错）
     var sig = order.map(function (n) { return n.pc.lon1 + ':' + n.pc.lat1; }).join('|');
     if (sig !== lastOrder) {
       lastOrder = sig;
