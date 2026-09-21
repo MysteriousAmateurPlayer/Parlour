@@ -4,7 +4,29 @@
     {{/* 站名放在一个典雅的太阳上（盘面用 CSS，光芒是古典的锥形 + 火焰形交替） */}}
     <div class="hero__sun-wrap">
       {{/* 太阳与地球之间那一圈星星（很扁的星轨） */}}
-      <span class="hero__ring-layer" aria-hidden="true">{{ partial "star-ring.html" . }}</span>
+      <span class="hero__ring-layer" aria-hidden="true">{{ partial "star-ring.html" . }}
+      {{/* 两个按钮：落在星轨椭圆左右两个焦点上，样式是透明的迷你椭圆星轨 */}}
+      {{- if or $hero.primary $hero.secondary }}
+      {{- with $hero.primary }}
+      <a class="hero-act hero-act--left" href="{{ partial "link.html" .url }}" data-name="{{ .label }}">
+        <span class="hero-act__ring">
+          {{- partial "mini-ring.html" . -}}
+          <span class="hero-act__icon">{{ partial "icon.html" (dict "name" (default "axes" .icon) "class" "icon") }}</span>
+        </span>
+        <span class="hero-act__label">{{ .label }}</span>
+      </a>
+      {{- end }}
+      {{- with $hero.secondary }}
+      <a class="hero-act hero-act--right" href="{{ partial "link.html" .url }}" data-name="{{ .label }}">
+        <span class="hero-act__ring">
+          {{- partial "mini-ring.html" . -}}
+          <span class="hero-act__icon">{{ partial "icon.html" (dict "name" (default "clock" .icon) "class" "icon") }}</span>
+        </span>
+        <span class="hero-act__label">{{ .label }}</span>
+      </a>
+      {{- end }}
+      {{- end }}
+</span>
 
       <span class="hero__sun-layer" aria-hidden="true">
         {{ partial "sun-rays.html" . }}
@@ -18,25 +40,6 @@
       </h1>
 
     </div>
-
-    {{/* 两个按钮放在太阳外面（太阳上只留"MAP的"与站名，盘面才装得下） */}}
-    {{/* 两个可点击的图标：坐标象征"空间"（关于本站），时钟象征"时间"（最近更新） */}}
-    {{- if or $hero.primary $hero.secondary }}
-    <div class="hero__actions reveal" style="--d:320ms">
-      {{- with $hero.primary }}
-      <a class="hero-act" href="{{ partial "link.html" .url }}" data-name="{{ .label }}">
-        <span class="hero-act__icon">{{ partial "icon.html" (dict "name" (default "axes" .icon) "class" "icon") }}</span>
-        <span class="hero-act__label">{{ .label }}</span>
-      </a>
-      {{- end }}
-      {{- with $hero.secondary }}
-      <a class="hero-act" href="{{ partial "link.html" .url }}" data-name="{{ .label }}">
-        <span class="hero-act__icon">{{ partial "icon.html" (dict "name" (default "clock" .icon) "class" "icon") }}</span>
-        <span class="hero-act__label">{{ .label }}</span>
-      </a>
-      {{- end }}
-    </div>
-    {{- end }}
   </div>
 
   {{- if site.Params.appearance.showScrollHint }}

@@ -444,6 +444,7 @@
       el: el, rx: o[0], ry: o[1], a: parseFloat(el.getAttribute('data-a')) || 0,
       glyph: glyph,
       bob: el.getAttribute('data-bob') === '1',
+      axis: el.getAttribute('data-kind') === 'axis',
       sp: isNaN(sp) ? 1 : sp          // 星尘速度略有差异 → 缓慢流动
     };
   });
@@ -456,6 +457,17 @@
     for (var i = 0; i < list.length; i++) {
       var it = list[i];
       var a = it.a + t * it.sp;
+      if (it.axis) {
+        // 四条轴线：两端贴内外椭圆，随环一起转，看起来就是被压扁在椭圆上运动
+        var oi = orbits.inner, oo = orbits.outer;
+        var ax1 = CX + oi[0] * 0.6 * Math.cos(a), ay1 = CY + oi[1] * 0.6 * Math.sin(a);
+        var ax2 = CX + oo[0] * 1.008 * Math.cos(a), ay2 = CY + oo[1] * 1.008 * Math.sin(a);
+        var mx = ax1 + (ax2 - ax1) * 0.74, my = ay1 + (ay2 - ay1) * 0.74;
+        it.el.firstChild.setAttribute('d',
+          'M' + ax1.toFixed(1) + ' ' + ay1.toFixed(1) + 'L' + ax2.toFixed(1) + ' ' + ay2.toFixed(1) +
+          'M' + (mx - 5).toFixed(1) + ' ' + my.toFixed(1) + 'H' + (mx + 5).toFixed(1));
+        continue;
+      }
       var x = CX + it.rx * Math.cos(a);
       var y = CY + it.ry * Math.sin(a);
       // 沿环做正弦上下浮动：相位随角度累进，整整一圈正好 7 个波长

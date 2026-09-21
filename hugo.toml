@@ -45,7 +45,7 @@ summaryLength = 72
     # 是否允许访客手动切换明暗
     showThemeToggle = true
     # 首页是否显示往下滚动的提示
-    showScrollHint = true
+    showScrollHint = false
     # 首页下拉那颗可旋转的地球（球面上的拼图片区就是各板块）
     showGlobe = true
 
