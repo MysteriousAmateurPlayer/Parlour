@@ -141,13 +141,12 @@
 
 
 /* ==========================================================================
-   首屏粒子流场（第三版）
-   思路参考流场/curl 噪声的做法（flow field 驱动 + 分组种子）：
-   · 分组：7 股，每股有自己的速度、噪声种子、上下浮动频率与相位 → 组间运动明显不同
-   · 灵活：粒子在"沿椭圆流动"之上叠加一个会衰减回位的流场位移，
-          并由 curl 噪声给出乱流般的横向漂移，因而不再僵硬地贴着椭圆
-   · 立体：每颗粒子还有上下浮动（与星轨上 30 个图标同一种思路），并有远近明暗
-   · 轻淡：粒子更小更多，透明度低，拖尾只是一小段
+   首屏粒子流场（第四版）
+   关键修正：
+   · 拖尾改为"记录粒子真实历史位置"再连成曲线 —— 因此拖尾必然与运动方向一致，
+     并且自然弯曲，严格贴合该粒子自己的轨迹（不再靠参数反推，方向不会错）
+   · 漂移幅度收敛、回位更快 → 粒子始终贴着所属的那一股，看得出成束结构
+   · 上下浮动保留（与星轨 30 个图标同一思路），但幅度收敛，不再是乱动
    ========================================================================== */
 (function () {
   var back = document.querySelector('.hero__flow--back');
@@ -184,7 +183,6 @@
   }
   function readColors() {
     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    // ② 透明度整体压得更低，存在感更弱
     colStreak = toRgba(cssColor('--flow-streak', dark ? '#e8c98d' : '#221f1c'), dark ? 0.3 : 0.22);
     colSpark = toRgba(cssColor('--flow-spark', dark ? '#eccb8a' : '#8f4a2c'), dark ? 0.55 : 0.4);
   }
@@ -194,30 +192,31 @@
   (function () {
     for (var i = 0; i < STRANDS; i++) {
       st.push({
-        speed: 0.75 + Math.random() * 0.7,          // 股间速度差异明显
-        seed: Math.random() * 6.28,                 // 噪声种子
-        bobF: 1 + Math.random() * 2.2,              // 上下浮动频率
-        bobA: 0.5 + Math.random() * 0.9,            // 上下浮动幅度
+        speed: 0.9 + Math.random() * 0.25,        // 股间速度只作小幅区分（不再乱）
+        seed: Math.random() * 6.28,
+        bobF: 0.8 + Math.random() * 1.4,          // 上下浮动：每股频率/幅度/相位不同
+        bobA: 0.45 + Math.random() * 0.55,
         bobP: Math.random() * 6.28,
-        drift: 0.6 + Math.random() * 0.9            // 横向漂移幅度
+        drift: 0.5 + Math.random() * 0.6
       });
     }
   })();
 
+  var HIST = 4, SAMPLE = 3;                        // 历史 4 点、每 3 帧采一次 → 一小段可弯的拖尾
   function spawn(i) {
     var s = (i == null ? Math.floor(Math.random() * STRANDS) : i % STRANDS);
     return {
       a: Math.random() * Math.PI * 2,
       s: s,
-      t: 0.8 + (s + 0.5) / STRANDS * 0.2 + (Math.random() - 0.5) * 0.03,
+      t: 0.8 + (s + 0.5) / STRANDS * 0.2 + (Math.random() - 0.5) * 0.012,   // 束内很紧
       ox: 0, oy: 0,
-      age: 0, life: 500 + Math.random() * 900,
+      hx: [], hy: [],
+      age: 0, life: 600 + Math.random() * 1000,
       hot: Math.random() < 0.16,
       tw: Math.random() * Math.PI * 2, tws: 0.4 + Math.random() * 1.4
     };
   }
 
-  /* 流场：以粒子位置与股种子求一个平滑向量（curl 噪声的廉价近似） */
   function flow(x, y, seed, out) {
     var nx = x / Math.max(1, W), ny = y / Math.max(1, H);
     out[0] = Math.cos((ny * 3.1 + seed) * 2.0) * 0.6 + Math.cos((nx + ny) * 4.2 + seed * 1.7) * 0.4;
@@ -227,8 +226,7 @@
   function resize() {
     var r = back.getBoundingClientRect();
     W = Math.max(1, r.width); H = Math.max(1, r.height);
-    cx = W / 2; cy = H / 2;
-    rx = W / 2; ry = H / 2;
+    cx = W / 2; cy = H / 2; rx = W / 2; ry = H / 2;
     var ringSvg = document.querySelector('.hero__star-ring');
     if (ringSvg) {
       var o = (ringSvg.getAttribute('data-outer') || '').split(',').map(Number);
@@ -242,29 +240,37 @@
     var disc = document.querySelector('.sun-disc');
     var dr = disc ? disc.getBoundingClientRect() : null;
     sunR = (dr && r.width) ? (dr.width / 2) * (W / r.width) : W * 0.17;
-    // ③ 粒子数大幅增加（小而不显眼）
-    var n = Math.max(700, Math.min(2600, Math.round((W + H) * 2.2)));
+    var n = Math.max(600, Math.min(2200, Math.round((W + H) * 1.9)));
     parts = [];
     for (var i = 0; i < n; i++) parts.push(spawn(i));
   }
 
-  var t0 = 0, tmp = [0, 0];
+  var t0 = 0, tick = 0, tmp = [0, 0];
   function advance(steps) {
-    var dt = 16;
     for (var k = 0; k < steps; k++) {
+      tick++;
       for (var i = 0; i < parts.length; i++) {
         var p = parts[i], S = st[p.s];
-        // 沿星轨的切向流动（股间速度不同）
         p.a += 0.00072 * S.speed;
-        // 流场位移：漂移 + 衰减回位 → 灵活但不跑散
         var ex = cx + rx * p.t * Math.cos(p.a), ey = cy + ry * p.t * Math.sin(p.a);
         flow(ex, ey, S.seed, tmp);
-        p.ox += (tmp[0] * 26 * S.drift - p.ox * 0.05) * (dt / 16);
-        p.oy += (tmp[1] * 26 * S.drift - p.oy * 0.05) * (dt / 16);
+        // 漂移收敛（幅度小、回位快）→ 始终贴着所属的那一股
+        p.ox += tmp[0] * 7 * S.drift - p.ox * 0.14;
+        p.oy += tmp[1] * 7 * S.drift - p.oy * 0.14;
         p.age++;
         if (p.age > p.life) parts[i] = spawn(p.s);
+        // 每 SAMPLE 帧记一次真实位置 → 拖尾直接连这些点
+        if (tick % SAMPLE === 0 && parts[i] === p) {
+          p.hx.push(p.x == null ? ex + p.ox : p.x);
+          p.hy.push(p.y == null ? ey + p.oy : p.y);
+          if (p.hx.length > HIST) { p.hx.shift(); p.hy.shift(); }
+        }
+        // 当前位置（含上下浮动）
+        p.x = cx + rx * p.t * Math.cos(p.a) + p.ox;
+        p.y = cy + ry * p.t * Math.sin(p.a) + p.oy
+              + ry * 0.05 * S.bobA * Math.sin(S.bobF * 2 + S.bobP + t0 * 0.00025);
       }
-      t0 += dt;
+      t0 += 16;
     }
   }
 
@@ -274,38 +280,41 @@
     cb.globalCompositeOperation = 'lighter';
     cf.globalCompositeOperation = 'lighter';
     cb.lineCap = cf.lineCap = 'round';
+    cb.lineJoin = cf.lineJoin = 'round';
     for (var i = 0; i < parts.length; i++) {
-      var p = parts[i], S = st[p.s];
-      var a = p.a, t = p.t;
-      var x = cx + rx * t * Math.cos(a) + p.ox;
-      var y = cy + ry * t * Math.sin(a) + p.oy;
-      // ③ 上下浮动（与星轨图标同一思路）：每股频率/幅度/相位都不同
-      y += ry * 0.09 * S.bobA * Math.sin(S.bobF * 2 + S.bobP + t0 * 0.00022);
-      // 拖尾用的上一位置
-      var a0 = a - 0.02, x0 = cx + rx * t * Math.cos(a0) + p.ox * 0.9, y0 = cy + ry * t * Math.sin(a0) + p.oy * 0.9;
-      y0 += ry * 0.09 * S.bobA * Math.sin(S.bobF * 2 + S.bobP + (t0 - 60) * 0.00022);
-
-      var near = Math.sin(a) >= 0;
+      var p = parts[i];
+      if (p.x == null) continue;
+      var near = Math.sin(p.a) >= 0;
       var ctx = near ? cf : cb;
-      if (!near && Math.hypot(x - cx, y - cy) < sunR * 1.02) continue;
-      var depth = (near ? 1 : 0.5) * (0.55 + 0.45 * Math.min(1, t));
-      var fadeIn = Math.min(1, p.age / 70);
-      var fadeOut = Math.min(1, (p.life - p.age) / 110);
-      var fade = fadeIn * fadeOut;
+      if (!near && Math.hypot(p.x - cx, p.y - cy) < sunR * 1.02) continue;
+      var depth = (near ? 1 : 0.5) * (0.55 + 0.45 * Math.min(1, p.t));
+      var fade = Math.min(1, p.age / 80) * Math.min(1, (p.life - p.age) / 130);
       var tw = 0.55 + 0.45 * Math.sin(p.tw + t0 * 0.0012 * p.tws);
 
-      // ② 粒子很小、很淡；拖尾只是一小段
       ctx.strokeStyle = p.hot ? colSpark : colStreak;
       ctx.globalAlpha = Math.max(0.015, (p.hot ? 0.55 : 0.3) * fade * tw * depth);
       ctx.lineWidth = (p.hot ? 0.9 : 0.55) * (0.6 + 0.6 * depth);
-      ctx.beginPath();
-      ctx.moveTo(x0, y0);
-      ctx.lineTo(x, y);
-      ctx.stroke();
+      var n = p.hx.length;
+      if (n >= 3) {
+        // 用真实历史点画曲线：方向必然一致，且随轨迹弯曲
+        ctx.beginPath();
+        ctx.moveTo(p.hx[0], p.hy[0]);
+        for (var k = 1; k < n - 1; k++) {
+          var mx = (p.hx[k] + p.hx[k + 1]) / 2, my = (p.hy[k] + p.hy[k + 1]) / 2;
+          ctx.quadraticCurveTo(p.hx[k], p.hy[k], mx, my);
+        }
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x + 0.01, p.y);
+        ctx.stroke();
+      }
       if (p.hot) {
         ctx.globalAlpha = Math.max(0.03, 0.5 * fade * tw * depth);
         ctx.beginPath();
-        ctx.arc(x, y, 0.7 + 0.5 * tw, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, 0.7 + 0.5 * tw, 0, Math.PI * 2);
         ctx.fillStyle = colSpark;
         ctx.fill();
       }
@@ -317,12 +326,12 @@
   var raf = 0;
   readColors();
   resize();
-  advance(160);
+  advance(180);          // 预热（含历史点，首屏就有弯曲拖尾）
   drawFrame();
   if (reduce) return;
   function frame() { advance(1); drawFrame(); raf = requestAnimationFrame(frame); }
   raf = requestAnimationFrame(frame);
-  window.addEventListener('resize', function () { resize(); advance(60); drawFrame(); }, { passive: true });
+  window.addEventListener('resize', function () { resize(); advance(80); drawFrame(); }, { passive: true });
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (es) {
       es.forEach(function (e) {
