@@ -21,8 +21,10 @@
 <script src="{{ $vault.RelPermalink }}" integrity="{{ $vault.Data.Integrity }}" crossorigin="anonymous" defer></script>
 {{- end }}
 
-{{- /* 地球仪：只有首页需要 */ -}}
-{{- if .IsHome }}
+{{- /* 地球仪：只有首页需要（海岸线数据 world-data.js 必须先于 globe.js） */ -}}
+{{- if and .IsHome (ne site.Params.appearance.showGlobe false) }}
+{{- $world := resources.Get "js/world-data.js" | minify | fingerprint "sha512" -}}
+<script src="{{ $world.RelPermalink }}" integrity="{{ $world.Data.Integrity }}" crossorigin="anonymous" defer></script>
 {{- $globe := resources.Get "js/globe.js" | minify | fingerprint "sha512" -}}
 <script src="{{ $globe.RelPermalink }}" integrity="{{ $globe.Data.Integrity }}" crossorigin="anonymous" defer></script>
 {{- end }}

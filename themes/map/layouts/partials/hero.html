@@ -3,6 +3,9 @@
   <div class="wrap hero__inner">
     {{/* 简介放在一个典雅的太阳上（盘面用 CSS，光芒是古典的锥形 + 火焰形交替） */}}
     <div class="hero__sun-wrap">
+      {{/* 太阳与地球之间那一圈星星（很扁的星轨） */}}
+      <span class="hero__ring-layer" aria-hidden="true">{{ partial "star-ring.html" . }}</span>
+
       <span class="hero__sun-layer" aria-hidden="true">
         {{ partial "sun-rays.html" . }}
         <span class="sun-disc"></span>
@@ -18,20 +21,22 @@
 
       <p class="hero__intro reveal" style="--d:240ms">{{ $hero.intro }}</p>
 
-      {{- if or $hero.primary $hero.secondary }}
-      <div class="hero__actions reveal" style="--d:320ms">
-        {{- with $hero.primary }}
-        <a class="btn btn--primary" href="{{ partial "link.html" .url }}">
-          <span>{{ .label }}</span>
-          {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
-        </a>
-        {{- end }}
-        {{- with $hero.secondary }}
-        <a class="btn btn--ghost" href="{{ partial "link.html" .url }}"><span>{{ .label }}</span></a>
-        {{- end }}
-      </div>
+    </div>
+
+    {{/* 两个按钮放在太阳外面（太阳上只留姓名与简介，盘面才装得下） */}}
+    {{- if or $hero.primary $hero.secondary }}
+    <div class="hero__actions reveal" style="--d:320ms">
+      {{- with $hero.primary }}
+      <a class="btn btn--primary" href="{{ partial "link.html" .url }}">
+        <span>{{ .label }}</span>
+        {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
+      </a>
+      {{- end }}
+      {{- with $hero.secondary }}
+      <a class="btn btn--ghost" href="{{ partial "link.html" .url }}"><span>{{ .label }}</span></a>
       {{- end }}
     </div>
+    {{- end }}
   </div>
 
   {{- if site.Params.appearance.showScrollHint }}

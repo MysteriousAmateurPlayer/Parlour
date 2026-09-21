@@ -4,12 +4,12 @@
 <svg class="hero__sun-rays" viewBox="-500 -500 1000 1000" aria-hidden="true" focusable="false">
   <g class="sun-ray sun-ray--spike">
     {{- range $i := seq 0 15 }}
-    <path d="M-3.6 -334 L0 -396 L3.6 -334 Z" transform="rotate({{ mul $i 22.5 }})"/>
+    <path d="M-3.4 -334 L0 -372 L3.4 -334 Z" transform="rotate({{ mul $i 22.5 }})"/>
     {{- end }}
   </g>
   <g class="sun-ray sun-ray--flame">
     {{- range $i := seq 0 15 }}
-    <path d="M0 -334 C5.4 -347 5.4 -363 0 -377 C-5.4 -363 -5.4 -347 0 -334 Z"
+    <path d="M0 -334 C5 -345 5 -357 0 -368 C-5 -357 -5 -345 0 -334 Z"
           transform="rotate({{ add (mul $i 22.5) 11.25 }})"/>
     {{- end }}
   </g>

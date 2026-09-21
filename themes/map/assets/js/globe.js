@@ -1,11 +1,11 @@
 /* ==========================================================================
    地球仪：正交投影的手绘 SVG 球体
    --------------------------------------------------------------------------
-   · 球面按「纬度带 × 经度格」切成一块块拼图般的片区，交错排列
-   · 每个片区对应一个板块（数据来自 data/sections.yaml，写在 #globe-data 里）
-   · 多出来的片区留空（虚线淡描），以后加板块会自动填进去
+   · 球面有真实海岸线（world-data.js，简化自 Natural Earth 公共领域数据）
+   · 再加一层「拼图式片区」：每个片区是一个板块，用柔和渐变上色（边缘不突变），
+     片区里放该板块的图标；空位留给以后的板块
    · 交互：鼠标/手指拖动 = 沿地轴旋转；左右按钮 = 一格一格转；未交互时缓慢自转
-   · 零依赖，不加载任何三维库；读屏/无脚本用户还有下面的文字索引兜底
+   · 零依赖；读屏/无脚本用户有下面的文字索引兜底
    ========================================================================== */
 (function () {
   'use strict';
@@ -14,32 +14,30 @@
   var stage = document.getElementById('globe-stage');
   var gridG = document.getElementById('globe-grid');
   var piecesG = document.getElementById('globe-pieces');
+  var coastG = document.getElementById('globe-coasts');
   if (!dataEl || !stage || !gridG || !piecesG) return;
 
   var data;
   try { data = JSON.parse(dataEl.textContent); } catch (e) { return; }
 
-  var CX = parseFloat(stage.getAttribute('data-cx')) || 600;
-  var CY = parseFloat(stage.getAttribute('data-cy')) || 380;
-  var R = parseFloat(stage.getAttribute('data-r')) || 250;
+  var CX = parseFloat(stage.getAttribute('data-cx')) || 550;
+  var CY = parseFloat(stage.getAttribute('data-cy')) || 430;
+  var R = parseFloat(stage.getAttribute('data-r')) || 400;
 
   var items = (data.sections || []).slice();
   var cols = Math.max(2, parseInt(data.cols, 10) || 4);
   var capacity = Math.max(items.length, parseInt(data.capacity, 10) || 12, cols * 2);
   var rows = Math.max(2, Math.ceil(capacity / cols));
 
-  var LAT_TOP = 68;
-  var LAT_BOTTOM = -68;
+  var LAT_TOP = 66;
+  var LAT_BOTTOM = -66;
   var bandH = (LAT_TOP - LAT_BOTTOM) / rows;
   var lonW = 360 / cols;
 
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var theta = -90;                // 起始角度：让第 0、1 列（也就是全部板块）正对观众
+  var theta = -60;                 // 起始角度：正对亚洲/非洲这一侧，大陆看得清楚
   var autoRotate = !reduceMotion;
-  var active = false;
-  var dragging = false;
-  var lastX = 0;
-  var moved = 0;
+  var active = false, dragging = false, lastX = 0, moved = 0;
 
   var SVGNS = 'http://www.w3.org/2000/svg';
   function el(name, attrs) {
@@ -57,15 +55,41 @@
   function screen(lat, lon) {
     var u = unit(lat, lon);
     var d = Math.sqrt(u.x * u.x + u.y * u.y);
-    var k = (u.z < 0 && d > 0) ? 1 / d : 1;    // 背面的点压到球体轮廓上
+    var k = (u.z < 0 && d > 0) ? 1 / d : 1;      // 背面的点压到球体轮廓上
     return { x: CX + R * u.x * k, y: CY - R * u.y * k, z: u.z };
   }
+  function zOf(lat, lon) {
+    var p = lat * Math.PI / 180, l = (lon + theta) * Math.PI / 180;
+    return Math.cos(p) * Math.cos(l);
+  }
 
-  /* ---------- 片区定义（纬度带 × 经度格，交错半格） ---------- */
+  /* ---------- ① 海岸线 ---------- */
+  var rings = [];
+  (window.MAP_WORLD || []).forEach(function (s) {
+    var pts = [], sum = [0, 0];
+    s.split(';').forEach(function (pair) {
+      var ab = pair.split(',');
+      var lon = parseFloat(ab[0]), lat = parseFloat(ab[1]);
+      if (isNaN(lon) || isNaN(lat)) return;
+      pts.push([lat, lon]);
+      sum[0] += lat; sum[1] += lon;
+    });
+    if (pts.length < 3) return;
+    rings.push({ pts: pts, clat: sum[0] / pts.length, clon: sum[1] / pts.length });
+  });
+  var coastPaths = [];
+  if (coastG) {
+    rings.forEach(function () {
+      var p = el('path', { 'class': 'globe__coast' });
+      coastG.appendChild(p);
+      coastPaths.push(p);
+    });
+  }
+
+  /* ---------- ② 片区（含拼图凹凸） ---------- */
   var pieces = [];
   for (var i = 0; i < rows * cols; i++) {
-    var row = Math.floor(i / cols);
-    var col = i % cols;
+    var row = Math.floor(i / cols), col = i % cols;
     var lat1 = LAT_TOP - row * bandH;
     var offset = (row % 2) ? lonW / 2 : 0;
     pieces.push({
@@ -74,8 +98,7 @@
       item: null
     });
   }
-
-  // 板块按「列优先」落位：这样起始角度下所有板块都在正面，不用先转一圈去找
+  // 板块按「列优先」落位：起始角度下所有板块都在正面
   var slotOrder = [];
   for (var c0 = 0; c0 < cols; c0++) for (var r0 = 0; r0 < rows; r0++) slotOrder.push(r0 * cols + c0);
   items.forEach(function (it, k) {
@@ -83,27 +106,17 @@
     if (slot != null && pieces[slot]) pieces[slot].item = it;
   });
 
-  // 拼图的凹凸：左右两条经线边上加一个半圆凸起（相邻两格共用同一条曲线，所以能咬合）
   var TAB = 7;
   function tabBump(t) {
     return (t > 0.4 && t < 0.6) ? Math.sin((t - 0.4) / 0.2 * Math.PI) * TAB : 0;
   }
-
   var SAMPLES = 14;
   function outline(pc) {
     var pts = [], n, t;
-    for (n = 0; n <= SAMPLES; n++) {           // 上边（直的）
-      t = n / SAMPLES; pts.push([pc.lat1, pc.lon1 + (pc.lon2 - pc.lon1) * t]);
-    }
-    for (n = 1; n <= SAMPLES; n++) {           // 右边（带凸起）
-      t = n / SAMPLES; pts.push([pc.lat1 + (pc.lat2 - pc.lat1) * t, pc.lon2 + tabBump(t)]);
-    }
-    for (n = 1; n <= SAMPLES; n++) {           // 下边（直的）
-      t = n / SAMPLES; pts.push([pc.lat2, pc.lon2 - (pc.lon2 - pc.lon1) * t]);
-    }
-    for (n = 1; n < SAMPLES; n++) {            // 左边（同一条曲线 → 咬合）
-      t = n / SAMPLES; pts.push([pc.lat2 + (pc.lat1 - pc.lat2) * t, pc.lon1 + tabBump(t)]);
-    }
+    for (n = 0; n <= SAMPLES; n++) { t = n / SAMPLES; pts.push([pc.lat1, pc.lon1 + (pc.lon2 - pc.lon1) * t]); }
+    for (n = 1; n <= SAMPLES; n++) { t = n / SAMPLES; pts.push([pc.lat1 + (pc.lat2 - pc.lat1) * t, pc.lon2 + tabBump(t)]); }
+    for (n = 1; n <= SAMPLES; n++) { t = n / SAMPLES; pts.push([pc.lat2, pc.lon2 - (pc.lon2 - pc.lon1) * t]); }
+    for (n = 1; n < SAMPLES; n++) { t = n / SAMPLES; pts.push([pc.lat2 + (pc.lat1 - pc.lat2) * t, pc.lon1 + tabBump(t)]); }
     return pts;
   }
 
@@ -113,29 +126,60 @@
   for (var m = 0; m < cols * 2; m++) gridPaths.push(el('path', { 'class': 'globe__line globe__line--meridian' }));
   gridPaths.forEach(function (p) { gridG.appendChild(p); });
 
-  var nodes = pieces.map(function (pc) {
+  // 每个片区一条柔和的径向渐变（中心有颜色、边缘淡到 0，避免边缘突变）
+  var defs = el('defs', {});
+  (stage.ownerSVGElement || stage).insertBefore(defs, stage);
+  var grads = pieces.map(function (pc, idx) {
+    var g = el('radialGradient', { id: 'piece-grad-' + idx, gradientUnits: 'userSpaceOnUse', cx: CX, cy: CY, r: R });
+    var a = pc.item ? pc.item.accent : null;
+    var s1 = el('stop', { offset: '0.2', 'stop-color': a || 'currentColor', 'stop-opacity': a ? 0.34 : 0.1 });
+    var s2 = el('stop', { offset: '1', 'stop-color': a || 'currentColor', 'stop-opacity': 0 });
+    g.appendChild(s1); g.appendChild(s2);
+    defs.appendChild(g);
+    return g;
+  });
+
+  var nodes = pieces.map(function (pc, idx) {
     var g = el('g', { 'class': 'globe__cell' });
-    var path = el('path', { 'class': 'globe__piece' + (pc.item ? '' : ' globe__piece--empty') });
-    var text = el('text', { 'class': 'globe__label', 'text-anchor': 'middle' });
+    var path = el('path', {
+      'class': 'globe__piece' + (pc.item ? '' : ' globe__piece--empty'),
+      fill: pc.item ? 'url(#piece-grad-' + idx + ')' : 'none'
+    });
+    var icon = pc.item ? el('use', {
+      'class': 'globe__icon',
+      href: '#globe-icon-' + pc.item.key
+    }) : null;
+
     if (pc.item) {
-      text.textContent = pc.item.title;
-      path.style.setProperty('--cell-accent', pc.item.accent);
       var a = el('a', { 'class': 'globe__link', href: pc.item.href, 'aria-label': pc.item.title + '：进入这个板块' });
       var t = el('title');
       t.textContent = pc.item.title + ' · 进入板块';
-      a.appendChild(t);
-      a.appendChild(path);
-      a.appendChild(text);
+      a.appendChild(t); a.appendChild(path);
+      if (icon) a.appendChild(icon);
       g.appendChild(a);
     } else {
       g.appendChild(path);
-      g.appendChild(text);
     }
     piecesG.appendChild(g);
-    return { g: g, path: path, text: text, pc: pc, item: pc.item, cz: -1 };
+    return { g: g, path: path, icon: icon, pc: pc, item: pc.item, cz: -1 };
   });
 
   /* ---------- 每帧更新 ---------- */
+  function drawCoasts() {
+    for (var i = 0; i < rings.length; i++) {
+      var rg = rings[i];
+      if (zOf(rg.clat, rg.clon) < -0.12) { coastPaths[i].style.visibility = 'hidden'; continue; }
+      var d = '', drawn = false;
+      for (var k = 0; k < rg.pts.length; k++) {
+        var s = screen(rg.pts[k][0], rg.pts[k][1]);
+        if (s.z >= 0) { d += (drawn ? 'L' : 'M') + s.x.toFixed(1) + ' ' + s.y.toFixed(1); drawn = true; }
+        else drawn = false;
+      }
+      coastPaths[i].setAttribute('d', d);
+      coastPaths[i].style.visibility = d ? 'visible' : 'hidden';
+    }
+  }
+
   function drawGrid() {
     var i, j, d, s, visible;
     for (i = 0; i <= rows; i++) {
@@ -162,32 +206,52 @@
 
   var lastOrder = '';
   function drawPieces() {
-    nodes.forEach(function (n) {
+    nodes.forEach(function (n, idx) {
       var pts = outline(n.pc);
       var d = '';
-      for (var k = 0; k < pts.length; k++) {
-        var s = screen(pts[k][0], pts[k][1]);
+      var sx = 0, sy = 0, k, s;
+      var screenPts = [];
+      for (k = 0; k < pts.length; k++) {
+        s = screen(pts[k][0], pts[k][1]);
+        screenPts.push(s);
+        sx += s.x; sy += s.y;
         d += (k ? 'L' : 'M') + s.x.toFixed(1) + ' ' + s.y.toFixed(1);
       }
       n.path.setAttribute('d', d + 'Z');
 
       var c = screen((n.pc.lat1 + n.pc.lat2) / 2, (n.pc.lon1 + n.pc.lon2) / 2);
       n.cz = c.z;
-      // 文字不跟球面弯，那就越靠边越淡，到球体轮廓处正好淡成 0
-      // （否则横平竖直的字贴在球体边缘很难看）
-      var fade = Math.max(0, Math.min(1, (c.z - 0.16) / 0.42));
+
+      // 文字/图标不跟球面弯，那就越靠边越淡，到球体轮廓处正好淡成 0
+      var fade = Math.max(0, Math.min(1, (c.z - 0.2) / 0.42));
       var front = c.z > 0.02;
       var show = front && fade > 0.04;
 
       n.path.style.visibility = front ? 'visible' : 'hidden';
       n.g.style.pointerEvents = front ? 'auto' : 'none';
-      n.text.style.visibility = show ? 'visible' : 'hidden';
-      if (!show) return;
 
-      n.text.setAttribute('x', c.x.toFixed(1));
-      n.text.setAttribute('y', (c.y + 1).toFixed(1));
-      n.text.setAttribute('font-size', (17 + fade * 9).toFixed(1));
-      n.text.style.opacity = fade.toFixed(2);
+      // 渐变跟着片区走：中心在片区重心，半径约到片区边缘 → 颜色从中心向外淡出
+      if (n.item) {
+        var mx = sx / screenPts.length, my = sy / screenPts.length;
+        var rmax = 1;
+        for (k = 0; k < screenPts.length; k++) {
+          var dd = Math.hypot(screenPts[k].x - mx, screenPts[k].y - my);
+          if (dd > rmax) rmax = dd;
+        }
+        var gr = grads[idx];
+        gr.setAttribute('cx', mx.toFixed(1));
+        gr.setAttribute('cy', my.toFixed(1));
+        gr.setAttribute('r', (rmax * 0.82).toFixed(1));
+      }
+
+      if (!n.icon) return;
+      n.icon.style.visibility = show ? 'visible' : 'hidden';
+      if (!show) return;
+      n.icon.style.opacity = fade.toFixed(2);
+      var size = 58 + fade * 40;
+      var sc = size / 24;
+      n.icon.setAttribute('transform',
+        'translate(' + c.x.toFixed(1) + ',' + c.y.toFixed(1) + ') scale(' + sc.toFixed(2) + ') translate(-12,-12)');
     });
 
     // 远的先画、近的后画，避免球体边缘互相压盖
@@ -199,7 +263,7 @@
     }
   }
 
-  function render() { drawGrid(); drawPieces(); }
+  function render() { drawCoasts(); drawGrid(); drawPieces(); }
 
   /* ---------- 拖动旋转 ---------- */
   stage.addEventListener('pointerdown', function (e) {
@@ -222,7 +286,6 @@
       stage.classList.remove('is-dragging');
     });
   });
-  // 拖动结束的那一下不要误触"进入板块"
   piecesG.addEventListener('click', function (e) {
     if (moved > 6) { e.preventDefault(); e.stopPropagation(); }
   }, true);
@@ -239,7 +302,6 @@
       if (k < 1) requestAnimationFrame(step);
     })(t0);
   }
-
   Array.prototype.forEach.call(document.querySelectorAll('[data-globe-rotate]'), function (btn) {
     btn.addEventListener('click', function () {
       autoRotate = false;
@@ -256,13 +318,13 @@
         active = en.isIntersecting;
         if (active) render();
       });
-    }, { threshold: 0.12 }).observe(host);
+    }, { threshold: 0.1 }).observe(host);
   } else {
     active = true;
   }
 
   (function loop() {
-    if (active && autoRotate && !dragging) { theta += 0.05; render(); }
+    if (active && autoRotate && !dragging) { theta += 0.04; render(); }
     requestAnimationFrame(loop);
   })();
 

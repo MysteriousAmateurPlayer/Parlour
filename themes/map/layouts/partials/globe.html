@@ -1,9 +1,10 @@
 {{- /* 地球仪区块。
-       · 它就是首屏下缘露出的那一半地球：区块用负外边距往上顶，所以往下拉屏幕会"露出完整的地球"
-       · 配色全是网页本身的纸色 + 棕/朱砂线稿（镂空星图质感），不做夜空反色
-       · 球面按正交投影切成拼图式片区 = 各板块，点击进入；空位留给以后的板块
-       · 星野里有一颗长得不太一样的星星 —— 里版入口
-       渲染逻辑在 assets/js/globe.js */ -}}
+       · 它就是首屏下缘露出的那一半地球：区块用负外边距往上顶，往下拉屏幕才会"露出完整的地球"
+       · 画布上是一颗很大的地球：球面有真实的海岸线（七大洲轮廓）+ 拼图式板块片区
+       · 配色全是网页本来的纸色 + 棕/朱砂线稿（镂空星图质感），不做夜空反色
+       · 片区里放的是各板块的图标（不是文字）；空位留给以后的板块
+       · 星野里有一颗"稍微不一样"的星星 —— 里版入口
+       渲染逻辑在 assets/js/globe.js，海岸线数据在 assets/js/world-data.js */ -}}
 {{- $vault := site.GetPage "/vault" -}}
 {{- $vaultUrl := "" -}}
 {{- with $vault }}{{ $vaultUrl = .RelPermalink }}{{ end -}}
@@ -21,6 +22,7 @@
           "title" ($meta.title | default ($key | humanize | title))
           "numeral" ($meta.numeral | default "")
           "accent" ($meta.accent | default "#8a6f63")
+          "icon" ($meta.icon | default "link")
           "href" $href
           "weight" ($meta.weight | default 100)) -}}
   {{- end -}}
@@ -29,82 +31,97 @@
 {{- $globeData := dict "capacity" 12 "cols" 4 "sections" $sections -}}
 
 <section class="globe-band" id="globe" aria-labelledby="globe-title">
+  <div class="globe-band__stage">
+    <svg class="globe-svg" viewBox="0 0 1100 940" preserveAspectRatio="xMidYMid meet"
+         role="img" aria-label="可以旋转的地球，球面上的大陆轮廓与片区是各个板块">
+      <defs>
+        {{/* 四角星：星野与里版入口都用它 */}}
+        <path id="star4" d="M0 -10 Q1.2 -1.2 10 0 Q1.2 1.2 0 10 Q-1.2 1.2 -10 0 Q-1.2 -1.2 0 -10 Z"/>
+        <clipPath id="globe-clip"><circle cx="550" cy="430" r="400"/></clipPath>
+        <filter id="globe-glow" x="-25%" y="-25%" width="150%" height="150%">
+          <feGaussianBlur stdDeviation="7"/>
+        </filter>
+        {{/* 每个板块的图标（24×24 描边风格），片区里用 <use> 引用。
+             这里不写 stroke-width，交给 CSS（scale 放大后要更细的线）。 */}}
+        {{- range $sections }}
+        <g id="globe-icon-{{ .key }}" fill="none" stroke="currentColor"
+           stroke-linecap="round" stroke-linejoin="round">{{ partial "icon.html" (dict "name" .icon "inner" true) }}</g>
+        {{- end }}
+      </defs>
+
+      {{/* ---------- 星野（小点 + 空心四角星，像古典星图） ---------- */}}
+      <g class="globe-stars">
+          <circle cx="142" cy="802" r="0.9" style="opacity:0.36"/>
+          <circle cx="224" cy="734" r="1.6" style="opacity:0.48"/>
+          <circle cx="43" cy="497" r="1.0" style="opacity:0.36"/>
+          <circle cx="41" cy="157" r="0.9" style="opacity:0.49"/>
+          <circle cx="1032" cy="331" r="1.2" style="opacity:0.63"/>
+          <circle cx="844" cy="856" r="1.6" style="opacity:0.44"/>
+          <use href="#star4" transform="translate(112,649) scale(0.59)" style="opacity:0.38"/>
+          <circle cx="45" cy="703" r="1.2" style="opacity:0.25"/>
+          <use href="#star4" transform="translate(96,46) scale(0.42)" style="opacity:0.50"/>
+          <circle cx="248" cy="899" r="1.6" style="opacity:0.48"/>
+          <circle cx="1058" cy="56" r="1.0" style="opacity:0.47"/>
+          <use href="#star4" transform="translate(792,73) scale(0.66)" style="opacity:0.40"/>
+          <circle cx="43" cy="424" r="1.5" style="opacity:0.25"/>
+          <use href="#star4" transform="translate(109,100) scale(0.69)" style="opacity:0.35"/>
+          <circle cx="183" cy="772" r="1.6" style="opacity:0.65"/>
+          <circle cx="789" cy="840" r="0.9" style="opacity:0.57"/>
+          <circle cx="80" cy="455" r="1.6" style="opacity:0.54"/>
+          <use href="#star4" transform="translate(988,798) scale(0.54)" style="opacity:0.27"/>
+          <use href="#star4" transform="translate(614,876) scale(0.43)" style="opacity:0.56"/>
+          <circle cx="215" cy="813" r="0.9" style="opacity:0.61"/>
+          <circle cx="742" cy="853" r="0.9" style="opacity:0.28"/>
+          <use href="#star4" transform="translate(143,671) scale(0.70)" style="opacity:0.55"/>
+          <circle cx="1004" cy="265" r="0.9" style="opacity:0.49"/>
+          <use href="#star4" transform="translate(298,44) scale(0.54)" style="opacity:0.50"/>
+          <use href="#star4" transform="translate(835,93) scale(0.69)" style="opacity:0.56"/>
+          <circle cx="64" cy="875" r="1.7" style="opacity:0.61"/>
+          <circle cx="48" cy="592" r="1.1" style="opacity:0.42"/>
+          <use href="#star4" transform="translate(971,648) scale(0.37)" style="opacity:0.49"/>
+          <use href="#star4" transform="translate(1002,159) scale(0.46)" style="opacity:0.30"/>
+          <circle cx="979" cy="803" r="1.2" style="opacity:0.25"/>
+          <circle cx="80" cy="465" r="1.1" style="opacity:0.29"/>
+          <use href="#star4" transform="translate(1037,180) scale(0.57)" style="opacity:0.39"/>
+          <circle cx="1034" cy="113" r="1.7" style="opacity:0.59"/>
+          <circle cx="53" cy="841" r="1.6" style="opacity:0.47"/>
+          <circle cx="1031" cy="908" r="1.2" style="opacity:0.40"/>
+          <use href="#star4" transform="translate(90,455) scale(0.55)" style="opacity:0.58"/>
+          <use href="#star4" transform="translate(1012,632) scale(0.47)" style="opacity:0.34"/>
+          <circle cx="841" cy="908" r="1.0" style="opacity:0.25"/>
+          <use href="#star4" transform="translate(113,503) scale(0.47)" style="opacity:0.58"/>
+          <circle cx="1011" cy="167" r="1.0" style="opacity:0.59"/>
+          <circle cx="121" cy="469" r="1.1" style="opacity:0.31"/>
+          <use href="#star4" transform="translate(1037,649) scale(0.56)" style="opacity:0.25"/>
+          <circle cx="111" cy="278" r="1.6" style="opacity:0.57"/>
+          <use href="#star4" transform="translate(45,416) scale(0.69)" style="opacity:0.49"/>
+      </g>
+
+      {{/* ---------- 那颗"稍微不一样"的星星：里版入口（只是旁边多一颗小卫星） ---------- */}}
+      <a class="vault-star" href="{{ $vaultUrl }}" {{ if $gate.enabled }}data-vault-open{{ end }}
+         aria-label="{{ $gate.title | default "里版" }}入口">
+        <title>{{ $gate.title | default "里版" }}入口</title>
+        <circle class="vault-star__hit" cx="930" cy="118" r="30"/>
+        <g class="vault-star__art" transform="translate(930,118)">
+          <use href="#star4" class="vault-star__core" transform="scale(0.58)"/>
+          <circle class="vault-star__moon" cx="12.5" cy="6.5" r="2"/>
+        </g>
+      </a>
+
+      {{/* ---------- 地球：球体、海岸线、经纬网、片区 ---------- */}}
+      <g class="globe" id="globe-stage" data-cx="550" data-cy="430" data-r="400">
+        <circle class="globe__atmos" cx="550" cy="430" r="402" filter="url(#globe-glow)"/>
+        <circle class="globe__sphere" cx="550" cy="430" r="400"/>
+        <g clip-path="url(#globe-clip)">
+          <g class="globe__coasts" id="globe-coasts"></g>
+          <g class="globe__grid" id="globe-grid"></g>
+          <g class="globe__pieces" id="globe-pieces"></g>
+        </g>
+      </g>
+    </svg>
+  </div>
+
   <div class="wrap">
-    <div class="globe-band__stage">
-      <svg class="globe-svg" viewBox="0 0 900 700" preserveAspectRatio="xMidYMid meet"
-           role="img" aria-label="可以旋转的地球仪，球面上的片区是各个板块">
-        <defs>
-          {{/* 四角星（星图上的星与里版入口都用它） */}}
-          <path id="star4" d="M0 -10 Q1.2 -1.2 10 0 Q1.2 1.2 0 10 Q-1.2 1.2 -10 0 Q-1.2 -1.2 0 -10 Z"/>
-          <clipPath id="globe-clip"><circle cx="450" cy="330" r="290"/></clipPath>
-          <filter id="globe-glow" x="-25%" y="-25%" width="150%" height="150%">
-            <feGaussianBlur stdDeviation="7"/>
-          </filter>
-        </defs>
-
-        {{/* ---------- 星野（小点 + 空心四角星，像古典星图） ---------- */}}
-        <g class="globe-stars">
-          <use href="#star4" transform="translate(136,627) scale(0.39)" style="opacity:0.65"/>
-          <use href="#star4" transform="translate(740,515) scale(0.52)" style="opacity:0.51"/>
-          <circle cx="159" cy="148" r="1.6" style="opacity:0.57"/>
-          <use href="#star4" transform="translate(227,93) scale(0.50)" style="opacity:0.45"/>
-          <use href="#star4" transform="translate(73,337) scale(0.67)" style="opacity:0.64"/>
-          <use href="#star4" transform="translate(62,163) scale(0.63)" style="opacity:0.43"/>
-          <use href="#star4" transform="translate(752,501) scale(0.58)" style="opacity:0.59"/>
-          <use href="#star4" transform="translate(380,674) scale(0.41)" style="opacity:0.51"/>
-          <circle cx="89" cy="254" r="1.7" style="opacity:0.49"/>
-          <circle cx="142" cy="562" r="1.7" style="opacity:0.54"/>
-          <circle cx="43" cy="331" r="1.8" style="opacity:0.29"/>
-          <circle cx="812" cy="360" r="1.1" style="opacity:0.39"/>
-          <circle cx="799" cy="37" r="1.3" style="opacity:0.63"/>
-          <circle cx="602" cy="638" r="1.1" style="opacity:0.52"/>
-          <use href="#star4" transform="translate(77,267) scale(0.36)" style="opacity:0.64"/>
-          <use href="#star4" transform="translate(125,63) scale(0.49)" style="opacity:0.48"/>
-          <circle cx="125" cy="445" r="1.0" style="opacity:0.49"/>
-          <use href="#star4" transform="translate(721,501) scale(0.60)" style="opacity:0.34"/>
-          <circle cx="123" cy="411" r="1.1" style="opacity:0.57"/>
-          <circle cx="798" cy="364" r="1.5" style="opacity:0.43"/>
-          <circle cx="262" cy="44" r="1.2" style="opacity:0.57"/>
-          <use href="#star4" transform="translate(674,606) scale(0.59)" style="opacity:0.46"/>
-          <circle cx="138" cy="604" r="0.8" style="opacity:0.52"/>
-          <use href="#star4" transform="translate(90,611) scale(0.39)" style="opacity:0.58"/>
-          <circle cx="494" cy="666" r="1.8" style="opacity:0.44"/>
-          <use href="#star4" transform="translate(153,98) scale(0.41)" style="opacity:0.45"/>
-          <circle cx="836" cy="350" r="1.0" style="opacity:0.55"/>
-          <circle cx="114" cy="358" r="1.6" style="opacity:0.60"/>
-          <use href="#star4" transform="translate(749,463) scale(0.59)" style="opacity:0.43"/>
-          <circle cx="797" cy="218" r="1.4" style="opacity:0.48"/>
-          <circle cx="71" cy="246" r="1.5" style="opacity:0.67"/>
-          <use href="#star4" transform="translate(102,176) scale(0.51)" style="opacity:0.55"/>
-          <use href="#star4" transform="translate(587,630) scale(0.59)" style="opacity:0.35"/>
-          <circle cx="779" cy="263" r="1.5" style="opacity:0.59"/>
-          <circle cx="269" cy="661" r="1.5" style="opacity:0.42"/>
-        </g>
-
-        {{/* ---------- 那颗"长得不太一样"的星星：里版入口 ---------- */}}
-        <a class="vault-star" href="{{ $vaultUrl }}" {{ if $gate.enabled }}data-vault-open{{ end }}
-           aria-label="里版入口：这颗星星和别的长得不太一样">
-          <title>里版入口</title>
-          <circle class="vault-star__hit" cx="742" cy="92" r="34"/>
-          <g class="vault-star__art" transform="translate(742,92)">
-            <ellipse class="vault-star__orbit" cx="0" cy="0" rx="21" ry="7.5" transform="rotate(-24)"/>
-            <use href="#star4" class="vault-star__core" transform="scale(1.35)"/>
-            <circle class="vault-star__moon" cx="18.6" cy="-8.1" r="2.1"/>
-          </g>
-        </a>
-
-        {{/* ---------- 地球（球体与网格静态，片区由 JS 画） ---------- */}}
-        <g class="globe" id="globe-stage" data-cx="450" data-cy="330" data-r="290">
-          <circle class="globe__atmos" cx="450" cy="330" r="292" filter="url(#globe-glow)"/>
-          <circle class="globe__sphere" cx="450" cy="330" r="290"/>
-          <g clip-path="url(#globe-clip)">
-            <g class="globe__grid" id="globe-grid"></g>
-            <g class="globe__pieces" id="globe-pieces"></g>
-          </g>
-        </g>
-      </svg>
-    </div>
-
     <div class="globe-band__controls">
       <button class="globe-btn" type="button" data-globe-rotate="-1" aria-label="向左转动地球">
         <span aria-hidden="true">↺</span><span>左转</span>
