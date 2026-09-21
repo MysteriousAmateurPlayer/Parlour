@@ -809,14 +809,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .ring-orbit--outer { stroke-width: 1.2; opacity: 0.5; }
 .ring-orbit--main { stroke-width: 1; stroke-dasharray: 3 6; }
 .ring-orbit--inner { stroke-width: 0.9; stroke-dasharray: 1 5; opacity: 0.75; }
-.ring-marks {
-  animation: ring-turn 300s linear infinite;
+.ring-marks { }
 
-  transform-box: view-box;
-  /* 刻度/天体用的是"相对圆心"的坐标，所以旋转原点必须取局部原点 0 0 */
-  transform-origin: 0 0;
-}
-@keyframes ring-turn { to { transform: rotate(360deg); } }
 .ring-tick { stroke: var(--ring-line); stroke-width: 0.9; }
 .ring-tick--major { stroke-width: 1.3; opacity: 1; }
 .ring-star { fill: color-mix(in srgb, var(--globe-star) 45%, transparent); stroke: var(--globe-star); stroke-width: 0.9; stroke-linejoin: round; }
@@ -853,6 +847,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .globe-svg {
   display: block;
+  overflow: visible;   /* 星空可溢出画布，避免旋转时四角空掉 */
   width: 100%;
   aspect-ratio: 1100 / 940;
   touch-action: none;
@@ -958,7 +953,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
   stroke: var(--cell-accent, var(--accent));
 }
 .globe__link:focus-visible { outline: none; }
-.globe__link:focus-visible .globe__icon { stroke-width: 0.72; }
+.globe__link:focus-visible .globe__names {
+  fill: var(--globe-label);
+  font-family: var(--font-serif);
+  letter-spacing: 0.22em;
+  pointer-events: none;
+  user-select: none;
+}
+.globe__icon { stroke-width: 0.72; }
 
 /* 片区里的图标 */
 .globe__icon {

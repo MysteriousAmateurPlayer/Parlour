@@ -150,6 +150,11 @@
       'class': 'globe__piece' + (pc.item ? '' : ' globe__piece--empty'),
       fill: pc.item ? 'url(#piece-grad-' + idx + ')' : 'none'
     });
+    var label = pc.item ? el('text', {
+      'class': 'globe__names',
+      'text-anchor': 'middle'
+    }) : null;
+    if (label) label.textContent = pc.item.title;
     var icon = pc.item ? el('use', {
       'class': 'globe__icon',
       href: '#globe-icon-' + pc.item.key
@@ -161,12 +166,13 @@
       t.textContent = pc.item.title + ' · 进入板块';
       a.appendChild(t); a.appendChild(path);
       if (icon) a.appendChild(icon);
+      if (label) a.appendChild(label);
       g.appendChild(a);
     } else {
       g.appendChild(path);
     }
     piecesG.appendChild(g);
-    return { g: g, path: path, icon: icon, pc: pc, item: pc.item, cz: -1, wasFront: null };
+    return { g: g, path: path, icon: icon, label: label, pc: pc, item: pc.item, cz: -1, wasFront: null };
   });
 
   /* ---------- 每帧更新 ---------- */
@@ -254,7 +260,7 @@
         n.g.style.pointerEvents = front ? 'auto' : 'none';
         n.wasFront = front;
       }
-      if (!front) { if (n.icon) n.icon.style.visibility = 'hidden'; return; }   // 背面：完全不碰 DOM
+      if (!front) { if (n.icon) n.icon.style.visibility = 'hidden'; if (n.label) n.label.style.visibility = 'hidden'; return; }   // 背面：完全不碰 DOM
 
       n.path.setAttribute('d', d + 'Z');
 
@@ -275,13 +281,22 @@
       }
 
       if (!n.icon) return;
-      n.icon.style.visibility = show ? 'visible' : 'hidden';
-      if (!show) return;
+      var showAll = show;
+      n.icon.style.visibility = showAll ? 'visible' : 'hidden';
+      if (n.label) n.label.style.visibility = showAll ? 'visible' : 'hidden';
+      if (!showAll) return;
       n.icon.style.opacity = fade.toFixed(2);
       var size = 58 + fade * 40;
       var sc = size / 24;
       n.icon.setAttribute('transform',
         'translate(' + c.x.toFixed(1) + ',' + c.y.toFixed(1) + ') scale(' + sc.toFixed(2) + ') translate(-12,-12)');
+      // 板块名：图标下方，同样按 fade 缩放与淡出
+      if (n.label) {
+        n.label.style.opacity = (fade * 0.9).toFixed(2);
+        n.label.setAttribute('x', c.x.toFixed(1));
+        n.label.setAttribute('y', (c.y + size * 0.62).toFixed(1));
+        n.label.setAttribute('font-size', (20 + fade * 9).toFixed(1));
+      }
     });
 
     // 远的先画、近的后画，避免球体边缘互相压盖
@@ -379,4 +394,63 @@
   applySeason();
 
   render();
+})();
+
+/* ==========================================================================
+   太阳星轨：刻度与天体沿椭圆运行
+   --------------------------------------------------------------------------
+   椭圆不是旋转对称的，所以不能靠"绕中心旋转"来动它们（会跑离轨道、还会被压扁）。
+   这里直接按参数角算位置：P(a) = (cx + rx·cos a, cy + ry·sin a)，
+   并把刻度按椭圆法线取向（θ = atan2(rx·sin a, ry·cos a)）。
+   ========================================================================== */
+(function () {
+  var svg = document.querySelector('.hero__star-ring');
+  if (!svg) return;
+  var items = svg.querySelectorAll('.ring-item');
+  if (!items.length) return;
+
+  var CX = parseFloat(svg.getAttribute('data-cx')) || 800;
+  var CY = parseFloat(svg.getAttribute('data-cy')) || 280;
+  var orbits = {
+    outer: (svg.getAttribute('data-outer') || '806,236').split(',').map(Number),
+    main: (svg.getAttribute('data-main') || '740,215').split(',').map(Number),
+    inner: (svg.getAttribute('data-inner') || '566,168').split(',').map(Number)
+  };
+  var list = Array.prototype.map.call(items, function (el) {
+    var o = orbits[el.getAttribute('data-orbit')] || orbits.main;
+    return { el: el, rx: o[0], ry: o[1], a: parseFloat(el.getAttribute('data-a')) || 0 };
+  });
+
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var t = 0, visible = false, last = 0;
+
+  function draw() {
+    for (var i = 0; i < list.length; i++) {
+      var it = list[i];
+      var a = it.a + t;
+      var x = CX + it.rx * Math.cos(a);
+      var y = CY + it.ry * Math.sin(a);
+      var th = Math.atan2(it.rx * Math.sin(a), it.ry * Math.cos(a)) * 180 / Math.PI;
+      it.el.setAttribute('transform', 'translate(' + x.toFixed(1) + ',' + y.toFixed(1) + ') rotate(' + th.toFixed(2) + ')');
+    }
+  }
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (es) {
+      es.forEach(function (e) { visible = e.isIntersecting; });
+    }, { threshold: 0 }).observe(svg);
+  } else { visible = true; }
+
+  function loop(now) {
+    if (visible && !reduce) {
+      if (!last) last = now;
+      var dt = Math.min(100, now - last);
+      last = now;
+      t += dt * (Math.PI * 2 / 300000);   // 一圈 5 分钟
+      draw();
+    } else { last = 0; }
+    requestAnimationFrame(loop);
+  }
+  draw();
+  requestAnimationFrame(loop);
 })();

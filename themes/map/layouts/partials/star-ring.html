@@ -1,8 +1,11 @@
-{{- /* 太阳的星轨图纸：三条同心椭圆轨道 + 一圈仪表刻度 + 星/行星/彗星。
-       刻度与天体沿椭圆运行（不是绕太阳做圆周运动）：
-       外层 scale(1,K) 把空间压扁成圆 → 内层 .ring-marks 做圆的旋转（CSS 动画）
-       → 每个刻度/天体再 scale(1,1/K) 把自身形状还原。生成脚本 .tools/gen-ring.cjs */ -}}
-<svg class="hero__star-ring" viewBox="0 0 1600 560" aria-hidden="true" focusable="false">
+{{- /* 太阳的星轨图纸：三条同心椭圆轨道 + 60 道刻度 + 星/行星。
+       刻度与天体由 assets/js/globe.js 沿椭圆逐个定位（data-orbit 指定轨道、data-a 指定初始角），
+       所以它们始终贴在椭圆上、形状不会被压扁。生成脚本 .tools/gen-ring.cjs */ -}}
+<svg class="hero__star-ring" viewBox="0 0 1600 560" aria-hidden="true" focusable="false"
+     data-cx="800" data-cy="280"
+     data-outer="806,236"
+     data-main="740,215"
+     data-inner="566,168">
   <defs>
     <path id="star4" d="M0 -10 Q1.2 -1.2 10 0 Q1.2 1.2 0 10 Q-1.2 1.2 -10 0 Q-1.2 -1.2 0 -10 Z"/>
   </defs>
@@ -14,116 +17,102 @@
     <ellipse class="ring-orbit ring-orbit--inner" cx="800" cy="280" rx="566" ry="168"/>
   </g>
 
-  {{/* 压扁空间：里面的圆旋转 = 沿椭圆运行 */}}
-  <g class="ring-squash" transform="translate(800 280) scale(1 0.29054)">
-    <g class="ring-marks">
-          <g class="ring-item" transform="translate(806.0,0.0) scale(1,3.44186)"><line class="ring-tick ring-tick--major" x1="-6.0" y1="0.0" x2="15.0" y2="0.0"/></g>
-          <g class="ring-item" transform="translate(801.6,84.2) scale(1,3.44186)"><line class="ring-tick" x1="-3.0" y1="-0.3" x2="8.0" y2="0.8"/></g>
-          <g class="ring-item" transform="translate(788.4,167.6) scale(1,3.44186)"><line class="ring-tick" x1="-2.9" y1="-0.6" x2="7.8" y2="1.7"/></g>
-          <g class="ring-item" transform="translate(766.6,249.1) scale(1,3.44186)"><line class="ring-tick" x1="-2.9" y1="-0.9" x2="7.6" y2="2.5"/></g>
-          <g class="ring-item" transform="translate(736.3,327.8) scale(1,3.44186)"><line class="ring-tick" x1="-2.7" y1="-1.2" x2="7.3" y2="3.3"/></g>
-          <g class="ring-item" transform="translate(698.0,403.0) scale(1,3.44186)"><line class="ring-tick ring-tick--major" x1="-5.2" y1="-3.0" x2="13.0" y2="7.5"/></g>
-          <g class="ring-item" transform="translate(652.1,473.8) scale(1,3.44186)"><line class="ring-tick" x1="-2.4" y1="-1.8" x2="6.5" y2="4.7"/></g>
-          <g class="ring-item" transform="translate(599.0,539.3) scale(1,3.44186)"><line class="ring-tick" x1="-2.2" y1="-2.0" x2="5.9" y2="5.4"/></g>
-          <g class="ring-item" transform="translate(539.3,599.0) scale(1,3.44186)"><line class="ring-tick" x1="-2.0" y1="-2.2" x2="5.4" y2="5.9"/></g>
-          <g class="ring-item" transform="translate(473.8,652.1) scale(1,3.44186)"><line class="ring-tick" x1="-1.8" y1="-2.4" x2="4.7" y2="6.5"/></g>
-          <g class="ring-item" transform="translate(403.0,698.0) scale(1,3.44186)"><line class="ring-tick ring-tick--major" x1="-3.0" y1="-5.2" x2="7.5" y2="13.0"/></g>
-          <g class="ring-item" transform="translate(327.8,736.3) scale(1,3.44186)"><line class="ring-tick" x1="-1.2" y1="-2.7" x2="3.3" y2="7.3"/></g>
-          <g class="ring-item" transform="translate(249.1,766.6) scale(1,3.44186)"><line class="ring-tick" x1="-0.9" y1="-2.9" x2="2.5" y2="7.6"/></g>
-          <g class="ring-item" transform="translate(167.6,788.4) scale(1,3.44186)"><line class="ring-tick" x1="-0.6" y1="-2.9" x2="1.7" y2="7.8"/></g>
-          <g class="ring-item" transform="translate(84.2,801.6) scale(1,3.44186)"><line class="ring-tick" x1="-0.3" y1="-3.0" x2="0.8" y2="8.0"/></g>
-          <g class="ring-item" transform="translate(0.0,806.0) scale(1,3.44186)"><line class="ring-tick ring-tick--major" x1="-0.0" y1="-6.0" x2="0.0" y2="15.0"/></g>
-          <g class="ring-item" transform="translate(-84.2,801.6) scale(1,3.44186)"><line class="ring-tick" x1="0.3" y1="-3.0" x2="-0.8" y2="8.0"/></g>
-          <g class="ring-item" transform="translate(-167.6,788.4) scale(1,3.44186)"><line class="ring-tick" x1="0.6" y1="-2.9" x2="-1.7" y2="7.8"/></g>
-          <g class="ring-item" transform="translate(-249.1,766.6) scale(1,3.44186)"><line class="ring-tick" x1="0.9" y1="-2.9" x2="-2.5" y2="7.6"/></g>
-          <g class="ring-item" transform="translate(-327.8,736.3) scale(1,3.44186)"><line class="ring-tick" x1="1.2" y1="-2.7" x2="-3.3" y2="7.3"/></g>
-          <g class="ring-item" transform="translate(-403.0,698.0) scale(1,3.44186)"><line class="ring-tick ring-tick--major" x1="3.0" y1="-5.2" x2="-7.5" y2="13.0"/></g>
-          <g class="ring-item" transform="translate(-473.8,652.1) scale(1,3.44186)"><line class="ring-tick" x1="1.8" y1="-2.4" x2="-4.7" y2="6.5"/></g>
-          <g class="ring-item" transform="translate(-539.3,599.0) scale(1,3.44186)"><line class="ring-tick" x1="2.0" y1="-2.2" x2="-5.4" y2="5.9"/></g>
-          <g class="ring-item" transform="translate(-599.0,539.3) scale(1,3.44186)"><line class="ring-tick" x1="2.2" y1="-2.0" x2="-5.9" y2="5.4"/></g>
-          <g class="ring-item" transform="translate(-652.1,473.8) scale(1,3.44186)"><line class="ring-tick" x1="2.4" y1="-1.8" x2="-6.5" y2="4.7"/></g>
-          <g class="ring-item" transform="translate(-698.0,403.0) scale(1,3.44186)"><line class="ring-tick ring-tick--major" x1="5.2" y1="-3.0" x2="-13.0" y2="7.5"/></g>
-          <g class="ring-item" transform="translate(-736.3,327.8) scale(1,3.44186)"><line class="ring-tick" x1="2.7" y1="-1.2" x2="-7.3" y2="3.3"/></g>
-          <g class="ring-item" transform="translate(-766.6,249.1) scale(1,3.44186)"><line class="ring-tick" x1="2.9" y1="-0.9" x2="-7.6" y2="2.5"/></g>
-          <g class="ring-item" transform="translate(-788.4,167.6) scale(1,3.44186)"><line class="ring-tick" x1="2.9" y1="-0.6" x2="-7.8" y2="1.7"/></g>
-          <g class="ring-item" transform="translate(-801.6,84.2) scale(1,3.44186)"><line class="ring-tick" x1="3.0" y1="-0.3" x2="-8.0" y2="0.8"/></g>
-          <g class="ring-item" transform="translate(-806.0,0.0) scale(1,3.44186)"><line class="ring-tick ring-tick--major" x1="6.0" y1="-0.0" x2="-15.0" y2="0.0"/></g>
-          <g class="ring-item" transform="translate(-801.6,-84.2) scale(1,3.44186)"><line class="ring-tick" x1="3.0" y1="0.3" x2="-8.0" y2="-0.8"/></g>
-          <g class="ring-item" transform="translate(-788.4,-167.6) scale(1,3.44186)"><line class="ring-tick" x1="2.9" y1="0.6" x2="-7.8" y2="-1.7"/></g>
-          <g class="ring-item" transform="translate(-766.6,-249.1) scale(1,3.44186)"><line class="ring-tick" x1="2.9" y1="0.9" x2="-7.6" y2="-2.5"/></g>
-          <g class="ring-item" transform="translate(-736.3,-327.8) scale(1,3.44186)"><line class="ring-tick" x1="2.7" y1="1.2" x2="-7.3" y2="-3.3"/></g>
-          <g class="ring-item" transform="translate(-698.0,-403.0) scale(1,3.44186)"><line class="ring-tick ring-tick--major" x1="5.2" y1="3.0" x2="-13.0" y2="-7.5"/></g>
-          <g class="ring-item" transform="translate(-652.1,-473.8) scale(1,3.44186)"><line class="ring-tick" x1="2.4" y1="1.8" x2="-6.5" y2="-4.7"/></g>
-          <g class="ring-item" transform="translate(-599.0,-539.3) scale(1,3.44186)"><line class="ring-tick" x1="2.2" y1="2.0" x2="-5.9" y2="-5.4"/></g>
-          <g class="ring-item" transform="translate(-539.3,-599.0) scale(1,3.44186)"><line class="ring-tick" x1="2.0" y1="2.2" x2="-5.4" y2="-5.9"/></g>
-          <g class="ring-item" transform="translate(-473.8,-652.1) scale(1,3.44186)"><line class="ring-tick" x1="1.8" y1="2.4" x2="-4.7" y2="-6.5"/></g>
-          <g class="ring-item" transform="translate(-403.0,-698.0) scale(1,3.44186)"><line class="ring-tick ring-tick--major" x1="3.0" y1="5.2" x2="-7.5" y2="-13.0"/></g>
-          <g class="ring-item" transform="translate(-327.8,-736.3) scale(1,3.44186)"><line class="ring-tick" x1="1.2" y1="2.7" x2="-3.3" y2="-7.3"/></g>
-          <g class="ring-item" transform="translate(-249.1,-766.6) scale(1,3.44186)"><line class="ring-tick" x1="0.9" y1="2.9" x2="-2.5" y2="-7.6"/></g>
-          <g class="ring-item" transform="translate(-167.6,-788.4) scale(1,3.44186)"><line class="ring-tick" x1="0.6" y1="2.9" x2="-1.7" y2="-7.8"/></g>
-          <g class="ring-item" transform="translate(-84.2,-801.6) scale(1,3.44186)"><line class="ring-tick" x1="0.3" y1="3.0" x2="-0.8" y2="-8.0"/></g>
-          <g class="ring-item" transform="translate(-0.0,-806.0) scale(1,3.44186)"><line class="ring-tick ring-tick--major" x1="0.0" y1="6.0" x2="-0.0" y2="-15.0"/></g>
-          <g class="ring-item" transform="translate(84.2,-801.6) scale(1,3.44186)"><line class="ring-tick" x1="-0.3" y1="3.0" x2="0.8" y2="-8.0"/></g>
-          <g class="ring-item" transform="translate(167.6,-788.4) scale(1,3.44186)"><line class="ring-tick" x1="-0.6" y1="2.9" x2="1.7" y2="-7.8"/></g>
-          <g class="ring-item" transform="translate(249.1,-766.6) scale(1,3.44186)"><line class="ring-tick" x1="-0.9" y1="2.9" x2="2.5" y2="-7.6"/></g>
-          <g class="ring-item" transform="translate(327.8,-736.3) scale(1,3.44186)"><line class="ring-tick" x1="-1.2" y1="2.7" x2="3.3" y2="-7.3"/></g>
-          <g class="ring-item" transform="translate(403.0,-698.0) scale(1,3.44186)"><line class="ring-tick ring-tick--major" x1="-3.0" y1="5.2" x2="7.5" y2="-13.0"/></g>
-          <g class="ring-item" transform="translate(473.8,-652.1) scale(1,3.44186)"><line class="ring-tick" x1="-1.8" y1="2.4" x2="4.7" y2="-6.5"/></g>
-          <g class="ring-item" transform="translate(539.3,-599.0) scale(1,3.44186)"><line class="ring-tick" x1="-2.0" y1="2.2" x2="5.4" y2="-5.9"/></g>
-          <g class="ring-item" transform="translate(599.0,-539.3) scale(1,3.44186)"><line class="ring-tick" x1="-2.2" y1="2.0" x2="5.9" y2="-5.4"/></g>
-          <g class="ring-item" transform="translate(652.1,-473.8) scale(1,3.44186)"><line class="ring-tick" x1="-2.4" y1="1.8" x2="6.5" y2="-4.7"/></g>
-          <g class="ring-item" transform="translate(698.0,-403.0) scale(1,3.44186)"><line class="ring-tick ring-tick--major" x1="-5.2" y1="3.0" x2="13.0" y2="-7.5"/></g>
-          <g class="ring-item" transform="translate(736.3,-327.8) scale(1,3.44186)"><line class="ring-tick" x1="-2.7" y1="1.2" x2="7.3" y2="-3.3"/></g>
-          <g class="ring-item" transform="translate(766.6,-249.1) scale(1,3.44186)"><line class="ring-tick" x1="-2.9" y1="0.9" x2="7.6" y2="-2.5"/></g>
-          <g class="ring-item" transform="translate(788.4,-167.6) scale(1,3.44186)"><line class="ring-tick" x1="-2.9" y1="0.6" x2="7.8" y2="-1.7"/></g>
-          <g class="ring-item" transform="translate(801.6,-84.2) scale(1,3.44186)"><line class="ring-tick" x1="-3.0" y1="0.3" x2="8.0" y2="-0.8"/></g>
-          <g class="ring-item" transform="translate(739.9,10.0) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.31)" style="opacity:0.83"/></g>
-          <g class="ring-item" transform="translate(713.4,196.6) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.42)" style="opacity:0.88"/></g>
-          <g class="ring-item" transform="translate(652.5,349.0) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.54)" style="opacity:0.76"/></g>
-          <g class="ring-item" transform="translate(552.7,492.0) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.41)" style="opacity:0.79"/></g>
-          <g class="ring-item" transform="translate(408.9,616.8) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.48)" style="opacity:0.88"/></g>
-          <g class="ring-item" transform="translate(247.1,697.5) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.59)" style="opacity:0.95"/></g>
-          <g class="ring-item" transform="translate(71.8,736.5) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.54)" style="opacity:0.86"/></g>
-          <g class="ring-item" transform="translate(-94.4,734.0) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.72)" style="opacity:0.74"/></g>
-          <g class="ring-item" transform="translate(-247.8,697.3) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.55)" style="opacity:0.80"/></g>
-          <g class="ring-item" transform="translate(-424.2,606.3) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.49)" style="opacity:0.77"/></g>
-          <g class="ring-item" transform="translate(-569.4,472.7) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.65)" style="opacity:0.58"/></g>
-          <g class="ring-item" transform="translate(-662.8,329.1) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.35)" style="opacity:0.95"/></g>
-          <g class="ring-item" transform="translate(-711.6,203.0) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.37)" style="opacity:0.86"/></g>
-          <g class="ring-item" transform="translate(-739.9,-8.9) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.65)" style="opacity:0.73"/></g>
-          <g class="ring-item" transform="translate(-722.3,-161.0) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.50)" style="opacity:0.91"/></g>
-          <g class="ring-item" transform="translate(-654.7,-344.9) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.30)" style="opacity:0.80"/></g>
-          <g class="ring-item" transform="translate(-535.6,-510.6) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.65)" style="opacity:0.89"/></g>
-          <g class="ring-item" transform="translate(-401.2,-621.8) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.56)" style="opacity:0.78"/></g>
-          <g class="ring-item" transform="translate(-277.7,-685.9) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.58)" style="opacity:0.61"/></g>
-          <g class="ring-item" transform="translate(-114.7,-731.1) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.62)" style="opacity:0.63"/></g>
-          <g class="ring-item" transform="translate(64.4,-737.2) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.66)" style="opacity:0.75"/></g>
-          <g class="ring-item" transform="translate(281.7,-684.3) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.34)" style="opacity:0.68"/></g>
-          <g class="ring-item" transform="translate(421.3,-608.4) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.32)" style="opacity:0.77"/></g>
-          <g class="ring-item" transform="translate(543.0,-502.7) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.61)" style="opacity:0.93"/></g>
-          <g class="ring-item" transform="translate(668.3,-317.7) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.40)" style="opacity:0.78"/></g>
-          <g class="ring-item" transform="translate(715.8,-187.5) scale(1,3.44186)"><use href="#star4" class="ring-star" transform="scale(0.66)" style="opacity:0.72"/></g>
-          <g class="ring-item" transform="translate(460.0,579.7) scale(1,3.44186)"><use href="#star4" class="ring-star ring-star--bright" transform="scale(0.95)" style="opacity:0.95"/></g>
-          <g class="ring-item" transform="translate(460.0,579.7) scale(1,3.44186)"><circle class="ring-halo" r="15"/></g>
-          <g class="ring-item" transform="translate(-341.2,656.6) scale(1,3.44186)"><use href="#star4" class="ring-star ring-star--bright" transform="scale(0.95)" style="opacity:0.95"/></g>
-          <g class="ring-item" transform="translate(-341.2,656.6) scale(1,3.44186)"><circle class="ring-halo" r="15"/></g>
-          <g class="ring-item" transform="translate(313.6,-670.3) scale(1,3.44186)"><use href="#star4" class="ring-star ring-star--bright" transform="scale(0.95)" style="opacity:0.95"/></g>
-          <g class="ring-item" transform="translate(313.6,-670.3) scale(1,3.44186)"><circle class="ring-halo" r="15"/></g>
-          <g class="ring-item" transform="translate(467.1,319.6) scale(1,3.44186)">
-            <circle class="ring-planet" r="5.2"/>
-            <ellipse class="ring-planet-ring" rx="10.9" ry="3.9" transform="rotate(-22)"/>
-          </g>
-          <g class="ring-item" transform="translate(-453.4,338.7) scale(1,3.44186)">
-            <circle class="ring-planet" r="3.4"/>
-          </g>
-          <g class="ring-item" transform="translate(-174.0,-538.6) scale(1,3.44186)">
-            <circle class="ring-planet" r="4.2"/>
-          </g>
-          <g class="ring-item" transform="translate(-788.6,-166.8) scale(1,3.44186)">
-            <path class="ring-comet" d="M1.7 -7.8L23.1 -70.7"/>
-            <path class="ring-comet" d="M1.2 -5.9L3.6 -46.2"/>
-            <use href="#star4" class="ring-comet-head" transform="scale(0.62)"/>
-          </g>
-    </g>
+  {{/* 刻度与天体：位置由 JS 沿椭圆计算 */}}
+  <g class="ring-marks">
+          <g class="ring-item" data-orbit="outer" data-a="0.0000"><line class="ring-tick ring-tick--major" x1="-6" y1="0" x2="15" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="0.1047"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="0.2094"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="0.3142"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="0.4189"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="0.5236"><line class="ring-tick ring-tick--major" x1="-6" y1="0" x2="15" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="0.6283"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="0.7330"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="0.8378"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="0.9425"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="1.0472"><line class="ring-tick ring-tick--major" x1="-6" y1="0" x2="15" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="1.1519"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="1.2566"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="1.3614"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="1.4661"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="1.5708"><line class="ring-tick ring-tick--major" x1="-6" y1="0" x2="15" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="1.6755"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="1.7802"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="1.8850"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="1.9897"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="2.0944"><line class="ring-tick ring-tick--major" x1="-6" y1="0" x2="15" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="2.1991"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="2.3038"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="2.4086"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="2.5133"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="2.6180"><line class="ring-tick ring-tick--major" x1="-6" y1="0" x2="15" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="2.7227"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="2.8274"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="2.9322"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="3.0369"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="3.1416"><line class="ring-tick ring-tick--major" x1="-6" y1="0" x2="15" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="3.2463"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="3.3510"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="3.4558"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="3.5605"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="3.6652"><line class="ring-tick ring-tick--major" x1="-6" y1="0" x2="15" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="3.7699"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="3.8746"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="3.9794"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="4.0841"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="4.1888"><line class="ring-tick ring-tick--major" x1="-6" y1="0" x2="15" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="4.2935"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="4.3982"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="4.5029"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="4.6077"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="4.7124"><line class="ring-tick ring-tick--major" x1="-6" y1="0" x2="15" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="4.8171"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="4.9218"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="5.0265"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="5.1313"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="5.2360"><line class="ring-tick ring-tick--major" x1="-6" y1="0" x2="15" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="5.3407"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="5.4454"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="5.5501"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="5.6549"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="5.7596"><line class="ring-tick ring-tick--major" x1="-6" y1="0" x2="15" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="5.8643"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="5.9690"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="6.0737"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="outer" data-a="6.1785"><line class="ring-tick" x1="-3" y1="0" x2="8" y2="0"/></g>
+          <g class="ring-item" data-orbit="main" data-a="-0.0254"><use href="#star4" class="ring-star" transform="scale(0.31)" style="opacity:0.61"/></g>
+          <g class="ring-item" data-orbit="main" data-a="0.2094"><use href="#star4" class="ring-star" transform="scale(0.52)" style="opacity:0.94"/></g>
+          <g class="ring-item" data-orbit="main" data-a="0.4774"><use href="#star4" class="ring-star" transform="scale(0.47)" style="opacity:0.94"/></g>
+          <g class="ring-item" data-orbit="main" data-a="0.7283"><use href="#star4" class="ring-star" transform="scale(0.36)" style="opacity:0.93"/></g>
+          <g class="ring-item" data-orbit="main" data-a="0.9718"><use href="#star4" class="ring-star" transform="scale(0.31)" style="opacity:0.81"/></g>
+          <g class="ring-item" data-orbit="main" data-a="1.1711"><use href="#star4" class="ring-star" transform="scale(0.42)" style="opacity:0.83"/></g>
+          <g class="ring-item" data-orbit="main" data-a="1.4431"><use href="#star4" class="ring-star" transform="scale(0.51)" style="opacity:0.83"/></g>
+          <g class="ring-item" data-orbit="main" data-a="1.6849"><use href="#star4" class="ring-star" transform="scale(0.54)" style="opacity:0.73"/></g>
+          <g class="ring-item" data-orbit="main" data-a="1.9256"><use href="#star4" class="ring-star" transform="scale(0.45)" style="opacity:0.55"/></g>
+          <g class="ring-item" data-orbit="main" data-a="2.1708"><use href="#star4" class="ring-star" transform="scale(0.56)" style="opacity:0.65"/></g>
+          <g class="ring-item" data-orbit="main" data-a="2.4141"><use href="#star4" class="ring-star" transform="scale(0.50)" style="opacity:0.88"/></g>
+          <g class="ring-item" data-orbit="main" data-a="2.6972"><use href="#star4" class="ring-star" transform="scale(0.30)" style="opacity:0.89"/></g>
+          <g class="ring-item" data-orbit="main" data-a="2.9143"><use href="#star4" class="ring-star" transform="scale(0.53)" style="opacity:0.88"/></g>
+          <g class="ring-item" data-orbit="main" data-a="3.1577"><use href="#star4" class="ring-star" transform="scale(0.70)" style="opacity:0.63"/></g>
+          <g class="ring-item" data-orbit="main" data-a="3.3968"><use href="#star4" class="ring-star" transform="scale(0.49)" style="opacity:0.72"/></g>
+          <g class="ring-item" data-orbit="main" data-a="3.6369"><use href="#star4" class="ring-star" transform="scale(0.54)" style="opacity:0.77"/></g>
+          <g class="ring-item" data-orbit="main" data-a="3.8924"><use href="#star4" class="ring-star" transform="scale(0.60)" style="opacity:0.91"/></g>
+          <g class="ring-item" data-orbit="main" data-a="4.1461"><use href="#star4" class="ring-star" transform="scale(0.69)" style="opacity:0.70"/></g>
+          <g class="ring-item" data-orbit="main" data-a="4.3589"><use href="#star4" class="ring-star" transform="scale(0.34)" style="opacity:0.73"/></g>
+          <g class="ring-item" data-orbit="main" data-a="4.5948"><use href="#star4" class="ring-star" transform="scale(0.43)" style="opacity:0.70"/></g>
+          <g class="ring-item" data-orbit="main" data-a="4.8164"><use href="#star4" class="ring-star" transform="scale(0.37)" style="opacity:0.55"/></g>
+          <g class="ring-item" data-orbit="main" data-a="5.1074"><use href="#star4" class="ring-star" transform="scale(0.60)" style="opacity:0.80"/></g>
+          <g class="ring-item" data-orbit="main" data-a="5.3474"><use href="#star4" class="ring-star" transform="scale(0.52)" style="opacity:0.64"/></g>
+          <g class="ring-item" data-orbit="main" data-a="5.5576"><use href="#star4" class="ring-star" transform="scale(0.42)" style="opacity:0.57"/></g>
+          <g class="ring-item" data-orbit="main" data-a="5.7840"><use href="#star4" class="ring-star" transform="scale(0.63)" style="opacity:0.64"/></g>
+          <g class="ring-item" data-orbit="main" data-a="6.0372"><use href="#star4" class="ring-star" transform="scale(0.32)" style="opacity:0.78"/></g>
+          <g class="ring-item" data-orbit="main" data-a="0.9000"><circle class="ring-halo" r="15"/></g>
+          <g class="ring-item" data-orbit="main" data-a="0.9000"><use href="#star4" class="ring-star ring-star--bright" transform="scale(0.95)" style="opacity:0.95"/></g>
+          <g class="ring-item" data-orbit="main" data-a="2.0500"><circle class="ring-halo" r="15"/></g>
+          <g class="ring-item" data-orbit="main" data-a="2.0500"><use href="#star4" class="ring-star ring-star--bright" transform="scale(0.95)" style="opacity:0.95"/></g>
+          <g class="ring-item" data-orbit="main" data-a="5.1500"><circle class="ring-halo" r="15"/></g>
+          <g class="ring-item" data-orbit="main" data-a="5.1500"><use href="#star4" class="ring-star ring-star--bright" transform="scale(0.95)" style="opacity:0.95"/></g>
+          <g class="ring-item" data-orbit="inner" data-a="0.6000"><circle class="ring-planet" r="5.2"/><ellipse class="ring-planet-ring" rx="10.9" ry="3.9"/></g>
+          <g class="ring-item" data-orbit="inner" data-a="2.5000"><circle class="ring-planet" r="3.4"/></g>
+          <g class="ring-item" data-orbit="inner" data-a="4.4000"><circle class="ring-planet" r="4.2"/></g>
   </g>
 </svg>
