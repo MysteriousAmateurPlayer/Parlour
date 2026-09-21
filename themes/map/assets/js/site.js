@@ -141,9 +141,13 @@
 
 
 /* ==========================================================================
-   首屏粒子流场：紧贴太阳星轨的椭圆盘面，分"背面/正面"两层绘制，
-   从而有 3D 层次——背面那一半被太阳盘面遮住，正面那一半压在太阳之上。
-   粒子沿椭圆切向流动并带径向脉动，聚成一股一股的丝缕；其中一部分是闪耀的星芒。
+   首屏粒子流场（第三版）
+   思路参考流场/curl 噪声的做法（flow field 驱动 + 分组种子）：
+   · 分组：7 股，每股有自己的速度、噪声种子、上下浮动频率与相位 → 组间运动明显不同
+   · 灵活：粒子在"沿椭圆流动"之上叠加一个会衰减回位的流场位移，
+          并由 curl 噪声给出乱流般的横向漂移，因而不再僵硬地贴着椭圆
+   · 立体：每颗粒子还有上下浮动（与星轨上 30 个图标同一种思路），并有远近明暗
+   · 轻淡：粒子更小更多，透明度低，拖尾只是一小段
    ========================================================================== */
 (function () {
   var back = document.querySelector('.hero__flow--back');
@@ -155,9 +159,8 @@
 
   var W = 0, H = 0, cx = 0, cy = 0, rx = 0, ry = 0, sunR = 0;
   var parts = [];
-  var colStreak = 'rgba(240,235,225,.5)', colSpark = 'rgba(230,185,138,.9)';
+  var colStreak = 'rgba(240,235,225,.4)', colSpark = 'rgba(230,200,140,.7)';
 
-  /* CSS 变量里可能是 color-mix(...)，用探针取真实颜色 */
   var probe = document.createElement('span');
   probe.setAttribute('aria-hidden', 'true');
   probe.style.cssText = 'position:absolute;left:-9999px;top:0;width:0;height:0';
@@ -181,87 +184,87 @@
   }
   function readColors() {
     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    colStreak = toRgba(cssColor('--flow-streak', dark ? '#e8c98d' : '#b08a4a'), dark ? 0.55 : 0.42);
-    colSpark = toRgba(cssColor('--flow-spark', dark ? '#eccb8a' : '#c99a3f'), dark ? 0.95 : 0.8);
+    // ② 透明度整体压得更低，存在感更弱
+    colStreak = toRgba(cssColor('--flow-streak', dark ? '#e8c98d' : '#221f1c'), dark ? 0.3 : 0.22);
+    colSpark = toRgba(cssColor('--flow-spark', dark ? '#eccb8a' : '#8f4a2c'), dark ? 0.55 : 0.4);
   }
 
-  var STRANDS = 7;                                   // 七股丝缕，缠绕在星轨上
-  // 每股一套固定参数：速度、径向相位、纵向（离椭圆）相位 —— 组内一致、组间有别
-  var strandSpeed = [], strandPh = [], strandVert = [];
+  var STRANDS = 7;
+  var st = [];
   (function () {
     for (var i = 0; i < STRANDS; i++) {
-      strandSpeed.push(0.86 + Math.random() * 0.3);   // 股间速度略有差别
-      strandPh.push(Math.random() * Math.PI * 2);
-      strandVert.push(Math.random() * Math.PI * 2);
+      st.push({
+        speed: 0.75 + Math.random() * 0.7,          // 股间速度差异明显
+        seed: Math.random() * 6.28,                 // 噪声种子
+        bobF: 1 + Math.random() * 2.2,              // 上下浮动频率
+        bobA: 0.5 + Math.random() * 0.9,            // 上下浮动幅度
+        bobP: Math.random() * 6.28,
+        drift: 0.6 + Math.random() * 0.9            // 横向漂移幅度
+      });
     }
   })();
+
   function spawn(i) {
     var s = (i == null ? Math.floor(Math.random() * STRANDS) : i % STRANDS);
     return {
       a: Math.random() * Math.PI * 2,
       s: s,
-      // 每股占一条窄带：0.82~1.02，正好缠在星轨椭圆上（不进入内侧，不会挡太阳）
-      t: 0.82 + (s + 0.5) / STRANDS * 0.2 + (Math.random() - 0.5) * 0.02,
-      sw: s * (Math.PI * 2 / STRANDS),               // 每股自己的相位 → 分股
-      jit: (Math.random() - 0.5) * 0.05,             // 组内极小差异
-      spin: 0.9 + Math.random() * 0.2,               // 组内速度基本一致
-      age: 0, life: 400 + Math.random() * 700,
-      hot: Math.random() < 0.24,                     // 闪耀的星芒
-      tw: Math.random() * Math.PI * 2, tws: 0.4 + Math.random() * 1.2
+      t: 0.8 + (s + 0.5) / STRANDS * 0.2 + (Math.random() - 0.5) * 0.03,
+      ox: 0, oy: 0,
+      age: 0, life: 500 + Math.random() * 900,
+      hot: Math.random() < 0.16,
+      tw: Math.random() * Math.PI * 2, tws: 0.4 + Math.random() * 1.4
     };
   }
 
-  function pt(p, dA) {
-    var a = p.a + (dA || 0) + p.jit;
-    var s = p.s;
-    // 径向摆动（粗细成股）：同一股共用一条波形
-    var t = p.t + 0.026 * Math.sin(3 * a + strandPh[s] + t0 * 0.00005);
-    if (t > 1.07) t = 1.07; if (t < 0.76) t = 0.76;
-    var x = cx + rx * t * Math.cos(a);
-    var y = cy + ry * t * Math.sin(a);
-    // 纵向偏移：让流束不再严格贴着椭圆，而是像流体一样上下浮动
-    y += ry * 0.055 * Math.sin(2 * a + strandVert[s] - t0 * 0.00006) + ry * 0.02 * Math.sin(5 * a + strandPh[s]);
-    return [x, y, Math.sin(a)];
+  /* 流场：以粒子位置与股种子求一个平滑向量（curl 噪声的廉价近似） */
+  function flow(x, y, seed, out) {
+    var nx = x / Math.max(1, W), ny = y / Math.max(1, H);
+    out[0] = Math.cos((ny * 3.1 + seed) * 2.0) * 0.6 + Math.cos((nx + ny) * 4.2 + seed * 1.7) * 0.4;
+    out[1] = Math.sin((nx * 3.4 - seed * 0.7) * 2.0) * 0.6 + Math.sin((nx - ny) * 4.6 + seed * 2.3) * 0.4;
   }
 
   function resize() {
     var r = back.getBoundingClientRect();
     W = Math.max(1, r.width); H = Math.max(1, r.height);
     cx = W / 2; cy = H / 2;
-    // ① 用星轨外轨的真实离心率，别用整个图层外框（否则形状对不上）
     rx = W / 2; ry = H / 2;
     var ringSvg = document.querySelector('.hero__star-ring');
     if (ringSvg) {
       var o = (ringSvg.getAttribute('data-outer') || '').split(',').map(Number);
-      var vb = (ringSvg.getAttribute('viewBox') || '0 0 1600 560').split(/\s+/).map(Number);
-      if (o.length === 2 && vb.length === 4 && vb[2] && vb[3]) {
-        rx = W * (o[0] / vb[2]);
-        ry = H * (o[1] / vb[3]);
-      }
+      var vb = (ringSvg.getAttribute('viewBox') || '0 0 1636 596').split(/\s+/).map(Number);
+      if (o.length === 2 && vb.length === 4 && vb[2] && vb[3]) { rx = W * (o[0] / vb[2]); ry = H * (o[1] / vb[3]); }
     }
     back.width = Math.round(W * dpr); back.height = Math.round(H * dpr);
     front.width = back.width; front.height = back.height;
     cb.setTransform(dpr, 0, 0, dpr, 0, 0);
     cf.setTransform(dpr, 0, 0, dpr, 0, 0);
-    // 太阳盘面半径（换算到画布局部坐标）：背面的粒子落在这里就不画 → 被太阳挡住
     var disc = document.querySelector('.sun-disc');
     var dr = disc ? disc.getBoundingClientRect() : null;
     sunR = (dr && r.width) ? (dr.width / 2) * (W / r.width) : W * 0.17;
-    var n = Math.max(320, Math.min(950, Math.round((W + H) * 1.05)));
+    // ③ 粒子数大幅增加（小而不显眼）
+    var n = Math.max(700, Math.min(2600, Math.round((W + H) * 2.2)));
     parts = [];
     for (var i = 0; i < n; i++) parts.push(spawn(i));
   }
 
-  var t0 = 0;
+  var t0 = 0, tmp = [0, 0];
   function advance(steps) {
-    for (var s = 0; s < steps; s++) {
+    var dt = 16;
+    for (var k = 0; k < steps; k++) {
       for (var i = 0; i < parts.length; i++) {
-        var p = parts[i];
-        p.a += 0.00055 * (0.85 + strandSpeed[p.s] * 0.35) * p.spin;   // 提速 30%，仍与星轨同量级
+        var p = parts[i], S = st[p.s];
+        // 沿星轨的切向流动（股间速度不同）
+        p.a += 0.00072 * S.speed;
+        // 流场位移：漂移 + 衰减回位 → 灵活但不跑散
+        var ex = cx + rx * p.t * Math.cos(p.a), ey = cy + ry * p.t * Math.sin(p.a);
+        flow(ex, ey, S.seed, tmp);
+        p.ox += (tmp[0] * 26 * S.drift - p.ox * 0.05) * (dt / 16);
+        p.oy += (tmp[1] * 26 * S.drift - p.oy * 0.05) * (dt / 16);
         p.age++;
         if (p.age > p.life) parts[i] = spawn(p.s);
       }
-      t0 += 16;
+      t0 += dt;
     }
   }
 
@@ -272,39 +275,37 @@
     cf.globalCompositeOperation = 'lighter';
     cb.lineCap = cf.lineCap = 'round';
     for (var i = 0; i < parts.length; i++) {
-      var p = parts[i];
-      var q = pt(p, 0), q0 = pt(p, -0.03 * (0.45 + p.spin) / (0.3 + p.t));   // 拖尾更短，视觉比重更低
-      var near = q[2] >= 0;                      // 椭圆下半 = 近侧（压在太阳之上）
+      var p = parts[i], S = st[p.s];
+      var a = p.a, t = p.t;
+      var x = cx + rx * t * Math.cos(a) + p.ox;
+      var y = cy + ry * t * Math.sin(a) + p.oy;
+      // ③ 上下浮动（与星轨图标同一思路）：每股频率/幅度/相位都不同
+      y += ry * 0.09 * S.bobA * Math.sin(S.bobF * 2 + S.bobP + t0 * 0.00022);
+      // 拖尾用的上一位置
+      var a0 = a - 0.02, x0 = cx + rx * t * Math.cos(a0) + p.ox * 0.9, y0 = cy + ry * t * Math.sin(a0) + p.oy * 0.9;
+      y0 += ry * 0.09 * S.bobA * Math.sin(S.bobF * 2 + S.bobP + (t0 - 60) * 0.00022);
+
+      var near = Math.sin(a) >= 0;
       var ctx = near ? cf : cb;
-      if (!near && Math.hypot(q[0] - cx, q[1] - cy) < sunR * 1.02) continue;   // 背面被太阳遮住
-      var depth = near ? 1 : 0.52;               // 远侧更小更暗 → 立体
-      var fadeIn = Math.min(1, p.age / 60);
-      var fadeOut = Math.min(1, (p.life - p.age) / 90);
-      var fade = fadeIn * fadeOut;   // ② 两端都是渐变
-      var tw = 0.65 + 0.35 * Math.sin(p.tw + t0 * 0.001 * p.tws);
-      // ④ 拖尾用分段递变：尾细尾淡、头粗头亮 → 有粗细与透明度的渐变
-      var SEG = 2;
+      if (!near && Math.hypot(x - cx, y - cy) < sunR * 1.02) continue;
+      var depth = (near ? 1 : 0.5) * (0.55 + 0.45 * Math.min(1, t));
+      var fadeIn = Math.min(1, p.age / 70);
+      var fadeOut = Math.min(1, (p.life - p.age) / 110);
+      var fade = fadeIn * fadeOut;
+      var tw = 0.55 + 0.45 * Math.sin(p.tw + t0 * 0.0012 * p.tws);
+
+      // ② 粒子很小、很淡；拖尾只是一小段
       ctx.strokeStyle = p.hot ? colSpark : colStreak;
-      for (var sg = 0; sg < SEG; sg++) {
-        var k1 = sg / SEG, k2 = (sg + 1) / SEG;
-        var xa = q0[0] + (q[0] - q0[0]) * k1, ya = q0[1] + (q[1] - q0[1]) * k1;
-        var xb = q0[0] + (q[0] - q0[0]) * k2, yb = q0[1] + (q[1] - q0[1]) * k2;
-        ctx.globalAlpha = Math.max(0.02, (p.hot ? 0.6 : 0.34) * fade * tw * depth * (0.2 + 0.8 * k2));
-        ctx.lineWidth = (p.hot ? 1.1 : 0.8) * depth * (0.3 + 0.7 * k2);
+      ctx.globalAlpha = Math.max(0.015, (p.hot ? 0.55 : 0.3) * fade * tw * depth);
+      ctx.lineWidth = (p.hot ? 0.9 : 0.55) * (0.6 + 0.6 * depth);
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      if (p.hot) {
+        ctx.globalAlpha = Math.max(0.03, 0.5 * fade * tw * depth);
         ctx.beginPath();
-        ctx.moveTo(xa, ya);
-        ctx.lineTo(xb, yb);
-        ctx.stroke();
-      }
-      if (p.hot) {                               // 星芒：一个亮点 + 十字
-        ctx.globalAlpha = Math.max(0.08, 0.9 * fade * tw * depth);
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(q[0] - 3.4, q[1]); ctx.lineTo(q[0] + 3.4, q[1]);
-        ctx.moveTo(q[0], q[1] - 3.4); ctx.lineTo(q[0], q[1] + 3.4);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(q[0], q[1], 0.9 + 0.7 * tw, 0, Math.PI * 2);
+        ctx.arc(x, y, 0.7 + 0.5 * tw, 0, Math.PI * 2);
         ctx.fillStyle = colSpark;
         ctx.fill();
       }
@@ -313,21 +314,20 @@
     cb.globalCompositeOperation = cf.globalCompositeOperation = 'source-over';
   }
 
-  var raf = 0, visible = true;
+  var raf = 0;
   readColors();
   resize();
-  advance(120);          // 预热：首屏立刻就有流场（无头截图也能验证）
+  advance(160);
   drawFrame();
-  if (reduce) return;    // 减少动效：只保留这一帧静态流场
+  if (reduce) return;
   function frame() { advance(1); drawFrame(); raf = requestAnimationFrame(frame); }
   raf = requestAnimationFrame(frame);
-  window.addEventListener('resize', function () { resize(); advance(40); drawFrame(); }, { passive: true });
+  window.addEventListener('resize', function () { resize(); advance(60); drawFrame(); }, { passive: true });
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (es) {
       es.forEach(function (e) {
-        visible = e.isIntersecting;
-        if (visible && !raf) raf = requestAnimationFrame(frame);
-        if (!visible && raf) { cancelAnimationFrame(raf); raf = 0; }
+        if (e.isIntersecting && !raf) { raf = requestAnimationFrame(frame); }
+        else if (!e.isIntersecting && raf) { cancelAnimationFrame(raf); raf = 0; }
       });
     }, { threshold: 0 }).observe(back);
   }

@@ -36,7 +36,7 @@
   </g>
   <circle cx="32" cy="32" r="14.5" fill="none" stroke="#a8763a" stroke-width="1.1"/>
   <circle cx="32" cy="32" r="11.6" fill="none" stroke="#a8763a" stroke-width="1" stroke-dasharray="1.5 3" opacity=".85"/>
-  <circle cx="32" cy="32" r="8.4" fill="#c9463f"/>
-  <circle cx="32" cy="32" r="4.6" fill="none" stroke="#f7f3ec" stroke-width="1" opacity=".7"/>
-  <circle cx="32" cy="32" r="2.2" fill="#f7f3ec" opacity=".85"/>
+  <circle cx="32" cy="32" r="8.4" fill="#a8763a" opacity=".92"/>
+  <circle cx="32" cy="32" r="4.6" fill="none" stroke="#f7f3ec" stroke-width="1" opacity=".8"/>
+  <circle cx="32" cy="32" r="2.2" fill="#f7f3ec" opacity=".9"/>
 </svg>
