@@ -2180,3 +2180,37 @@ body.is-modal-open { overflow: hidden; }
   .brand__emblem, .sky-scale__mark { transition: none; }
   .sky-drift, .ring-marks { animation: none; }
 }
+
+/* --------------------------------------------------------------------------
+   23 悬停名牌（星座名 / 板块名）：替换浏览器默认的黑底白字
+   -------------------------------------------------------------------------- */
+.hover-tip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  padding: 0.34rem 0.7rem;
+  border: 1px solid var(--line-strong);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-9999px, -9999px);
+  transition: opacity 0.18s var(--ease);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(2px);
+}
+.hover-tip.is-on { opacity: 1; }
+.hover-tip::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: color-mix(in srgb, var(--accent) 70%, transparent);
+}

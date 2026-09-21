@@ -35,8 +35,31 @@
   var lonW = 360 / cols;
 
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var theta = -60;                 // 起始角度：正对亚洲/非洲这一侧，大陆看得清楚
+  /* ---------- 季节只决定起始朝向 ----------
+     星空现在按真实赤经赤纬铺满一圈（全年星座都在），所以不再"只显示当季"，
+     而是把当季星空中心（赤经）转到画面正下方最显眼的位置。 */
+  var SEASON_RA = { spring: 150, summer: 250, autumn: 350, winter: 80 };
+  function seasonOf() {
+    var want = null;
+    try { want = new URLSearchParams(window.location.search).get('season'); } catch (e) {}
+    if (want && SEASON_RA[want] != null) return want;
+    var m = new Date().getMonth() + 1;
+    return (m >= 3 && m <= 5) ? 'spring' : (m >= 6 && m <= 8) ? 'summer' : (m >= 9 && m <= 11) ? 'autumn' : 'winter';
+  }
+  var season = seasonOf();
+
+  /* 季节只改星空的起始相位：把当季星空中心的赤经转到画面正下方。
+     星空角度就是赤经（生成时按真实赤经赤纬摆放），所以相位 = 90° - 赤经。 */
+  (function applySkyPhase() {
+    var turn = document.querySelector('.sky-turn');
+    if (!turn) return;
+    var ra = SEASON_RA[season] != null ? SEASON_RA[season] : 0;
+    var phase = ((90 - ra) % 360 + 360) % 360;      // 目标角度
+    turn.style.animationDelay = (-phase / 360 * 480).toFixed(2) + 's';
+  })();
+
   var autoRotate = !reduceMotion;
+  var theta = -90;                // 地球初始角度：让有内容的片区正对观众
   // ?rotate=90 可以直接打开某个角度（方便分享特定视角，也便于自检）
   try {
     var rq = new URLSearchParams(window.location.search).get('rotate');
@@ -171,9 +194,8 @@
 
     if (pc.item) {
       var a = el('a', { 'class': 'globe__link', href: pc.item.href, 'aria-label': pc.item.title + '：进入这个板块' });
-      var t = el('title');
-      t.textContent = pc.item.title + ' · 进入板块';
-      a.appendChild(t); a.appendChild(path);
+      a.setAttribute('data-name', pc.item.title);
+      a.appendChild(path);
       if (icon) a.appendChild(icon);
       g.appendChild(a);
     } else {
@@ -386,22 +408,6 @@
   })();
 
 
-  /* ---------- 按时间选择当季星座（北半球；?season=spring|summer|autumn|winter 可指定） ---------- */
-  function applySeason() {
-    var groups = document.querySelectorAll('.sky-season');
-    if (!groups.length) return;
-    var want = null;
-    try { want = new URLSearchParams(window.location.search).get('season'); } catch (e) {}
-    if (!want) {
-      var m = new Date().getMonth() + 1;
-      want = (m >= 3 && m <= 5) ? 'spring' : (m >= 6 && m <= 8) ? 'summer' : (m >= 9 && m <= 11) ? 'autumn' : 'winter';
-    }
-    Array.prototype.forEach.call(groups, function (g) {
-      if (g.getAttribute('data-season') === want) g.classList.add('is-active');
-      else g.classList.remove('is-active');
-    });
-  }
-  applySeason();
 
   render();
 })();
@@ -463,4 +469,41 @@
   }
   draw();
   requestAnimationFrame(loop);
+})();
+
+/* ==========================================================================
+   悬停名牌：星座名 / 板块名（替换浏览器默认 tooltip）
+   ========================================================================== */
+(function () {
+  var tip = document.createElement('div');
+  tip.className = 'hover-tip';
+  tip.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(tip);
+  var cur = null;
+
+  function show(el) {
+    var name = el.getAttribute('data-name');
+    if (!name) return;
+    tip.textContent = name;
+    tip.classList.add('is-on');
+    cur = el;
+  }
+  function hide() { tip.classList.remove('is-on'); cur = null; }
+  function move(e) {
+    if (!tip.classList.contains('is-on')) return;
+    var pad = 14;
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    var x = e.clientX + 16, y = e.clientY + 18;
+    if (x + w + pad > window.innerWidth) x = e.clientX - w - 16;
+    if (y + h + pad > window.innerHeight) y = e.clientY - h - 20;
+    tip.style.transform = 'translate(' + Math.max(pad, x) + 'px,' + Math.max(pad, y) + 'px)';
+  }
+
+  document.addEventListener('mouseover', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-name]') : null;
+    if (el) { if (el !== cur) show(el); move(e); } else hide();
+  });
+  document.addEventListener('mousemove', move);
+  window.addEventListener('scroll', hide, { passive: true });
+  document.addEventListener('mouseleave', hide);
 })();
