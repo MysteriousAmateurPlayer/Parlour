@@ -35,28 +35,23 @@
   var lonW = 360 / cols;
 
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  /* ---------- 季节只决定起始朝向 ----------
-     星空现在按真实赤经赤纬铺满一圈（全年星座都在），所以不再"只显示当季"，
-     而是把当季星空中心（赤经）转到画面正下方最显眼的位置。 */
-  var SEASON_RA = { spring: 150, summer: 250, autumn: 350, winter: 80 };
-  function seasonOf() {
+  /* ---------- 按时间显示当季星座（每季 2 个拱极 + 5 个当季，沿圆周均匀分布） ---------- */
+  function applySeason() {
+    var groups = document.querySelectorAll('.sky-season');
+    if (!groups.length) return;
     var want = null;
     try { want = new URLSearchParams(window.location.search).get('season'); } catch (e) {}
-    if (want && SEASON_RA[want] != null) return want;
-    var m = new Date().getMonth() + 1;
-    return (m >= 3 && m <= 5) ? 'spring' : (m >= 6 && m <= 8) ? 'summer' : (m >= 9 && m <= 11) ? 'autumn' : 'winter';
+    if (!want) {
+      var m = new Date().getMonth() + 1;
+      want = (m >= 3 && m <= 5) ? 'spring' : (m >= 6 && m <= 8) ? 'summer' : (m >= 9 && m <= 11) ? 'autumn' : 'winter';
+    }
+    Array.prototype.forEach.call(groups, function (g) {
+      if (g.getAttribute('data-season') === want) g.classList.add('is-active');
+      else g.classList.remove('is-active');
+    });
   }
-  var season = seasonOf();
+  applySeason();
 
-  /* 季节只改星空的起始相位：把当季星空中心的赤经转到画面正下方。
-     星空角度就是赤经（生成时按真实赤经赤纬摆放），所以相位 = 90° - 赤经。 */
-  (function applySkyPhase() {
-    var turn = document.querySelector('.sky-turn');
-    if (!turn) return;
-    var ra = SEASON_RA[season] != null ? SEASON_RA[season] : 0;
-    var phase = ((90 - ra) % 360 + 360) % 360;      // 目标角度
-    turn.style.animationDelay = (-phase / 360 * 480).toFixed(2) + 's';
-  })();
 
   var autoRotate = !reduceMotion;
   var theta = -90;                // 地球初始角度：让有内容的片区正对观众
