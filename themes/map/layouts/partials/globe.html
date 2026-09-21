@@ -36,6 +36,17 @@
          role="img" aria-label="可以旋转的地球，球面上的大陆轮廓与片区是各个板块">
       <defs>
         {{/* 四角星：星野与里版入口都用它 */}}
+        {{/* 星野遮罩：地球圆盘内不画星（星星"落到地球背后"），太阳附近柔和淡出 */}}
+        <radialGradient id="sun-fade">
+          <stop offset="0" stop-color="#000"/>
+          <stop offset="0.55" stop-color="#000"/>
+          <stop offset="1" stop-color="#fff"/>
+        </radialGradient>
+        <mask id="sky-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="1100" height="940">
+          <rect x="0" y="0" width="1100" height="940" fill="#fff"/>
+          <circle cx="550" cy="430" r="400" fill="#000"/>
+          <circle cx="550" cy="-220" r="520" fill="url(#sun-fade)"/>
+        </mask>
         <path id="star5" d="M0 -10 L2.5 -3.4 L9.5 -3.1 L4 1.3 L5.9 8.1 L0 4.2 L-5.9 8.1 L-4 1.3 L-9.5 -3.1 L-2.5 -3.4 Z"/>
         <path id="star4" d="M0 -10 Q1.2 -1.2 10 0 Q1.2 1.2 0 10 Q-1.2 1.2 -10 0 Q-1.2 -1.2 0 -10 Z"/>
         <clipPath id="globe-clip"><circle cx="550" cy="430" r="400"/></clipPath>
@@ -51,7 +62,8 @@
       </defs>
 
       {{/* ---------- 星野（小点 + 空心四角星，像古典星图） ---------- */}}
-      <g class="globe-stars">
+            <g class="sky-field" mask="url(#sky-mask)">
+        <g class="sky-figures">
           <path class="sky-figure" d="M75.4 111.1L67.5 107.7L67.3 111.5L73.0 113.4L75.4 111.1L79.7 111.8L83.0 112.6L85.6 116.6"/>
           <path class="sky-figure" d="M232.7 113.4L231.9 117.7L228.8 128.1L228.8 129.2"/>
           <path class="sky-figure" d="M231.9 117.7L227.8 120.0L222.6 122.1"/>
@@ -77,305 +89,316 @@
           <path class="sky-figure" d="M548.4 928.0L549.9 912.0"/>
           <path class="sky-figure" d="M686.5 853.0L706.5 860.7L719.1 866.2L758.3 863.6L761.2 899.7L719.7 899.6L708.7 907.5L705.5 911.0L686.6 923.0L670.8 913.5"/>
           <path class="sky-figure" d="M719.7 899.6L719.1 866.2L710.7 875.3L708.6 877.9L684.6 873.3L671.1 872.5"/>
-          <use href="#star4" class="sky-star" transform="translate(75.4,111.1) scale(0.41)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(67.5,107.7) scale(0.58)" style="opacity:0.78"/>
-          <use href="#star4" class="sky-star" transform="translate(67.3,111.5) scale(0.52)" style="opacity:0.73"/>
-          <use href="#star4" class="sky-star" transform="translate(73.0,113.4) scale(0.51)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(75.4,111.1) scale(0.41)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(79.7,111.8) scale(0.58)" style="opacity:0.78"/>
-          <use href="#star4" class="sky-star" transform="translate(83.0,112.6) scale(0.53)" style="opacity:0.74"/>
-          <use href="#star4" class="sky-star" transform="translate(85.6,116.6) scale(0.57)" style="opacity:0.77"/>
-          <use href="#star4" class="sky-star" transform="translate(232.7,113.4) scale(0.51)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(231.9,117.7) scale(0.37)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(228.8,128.1) scale(0.39)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(228.8,129.2) scale(0.36)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(231.9,117.7) scale(0.37)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(227.8,120.0) scale(0.44)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(222.6,122.1) scale(0.44)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(227.8,120.0) scale(0.44)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(222.0,121.1) scale(0.40)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(227.2,107.7) scale(0.58)" style="opacity:0.78"/>
-          <use href="#star4" class="sky-star" transform="translate(217.0,106.8) scale(0.37)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(210.2,108.4) scale(0.41)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(219.1,109.6) scale(0.36)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(227.0,111.5) scale(0.52)" style="opacity:0.73"/>
-          <use href="#star4" class="sky-star" transform="translate(227.0,111.5) scale(0.52)" style="opacity:0.73"/>
-          <use href="#star4" class="sky-star" transform="translate(219.2,113.2) scale(0.27)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(217.1,114.9) scale(0.43)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(213.4,117.5) scale(0.43)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(213.9,118.1) scale(0.38)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(217.1,114.9) scale(0.43)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1006.2,69.8) scale(0.29)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(988.2,39.5) scale(0.29)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1001.2,40.3) scale(0.26)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1012.2,72.9) scale(0.29)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(999.1,98.1) scale(0.32)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(989.2,110.4) scale(0.72)" style="opacity:0.92"/>
-          <use href="#star4" class="sky-star" transform="translate(948.1,116.2) scale(0.59)" style="opacity:0.80"/>
-          <use href="#star4" class="sky-star" transform="translate(906.7,95.3) scale(0.26)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(911.7,141.8) scale(0.28)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(905.9,137.8) scale(0.37)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(901.7,120.3) scale(0.37)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(899.8,112.9) scale(0.42)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(900.9,102.2) scale(0.30)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(906.7,95.3) scale(0.26)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(908.8,76.8) scale(0.33)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(920.0,66.3) scale(0.26)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(927.0,65.3) scale(0.25)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(933.6,196.4) scale(0.72)" style="opacity:0.94"/>
-          <use href="#star4" class="sky-star" transform="translate(947.2,164.4) scale(0.41)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(957.5,152.9) scale(0.53)" style="opacity:0.73"/>
-          <use href="#star4" class="sky-star" transform="translate(948.1,116.2) scale(0.59)" style="opacity:0.80"/>
-          <use href="#star4" class="sky-star" transform="translate(961.8,96.5) scale(0.40)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(989.2,110.4) scale(0.72)" style="opacity:0.92"/>
-          <use href="#star4" class="sky-star" transform="translate(969.5,161.9) scale(0.58)" style="opacity:0.79"/>
-          <use href="#star4" class="sky-star" transform="translate(979.1,204.5) scale(0.55)" style="opacity:0.75"/>
-          <use href="#star4" class="sky-star" transform="translate(969.5,161.9) scale(0.58)" style="opacity:0.79"/>
-          <use href="#star4" class="sky-star" transform="translate(963.3,157.8) scale(0.59)" style="opacity:0.79"/>
-          <use href="#star4" class="sky-star" transform="translate(957.5,152.9) scale(0.53)" style="opacity:0.73"/>
-          <use href="#star4" class="sky-star" transform="translate(267.0,769.6) scale(0.41)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(230.6,804.7) scale(0.48)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(193.5,799.7) scale(0.54)" style="opacity:0.74"/>
-          <use href="#star4" class="sky-star" transform="translate(172.9,842.4) scale(0.53)" style="opacity:0.74"/>
-          <use href="#star4" class="sky-star" transform="translate(133.0,815.7) scale(0.52)" style="opacity:0.73"/>
-          <use href="#star4" class="sky-star" transform="translate(992.3,299.5) scale(0.41)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1000.9,299.4) scale(0.46)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1023.0,287.5) scale(0.44)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1051.6,264.1) scale(0.29)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1076.4,256.5) scale(0.60)" style="opacity:0.80"/>
-          <use href="#star4" class="sky-star" transform="translate(1087.7,274.2) scale(0.65)" style="opacity:0.84"/>
-          <use href="#star4" class="sky-star" transform="translate(1077.8,279.4) scale(0.33)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1061.1,301.9) scale(0.39)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1044.2,308.3) scale(0.33)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1016.4,327.4) scale(0.56)" style="opacity:0.77"/>
-          <use href="#star4" class="sky-star" transform="translate(1024.4,343.5) scale(0.41)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1061.1,301.9) scale(0.39)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1059.0,326.8) scale(0.38)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(13.0,629.3) scale(0.46)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(14.8,609.5) scale(0.52)" style="opacity:0.73"/>
-          <use href="#star4" class="sky-star" transform="translate(20.9,593.5) scale(0.49)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(14.8,609.5) scale(0.52)" style="opacity:0.73"/>
-          <use href="#star4" class="sky-star" transform="translate(39.7,626.3) scale(0.46)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(49.5,631.1) scale(0.66)" style="opacity:0.85"/>
-          <use href="#star4" class="sky-star" transform="translate(57.3,641.2) scale(0.46)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(74.3,675.7) scale(0.52)" style="opacity:0.73"/>
-          <use href="#star4" class="sky-star" transform="translate(76.4,697.0) scale(0.44)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(79.6,721.5) scale(0.38)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(100.6,726.5) scale(0.41)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(130.7,725.1) scale(0.57)" style="opacity:0.77"/>
-          <use href="#star4" class="sky-star" transform="translate(143.0,708.8) scale(0.45)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(136.9,702.6) scale(0.51)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(126.3,691.7) scale(0.60)" style="opacity:0.80"/>
-          <use href="#star4" class="sky-star" transform="translate(997.5,686.1) scale(0.63)" style="opacity:0.82"/>
-          <use href="#star4" class="sky-star" transform="translate(996.6,668.3) scale(0.39)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1007.8,656.8) scale(0.55)" style="opacity:0.76"/>
-          <use href="#star4" class="sky-star" transform="translate(1055.5,654.3) scale(0.49)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1086.3,676.4) scale(0.54)" style="opacity:0.75"/>
-          <use href="#star4" class="sky-star" transform="translate(1055.6,673.2) scale(0.41)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(997.5,686.1) scale(0.63)" style="opacity:0.82"/>
-          <use href="#star4" class="sky-star" transform="translate(1007.8,656.8) scale(0.55)" style="opacity:0.76"/>
-          <use href="#star4" class="sky-star" transform="translate(1004.9,643.5) scale(0.40)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(983.8,633.9) scale(0.35)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(977.7,642.2) scale(0.45)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(1008.5,876.7) scale(0.42)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(976.9,853.5) scale(0.50)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(948.5,814.5) scale(0.53)" style="opacity:0.74"/>
-          <use href="#star4" class="sky-star" transform="translate(904.5,784.3) scale(0.46)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(886.4,743.4) scale(0.36)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(871.5,733.2) scale(0.36)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(971.2,783.4) scale(0.64)" style="opacity:0.83"/>
-          <use href="#star4" class="sky-star" transform="translate(948.5,814.5) scale(0.53)" style="opacity:0.74"/>
-          <use href="#star4" class="sky-star" transform="translate(917.9,846.6) scale(0.35)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(887.6,890.8) scale(0.44)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(63.9,428.9) scale(0.30)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(62.7,397.0) scale(0.27)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(39.0,410.2) scale(0.72)" style="opacity:0.96"/>
-          <use href="#star4" class="sky-star" transform="translate(63.9,428.9) scale(0.30)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(94.9,440.1) scale(0.31)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(109.0,507.0) scale(0.42)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(80.8,496.3) scale(0.39)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(63.9,428.9) scale(0.30)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(555.5,918.9) scale(0.64)" style="opacity:0.83"/>
-          <use href="#star4" class="sky-star" transform="translate(544.5,916.4) scale(0.47)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(548.4,928.0) scale(0.69)" style="opacity:0.88"/>
-          <use href="#star4" class="sky-star" transform="translate(549.9,912.0) scale(0.60)" style="opacity:0.80"/>
-          <use href="#star4" class="sky-star" transform="translate(686.5,853.0) scale(0.30)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(706.5,860.7) scale(0.45)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(719.1,866.2) scale(0.51)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(758.3,863.6) scale(0.55)" style="opacity:0.75"/>
-          <use href="#star4" class="sky-star" transform="translate(761.2,899.7) scale(0.46)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(719.7,899.6) scale(0.50)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(708.7,907.5) scale(0.31)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(705.5,911.0) scale(0.40)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(686.6,923.0) scale(0.39)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(670.8,913.5) scale(0.51)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(719.7,899.6) scale(0.50)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(719.1,866.2) scale(0.51)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(710.7,875.3) scale(0.39)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(708.6,877.9) scale(0.34)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(684.6,873.3) scale(0.36)" style="opacity:0.72"/>
-          <use href="#star4" class="sky-star" transform="translate(671.1,872.5) scale(0.32)" style="opacity:0.72"/>
-          <use href="#star4" transform="translate(43,10) scale(0.31)" style="opacity:0.74"/>
-          <use href="#star4" transform="translate(79,36) scale(0.29)" style="opacity:0.56"/>
-          <use href="#star4" transform="translate(209,20) scale(0.40)" style="opacity:0.64"/>
-          <use href="#star4" transform="translate(858,20) scale(0.41)" style="opacity:0.54"/>
-          <use href="#star4" transform="translate(895,27) scale(0.37)" style="opacity:0.58"/>
-          <use href="#star4" transform="translate(1056,10) scale(0.44)" style="opacity:0.51"/>
-          <use href="#star4" transform="translate(68,74) scale(0.31)" style="opacity:0.64"/>
-          <use href="#star4" transform="translate(91,56) scale(0.39)" style="opacity:0.53"/>
-          <use href="#star4" transform="translate(128,62) scale(0.36)" style="opacity:0.73"/>
-          <use href="#star4" transform="translate(188,75) scale(0.27)" style="opacity:0.68"/>
-          <use href="#star4" transform="translate(225,64) scale(0.24)" style="opacity:0.43"/>
-          <use href="#star4" transform="translate(231,41) scale(0.42)" style="opacity:0.77"/>
-          <use href="#star4" transform="translate(861,60) scale(0.27)" style="opacity:0.60"/>
-          <use href="#star4" transform="translate(919,41) scale(0.28)" style="opacity:0.86"/>
-          <use href="#star4" transform="translate(971,44) scale(0.18)" style="opacity:0.51"/>
-          <use href="#star4" transform="translate(997,71) scale(0.38)" style="opacity:0.50"/>
-          <use href="#star4" transform="translate(1051,62) scale(0.14)" style="opacity:0.66"/>
-          <use href="#star4" transform="translate(106,93) scale(0.28)" style="opacity:0.56"/>
-          <use href="#star4" transform="translate(120,91) scale(0.34)" style="opacity:0.53"/>
-          <use href="#star4" transform="translate(202,99) scale(0.22)" style="opacity:0.54"/>
-          <use href="#star4" transform="translate(930,100) scale(0.18)" style="opacity:0.51"/>
-          <use href="#star4" transform="translate(960,85) scale(0.33)" style="opacity:0.65"/>
-          <use href="#star4" transform="translate(146,125) scale(0.27)" style="opacity:0.58"/>
-          <use href="#star4" transform="translate(173,131) scale(0.35)" style="opacity:0.86"/>
-          <use href="#star4" transform="translate(200,133) scale(0.38)" style="opacity:0.69"/>
-          <use href="#star4" transform="translate(904,147) scale(0.29)" style="opacity:0.74"/>
-          <use href="#star4" transform="translate(965,128) scale(0.19)" style="opacity:0.42"/>
-          <use href="#star4" transform="translate(1014,135) scale(0.45)" style="opacity:0.67"/>
-          <use href="#star4" transform="translate(1061,142) scale(0.34)" style="opacity:0.66"/>
-          <use href="#star4" transform="translate(1082,133) scale(0.39)" style="opacity:0.60"/>
-          <use href="#star4" transform="translate(85,174) scale(0.14)" style="opacity:0.69"/>
-          <use href="#star4" transform="translate(171,171) scale(0.30)" style="opacity:0.84"/>
-          <use href="#star4" transform="translate(921,158) scale(0.29)" style="opacity:0.74"/>
-          <use href="#star4" transform="translate(973,187) scale(0.14)" style="opacity:0.84"/>
-          <use href="#star4" transform="translate(1016,177) scale(0.41)" style="opacity:0.43"/>
-          <use href="#star4" transform="translate(1039,178) scale(0.33)" style="opacity:0.71"/>
-          <use href="#star4" transform="translate(21,200) scale(0.20)" style="opacity:0.62"/>
-          <use href="#star4" transform="translate(45,201) scale(0.35)" style="opacity:0.82"/>
-          <use href="#star4" transform="translate(118,194) scale(0.45)" style="opacity:0.79"/>
-          <use href="#star4" transform="translate(957,226) scale(0.35)" style="opacity:0.49"/>
-          <use href="#star4" transform="translate(1036,220) scale(0.44)" style="opacity:0.76"/>
-          <use href="#star4" transform="translate(13,231) scale(0.18)" style="opacity:0.85"/>
-          <use href="#star4" transform="translate(49,245) scale(0.28)" style="opacity:0.59"/>
-          <use href="#star4" transform="translate(79,254) scale(0.21)" style="opacity:0.76"/>
-          <use href="#star4" transform="translate(117,240) scale(0.36)" style="opacity:0.43"/>
-          <use href="#star4" transform="translate(1001,236) scale(0.24)" style="opacity:0.49"/>
-          <use href="#star4" transform="translate(1032,254) scale(0.39)" style="opacity:0.77"/>
-          <use href="#star4" transform="translate(1090,252) scale(0.36)" style="opacity:0.83"/>
-          <use href="#star4" transform="translate(19,288) scale(0.40)" style="opacity:0.64"/>
-          <use href="#star4" transform="translate(63,277) scale(0.28)" style="opacity:0.80"/>
-          <use href="#star4" transform="translate(1055,272) scale(0.19)" style="opacity:0.83"/>
-          <use href="#star4" transform="translate(12,329) scale(0.41)" style="opacity:0.59"/>
-          <use href="#star4" transform="translate(69,320) scale(0.16)" style="opacity:0.60"/>
-          <use href="#star4" transform="translate(995,328) scale(0.22)" style="opacity:0.86"/>
-          <use href="#star4" transform="translate(1049,329) scale(0.22)" style="opacity:0.69"/>
-          <use href="#star4" transform="translate(11,363) scale(0.16)" style="opacity:0.85"/>
-          <use href="#star4" transform="translate(61,345) scale(0.38)" style="opacity:0.68"/>
-          <use href="#star4" transform="translate(103,371) scale(0.29)" style="opacity:0.45"/>
-          <use href="#star4" transform="translate(986,350) scale(0.16)" style="opacity:0.59"/>
-          <use href="#star4" transform="translate(991,362) scale(0.15)" style="opacity:0.75"/>
-          <use href="#star4" transform="translate(1043,355) scale(0.25)" style="opacity:0.77"/>
-          <use href="#star4" transform="translate(81,398) scale(0.28)" style="opacity:0.72"/>
-          <use href="#star4" transform="translate(1007,388) scale(0.40)" style="opacity:0.45"/>
-          <use href="#star4" transform="translate(1079,383) scale(0.16)" style="opacity:0.65"/>
-          <use href="#star4" transform="translate(43,429) scale(0.43)" style="opacity:0.75"/>
-          <use href="#star4" transform="translate(1023,441) scale(0.33)" style="opacity:0.86"/>
-          <use href="#star4" transform="translate(1049,442) scale(0.31)" style="opacity:0.58"/>
-          <use href="#star4" transform="translate(1079,439) scale(0.17)" style="opacity:0.66"/>
-          <use href="#star4" transform="translate(65,473) scale(0.21)" style="opacity:0.57"/>
-          <use href="#star4" transform="translate(107,484) scale(0.41)" style="opacity:0.63"/>
-          <use href="#star4" transform="translate(56,507) scale(0.29)" style="opacity:0.66"/>
-          <use href="#star4" transform="translate(84,498) scale(0.31)" style="opacity:0.46"/>
-          <use href="#star4" transform="translate(1001,526) scale(0.14)" style="opacity:0.60"/>
-          <use href="#star4" transform="translate(1077,526) scale(0.23)" style="opacity:0.43"/>
-          <use href="#star4" transform="translate(12,552) scale(0.37)" style="opacity:0.85"/>
-          <use href="#star4" transform="translate(74,560) scale(0.25)" style="opacity:0.51"/>
-          <use href="#star4" transform="translate(79,553) scale(0.43)" style="opacity:0.83"/>
-          <use href="#star4" transform="translate(123,563) scale(0.35)" style="opacity:0.83"/>
-          <use href="#star4" transform="translate(982,547) scale(0.37)" style="opacity:0.85"/>
-          <use href="#star4" transform="translate(1017,538) scale(0.23)" style="opacity:0.65"/>
-          <use href="#star4" transform="translate(1050,553) scale(0.28)" style="opacity:0.47"/>
-          <use href="#star4" transform="translate(60,602) scale(0.44)" style="opacity:0.42"/>
-          <use href="#star4" transform="translate(132,606) scale(0.18)" style="opacity:0.79"/>
-          <use href="#star4" transform="translate(982,577) scale(0.30)" style="opacity:0.54"/>
-          <use href="#star4" transform="translate(996,597) scale(0.19)" style="opacity:0.51"/>
-          <use href="#star4" transform="translate(131,642) scale(0.34)" style="opacity:0.84"/>
-          <use href="#star4" transform="translate(984,630) scale(0.20)" style="opacity:0.63"/>
-          <use href="#star4" transform="translate(1000,633) scale(0.15)" style="opacity:0.61"/>
-          <use href="#star4" transform="translate(1039,613) scale(0.31)" style="opacity:0.83"/>
-          <use href="#star4" transform="translate(1076,629) scale(0.26)" style="opacity:0.64"/>
-          <use href="#star4" transform="translate(124,658) scale(0.16)" style="opacity:0.82"/>
-          <use href="#star4" transform="translate(949,677) scale(0.40)" style="opacity:0.48"/>
-          <use href="#star4" transform="translate(957,674) scale(0.29)" style="opacity:0.56"/>
-          <use href="#star4" transform="translate(1006,656) scale(0.26)" style="opacity:0.81"/>
-          <use href="#star4" transform="translate(48,707) scale(0.38)" style="opacity:0.50"/>
-          <use href="#star4" transform="translate(104,697) scale(0.43)" style="opacity:0.64"/>
-          <use href="#star4" transform="translate(142,688) scale(0.32)" style="opacity:0.54"/>
-          <use href="#star4" transform="translate(158,703) scale(0.13)" style="opacity:0.56"/>
-          <use href="#star4" transform="translate(906,715) scale(0.36)" style="opacity:0.62"/>
-          <use href="#star4" transform="translate(931,718) scale(0.33)" style="opacity:0.65"/>
-          <use href="#star4" transform="translate(1024,701) scale(0.38)" style="opacity:0.76"/>
-          <use href="#star4" transform="translate(1082,688) scale(0.26)" style="opacity:0.65"/>
-          <use href="#star4" transform="translate(49,733) scale(0.26)" style="opacity:0.69"/>
-          <use href="#star4" transform="translate(107,756) scale(0.37)" style="opacity:0.57"/>
-          <use href="#star4" transform="translate(160,759) scale(0.20)" style="opacity:0.76"/>
-          <use href="#star4" transform="translate(212,741) scale(0.16)" style="opacity:0.63"/>
-          <use href="#star4" transform="translate(887,738) scale(0.16)" style="opacity:0.62"/>
-          <use href="#star4" transform="translate(947,748) scale(0.36)" style="opacity:0.48"/>
-          <use href="#star4" transform="translate(957,755) scale(0.43)" style="opacity:0.69"/>
-          <use href="#star4" transform="translate(1021,729) scale(0.44)" style="opacity:0.43"/>
-          <use href="#star4" transform="translate(1035,756) scale(0.17)" style="opacity:0.56"/>
-          <use href="#star4" transform="translate(53,785) scale(0.42)" style="opacity:0.71"/>
-          <use href="#star4" transform="translate(80,763) scale(0.30)" style="opacity:0.60"/>
-          <use href="#star4" transform="translate(137,789) scale(0.28)" style="opacity:0.82"/>
-          <use href="#star4" transform="translate(211,770) scale(0.18)" style="opacity:0.62"/>
-          <use href="#star4" transform="translate(247,765) scale(0.33)" style="opacity:0.63"/>
-          <use href="#star4" transform="translate(832,794) scale(0.25)" style="opacity:0.85"/>
-          <use href="#star4" transform="translate(866,773) scale(0.39)" style="opacity:0.76"/>
-          <use href="#star4" transform="translate(908,794) scale(0.41)" style="opacity:0.73"/>
-          <use href="#star4" transform="translate(942,795) scale(0.31)" style="opacity:0.42"/>
-          <use href="#star4" transform="translate(979,786) scale(0.39)" style="opacity:0.56"/>
-          <use href="#star4" transform="translate(29,808) scale(0.24)" style="opacity:0.54"/>
-          <use href="#star4" transform="translate(55,830) scale(0.19)" style="opacity:0.83"/>
-          <use href="#star4" transform="translate(105,820) scale(0.28)" style="opacity:0.57"/>
-          <use href="#star4" transform="translate(275,824) scale(0.30)" style="opacity:0.54"/>
-          <use href="#star4" transform="translate(832,815) scale(0.34)" style="opacity:0.59"/>
-          <use href="#star4" transform="translate(894,832) scale(0.40)" style="opacity:0.59"/>
-          <use href="#star4" transform="translate(923,819) scale(0.19)" style="opacity:0.84"/>
-          <use href="#star4" transform="translate(968,829) scale(0.26)" style="opacity:0.57"/>
-          <use href="#star4" transform="translate(1045,802) scale(0.15)" style="opacity:0.53"/>
-          <use href="#star4" transform="translate(1082,820) scale(0.33)" style="opacity:0.64"/>
-          <use href="#star4" transform="translate(48,846) scale(0.37)" style="opacity:0.67"/>
-          <use href="#star4" transform="translate(102,873) scale(0.16)" style="opacity:0.53"/>
-          <use href="#star4" transform="translate(119,858) scale(0.19)" style="opacity:0.52"/>
-          <use href="#star4" transform="translate(171,841) scale(0.43)" style="opacity:0.62"/>
-          <use href="#star4" transform="translate(249,849) scale(0.25)" style="opacity:0.85"/>
-          <use href="#star4" transform="translate(275,850) scale(0.38)" style="opacity:0.76"/>
-          <use href="#star4" transform="translate(331,849) scale(0.16)" style="opacity:0.65"/>
-          <use href="#star4" transform="translate(364,870) scale(0.42)" style="opacity:0.66"/>
-          <use href="#star4" transform="translate(396,868) scale(0.31)" style="opacity:0.46"/>
-          <use href="#star4" transform="translate(625,869) scale(0.22)" style="opacity:0.71"/>
-          <use href="#star4" transform="translate(658,865) scale(0.32)" style="opacity:0.69"/>
-          <use href="#star4" transform="translate(805,863) scale(0.38)" style="opacity:0.68"/>
-          <use href="#star4" transform="translate(885,839) scale(0.19)" style="opacity:0.46"/>
-          <use href="#star4" transform="translate(964,863) scale(0.33)" style="opacity:0.56"/>
-          <use href="#star4" transform="translate(997,858) scale(0.39)" style="opacity:0.61"/>
-          <use href="#star4" transform="translate(53,884) scale(0.14)" style="opacity:0.47"/>
-          <use href="#star4" transform="translate(109,904) scale(0.24)" style="opacity:0.58"/>
-          <use href="#star4" transform="translate(123,910) scale(0.13)" style="opacity:0.71"/>
-          <use href="#star4" transform="translate(250,888) scale(0.36)" style="opacity:0.66"/>
-          <use href="#star4" transform="translate(298,898) scale(0.42)" style="opacity:0.80"/>
-          <use href="#star4" transform="translate(331,879) scale(0.31)" style="opacity:0.74"/>
-          <use href="#star4" transform="translate(511,898) scale(0.44)" style="opacity:0.73"/>
-          <use href="#star4" transform="translate(616,909) scale(0.21)" style="opacity:0.51"/>
-          <use href="#star4" transform="translate(677,881) scale(0.24)" style="opacity:0.50"/>
-          <use href="#star4" transform="translate(711,880) scale(0.36)" style="opacity:0.50"/>
-          <use href="#star4" transform="translate(832,904) scale(0.27)" style="opacity:0.56"/>
-          <use href="#star4" transform="translate(946,908) scale(0.25)" style="opacity:0.51"/>
-          <use href="#star4" transform="translate(1010,892) scale(0.44)" style="opacity:0.52"/>
-          <use href="#star4" transform="translate(1032,893) scale(0.24)" style="opacity:0.73"/>
-          <use href="#star4" transform="translate(1086,905) scale(0.24)" style="opacity:0.84"/>
+          <use href="#star4" class="sky-star" transform="translate(75.4,111.1) scale(0.34)" style="opacity:0.70"/>
+          <use href="#star4" class="sky-star" transform="translate(67.5,107.7) scale(0.51)" style="opacity:0.83"/>
+          <use href="#star4" class="sky-star" transform="translate(67.3,111.5) scale(0.44)" style="opacity:0.78"/>
+          <use href="#star4" class="sky-star" transform="translate(73.0,113.4) scale(0.43)" style="opacity:0.78"/>
+          <use href="#star4" class="sky-star" transform="translate(75.4,111.1) scale(0.34)" style="opacity:0.70"/>
+          <use href="#star4" class="sky-star" transform="translate(79.7,111.8) scale(0.51)" style="opacity:0.83"/>
+          <use href="#star4" class="sky-star" transform="translate(83.0,112.6) scale(0.45)" style="opacity:0.79"/>
+          <use href="#star4" class="sky-star" transform="translate(85.6,116.6) scale(0.50)" style="opacity:0.82"/>
+          <use href="#star4" class="sky-star" transform="translate(232.7,113.4) scale(0.43)" style="opacity:0.78"/>
+          <use href="#star4" class="sky-star" transform="translate(231.9,117.7) scale(0.31)" style="opacity:0.67"/>
+          <use href="#star4" class="sky-star" transform="translate(228.8,128.1) scale(0.33)" style="opacity:0.68"/>
+          <use href="#star4" class="sky-star" transform="translate(228.8,129.2) scale(0.31)" style="opacity:0.66"/>
+          <use href="#star4" class="sky-star" transform="translate(231.9,117.7) scale(0.31)" style="opacity:0.67"/>
+          <use href="#star4" class="sky-star" transform="translate(227.8,120.0) scale(0.37)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(222.6,122.1) scale(0.37)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(227.8,120.0) scale(0.37)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(222.0,121.1) scale(0.33)" style="opacity:0.69"/>
+          <use href="#star4" class="sky-star" transform="translate(227.2,107.7) scale(0.51)" style="opacity:0.83"/>
+          <use href="#star4" class="sky-star" transform="translate(217.0,106.8) scale(0.32)" style="opacity:0.67"/>
+          <use href="#star4" class="sky-star" transform="translate(210.2,108.4) scale(0.34)" style="opacity:0.70"/>
+          <use href="#star4" class="sky-star" transform="translate(219.1,109.6) scale(0.31)" style="opacity:0.66"/>
+          <use href="#star4" class="sky-star" transform="translate(227.0,111.5) scale(0.44)" style="opacity:0.78"/>
+          <use href="#star4" class="sky-star" transform="translate(227.0,111.5) scale(0.44)" style="opacity:0.78"/>
+          <use href="#star4" class="sky-star" transform="translate(219.2,113.2) scale(0.25)" style="opacity:0.59"/>
+          <use href="#star4" class="sky-star" transform="translate(217.1,114.9) scale(0.36)" style="opacity:0.71"/>
+          <use href="#star4" class="sky-star" transform="translate(213.4,117.5) scale(0.36)" style="opacity:0.71"/>
+          <use href="#star4" class="sky-star" transform="translate(213.9,118.1) scale(0.32)" style="opacity:0.68"/>
+          <use href="#star4" class="sky-star" transform="translate(217.1,114.9) scale(0.36)" style="opacity:0.71"/>
+          <use href="#star4" class="sky-star" transform="translate(1006.2,69.8) scale(0.26)" style="opacity:0.60"/>
+          <use href="#star4" class="sky-star" transform="translate(988.2,39.5) scale(0.26)" style="opacity:0.61"/>
+          <use href="#star4" class="sky-star" transform="translate(1001.2,40.3) scale(0.25)" style="opacity:0.59"/>
+          <use href="#star4" class="sky-star" transform="translate(1012.2,72.9) scale(0.26)" style="opacity:0.60"/>
+          <use href="#star4" class="sky-star" transform="translate(999.1,98.1) scale(0.28)" style="opacity:0.63"/>
+          <use href="#star4" class="sky-star" transform="translate(989.2,110.4) scale(0.71)" style="opacity:0.94"/>
+          <use href="#star4" class="sky-star" transform="translate(948.1,116.2) scale(0.53)" style="opacity:0.84"/>
+          <use href="#star4" class="sky-star" transform="translate(906.7,95.3) scale(0.25)" style="opacity:0.59"/>
+          <use href="#star4" class="sky-star" transform="translate(911.7,141.8) scale(0.26)" style="opacity:0.60"/>
+          <use href="#star4" class="sky-star" transform="translate(905.9,137.8) scale(0.31)" style="opacity:0.66"/>
+          <use href="#star4" class="sky-star" transform="translate(901.7,120.3) scale(0.31)" style="opacity:0.67"/>
+          <use href="#star4" class="sky-star" transform="translate(899.8,112.9) scale(0.36)" style="opacity:0.71"/>
+          <use href="#star4" class="sky-star" transform="translate(900.9,102.2) scale(0.27)" style="opacity:0.61"/>
+          <use href="#star4" class="sky-star" transform="translate(906.7,95.3) scale(0.25)" style="opacity:0.59"/>
+          <use href="#star4" class="sky-star" transform="translate(908.8,76.8) scale(0.29)" style="opacity:0.63"/>
+          <use href="#star4" class="sky-star" transform="translate(920.0,66.3) scale(0.25)" style="opacity:0.58"/>
+          <use href="#star4" class="sky-star" transform="translate(927.0,65.3) scale(0.24)" style="opacity:0.57"/>
+          <use href="#star4" class="sky-star" transform="translate(933.6,196.4) scale(0.76)" style="opacity:0.96"/>
+          <use href="#star4" class="sky-star" transform="translate(947.2,164.4) scale(0.34)" style="opacity:0.70"/>
+          <use href="#star4" class="sky-star" transform="translate(957.5,152.9) scale(0.45)" style="opacity:0.79"/>
+          <use href="#star4" class="sky-star" transform="translate(948.1,116.2) scale(0.53)" style="opacity:0.84"/>
+          <use href="#star4" class="sky-star" transform="translate(961.8,96.5) scale(0.34)" style="opacity:0.69"/>
+          <use href="#star4" class="sky-star" transform="translate(989.2,110.4) scale(0.71)" style="opacity:0.94"/>
+          <use href="#star4" class="sky-star" transform="translate(969.5,161.9) scale(0.51)" style="opacity:0.83"/>
+          <use href="#star4" class="sky-star" transform="translate(979.1,204.5) scale(0.47)" style="opacity:0.80"/>
+          <use href="#star4" class="sky-star" transform="translate(969.5,161.9) scale(0.51)" style="opacity:0.83"/>
+          <use href="#star4" class="sky-star" transform="translate(963.3,157.8) scale(0.52)" style="opacity:0.84"/>
+          <use href="#star4" class="sky-star" transform="translate(957.5,152.9) scale(0.45)" style="opacity:0.79"/>
+          <use href="#star4" class="sky-star" transform="translate(267.0,769.6) scale(0.34)" style="opacity:0.70"/>
+          <use href="#star4" class="sky-star" transform="translate(230.6,804.7) scale(0.41)" style="opacity:0.75"/>
+          <use href="#star4" class="sky-star" transform="translate(193.5,799.7) scale(0.46)" style="opacity:0.80"/>
+          <use href="#star4" class="sky-star" transform="translate(172.9,842.4) scale(0.45)" style="opacity:0.79"/>
+          <use href="#star4" class="sky-star" transform="translate(133.0,815.7) scale(0.45)" style="opacity:0.79"/>
+          <use href="#star4" class="sky-star" transform="translate(992.3,299.5) scale(0.35)" style="opacity:0.70"/>
+          <use href="#star4" class="sky-star" transform="translate(1000.9,299.4) scale(0.39)" style="opacity:0.74"/>
+          <use href="#star4" class="sky-star" transform="translate(1023.0,287.5) scale(0.37)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(1051.6,264.1) scale(0.26)" style="opacity:0.61"/>
+          <use href="#star4" class="sky-star" transform="translate(1076.4,256.5) scale(0.54)" style="opacity:0.85"/>
+          <use href="#star4" class="sky-star" transform="translate(1087.7,274.2) scale(0.60)" style="opacity:0.88"/>
+          <use href="#star4" class="sky-star" transform="translate(1077.8,279.4) scale(0.29)" style="opacity:0.63"/>
+          <use href="#star4" class="sky-star" transform="translate(1061.1,301.9) scale(0.33)" style="opacity:0.68"/>
+          <use href="#star4" class="sky-star" transform="translate(1044.2,308.3) scale(0.29)" style="opacity:0.64"/>
+          <use href="#star4" class="sky-star" transform="translate(1016.4,327.4) scale(0.49)" style="opacity:0.82"/>
+          <use href="#star4" class="sky-star" transform="translate(1024.4,343.5) scale(0.34)" style="opacity:0.70"/>
+          <use href="#star4" class="sky-star" transform="translate(1061.1,301.9) scale(0.33)" style="opacity:0.68"/>
+          <use href="#star4" class="sky-star" transform="translate(1059.0,326.8) scale(0.32)" style="opacity:0.68"/>
+          <use href="#star4" class="sky-star" transform="translate(13.0,629.3) scale(0.38)" style="opacity:0.73"/>
+          <use href="#star4" class="sky-star" transform="translate(14.8,609.5) scale(0.45)" style="opacity:0.79"/>
+          <use href="#star4" class="sky-star" transform="translate(20.9,593.5) scale(0.42)" style="opacity:0.76"/>
+          <use href="#star4" class="sky-star" transform="translate(14.8,609.5) scale(0.45)" style="opacity:0.79"/>
+          <use href="#star4" class="sky-star" transform="translate(39.7,626.3) scale(0.38)" style="opacity:0.73"/>
+          <use href="#star4" class="sky-star" transform="translate(49.5,631.1) scale(0.61)" style="opacity:0.89"/>
+          <use href="#star4" class="sky-star" transform="translate(57.3,641.2) scale(0.39)" style="opacity:0.74"/>
+          <use href="#star4" class="sky-star" transform="translate(74.3,675.7) scale(0.45)" style="opacity:0.79"/>
+          <use href="#star4" class="sky-star" transform="translate(76.4,697.0) scale(0.37)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(79.6,721.5) scale(0.32)" style="opacity:0.67"/>
+          <use href="#star4" class="sky-star" transform="translate(100.6,726.5) scale(0.34)" style="opacity:0.70"/>
+          <use href="#star4" class="sky-star" transform="translate(130.7,725.1) scale(0.50)" style="opacity:0.82"/>
+          <use href="#star4" class="sky-star" transform="translate(143.0,708.8) scale(0.37)" style="opacity:0.73"/>
+          <use href="#star4" class="sky-star" transform="translate(136.9,702.6) scale(0.44)" style="opacity:0.78"/>
+          <use href="#star4" class="sky-star" transform="translate(126.3,691.7) scale(0.53)" style="opacity:0.84"/>
+          <use href="#star4" class="sky-star" transform="translate(997.5,686.1) scale(0.57)" style="opacity:0.86"/>
+          <use href="#star4" class="sky-star" transform="translate(996.6,668.3) scale(0.33)" style="opacity:0.68"/>
+          <use href="#star4" class="sky-star" transform="translate(1007.8,656.8) scale(0.48)" style="opacity:0.81"/>
+          <use href="#star4" class="sky-star" transform="translate(1055.5,654.3) scale(0.42)" style="opacity:0.76"/>
+          <use href="#star4" class="sky-star" transform="translate(1086.3,676.4) scale(0.46)" style="opacity:0.80"/>
+          <use href="#star4" class="sky-star" transform="translate(1055.6,673.2) scale(0.34)" style="opacity:0.70"/>
+          <use href="#star4" class="sky-star" transform="translate(997.5,686.1) scale(0.57)" style="opacity:0.86"/>
+          <use href="#star4" class="sky-star" transform="translate(1007.8,656.8) scale(0.48)" style="opacity:0.81"/>
+          <use href="#star4" class="sky-star" transform="translate(1004.9,643.5) scale(0.34)" style="opacity:0.69"/>
+          <use href="#star4" class="sky-star" transform="translate(983.8,633.9) scale(0.30)" style="opacity:0.65"/>
+          <use href="#star4" class="sky-star" transform="translate(977.7,642.2) scale(0.38)" style="opacity:0.73"/>
+          <use href="#star4" class="sky-star" transform="translate(1008.5,876.7) scale(0.35)" style="opacity:0.71"/>
+          <use href="#star4" class="sky-star" transform="translate(976.9,853.5) scale(0.43)" style="opacity:0.77"/>
+          <use href="#star4" class="sky-star" transform="translate(948.5,814.5) scale(0.45)" style="opacity:0.79"/>
+          <use href="#star4" class="sky-star" transform="translate(904.5,784.3) scale(0.39)" style="opacity:0.74"/>
+          <use href="#star4" class="sky-star" transform="translate(886.4,743.4) scale(0.31)" style="opacity:0.66"/>
+          <use href="#star4" class="sky-star" transform="translate(871.5,733.2) scale(0.31)" style="opacity:0.66"/>
+          <use href="#star4" class="sky-star" transform="translate(971.2,783.4) scale(0.58)" style="opacity:0.87"/>
+          <use href="#star4" class="sky-star" transform="translate(948.5,814.5) scale(0.45)" style="opacity:0.79"/>
+          <use href="#star4" class="sky-star" transform="translate(917.9,846.6) scale(0.30)" style="opacity:0.65"/>
+          <use href="#star4" class="sky-star" transform="translate(887.6,890.8) scale(0.37)" style="opacity:0.72"/>
+          <use href="#star4" class="sky-star" transform="translate(63.9,428.9) scale(0.27)" style="opacity:0.61"/>
+          <use href="#star4" class="sky-star" transform="translate(62.7,397.0) scale(0.25)" style="opacity:0.59"/>
+          <use href="#star4" class="sky-star" transform="translate(39.0,410.2) scale(0.79)" style="opacity:0.98"/>
+          <use href="#star4" class="sky-star" transform="translate(63.9,428.9) scale(0.27)" style="opacity:0.61"/>
+          <use href="#star4" class="sky-star" transform="translate(94.9,440.1) scale(0.27)" style="opacity:0.62"/>
+          <use href="#star4" class="sky-star" transform="translate(109.0,507.0) scale(0.35)" style="opacity:0.70"/>
+          <use href="#star4" class="sky-star" transform="translate(80.8,496.3) scale(0.33)" style="opacity:0.68"/>
+          <use href="#star4" class="sky-star" transform="translate(63.9,428.9) scale(0.27)" style="opacity:0.61"/>
+          <use href="#star4" class="sky-star" transform="translate(555.5,918.9) scale(0.58)" style="opacity:0.87"/>
+          <use href="#star4" class="sky-star" transform="translate(544.5,916.4) scale(0.39)" style="opacity:0.74"/>
+          <use href="#star4" class="sky-star" transform="translate(548.4,928.0) scale(0.66)" style="opacity:0.91"/>
+          <use href="#star4" class="sky-star" transform="translate(549.9,912.0) scale(0.53)" style="opacity:0.84"/>
+          <use href="#star4" class="sky-star" transform="translate(686.5,853.0) scale(0.27)" style="opacity:0.62"/>
+          <use href="#star4" class="sky-star" transform="translate(706.5,860.7) scale(0.38)" style="opacity:0.73"/>
+          <use href="#star4" class="sky-star" transform="translate(719.1,866.2) scale(0.43)" style="opacity:0.77"/>
+          <use href="#star4" class="sky-star" transform="translate(758.3,863.6) scale(0.47)" style="opacity:0.80"/>
+          <use href="#star4" class="sky-star" transform="translate(761.2,899.7) scale(0.39)" style="opacity:0.74"/>
+          <use href="#star4" class="sky-star" transform="translate(719.7,899.6) scale(0.43)" style="opacity:0.77"/>
+          <use href="#star4" class="sky-star" transform="translate(708.7,907.5) scale(0.28)" style="opacity:0.62"/>
+          <use href="#star4" class="sky-star" transform="translate(705.5,911.0) scale(0.34)" style="opacity:0.69"/>
+          <use href="#star4" class="sky-star" transform="translate(686.6,923.0) scale(0.33)" style="opacity:0.68"/>
+          <use href="#star4" class="sky-star" transform="translate(670.8,913.5) scale(0.44)" style="opacity:0.78"/>
+          <use href="#star4" class="sky-star" transform="translate(719.7,899.6) scale(0.43)" style="opacity:0.77"/>
+          <use href="#star4" class="sky-star" transform="translate(719.1,866.2) scale(0.43)" style="opacity:0.77"/>
+          <use href="#star4" class="sky-star" transform="translate(710.7,875.3) scale(0.33)" style="opacity:0.68"/>
+          <use href="#star4" class="sky-star" transform="translate(708.6,877.9) scale(0.29)" style="opacity:0.64"/>
+          <use href="#star4" class="sky-star" transform="translate(684.6,873.3) scale(0.31)" style="opacity:0.66"/>
+          <use href="#star4" class="sky-star" transform="translate(671.1,872.5) scale(0.28)" style="opacity:0.63"/>
+        </g>
+        <g class="sky-drift">
+          <use href="#star4" data-mag="5.0" data-nei="0" transform="translate(43,10) scale(0.28)" style="opacity:0.61"/>
+          <use href="#star4" data-mag="4.4" data-nei="3" transform="translate(150,26) scale(0.26)" style="opacity:0.61"/>
+          <use href="#star4" data-mag="5.5" data-nei="1" transform="translate(247,20) scale(0.23)" style="opacity:0.54"/>
+          <use href="#star4" data-mag="5.1" data-nei="6" transform="translate(872,32) scale(0.17)" style="opacity:0.50"/>
+          <use href="#star4" data-mag="5.6" data-nei="6" transform="translate(896,20) scale(0.15)" style="opacity:0.46"/>
+          <use href="#star4" data-mag="5.2" data-nei="7" transform="translate(924,21) scale(0.15)" style="opacity:0.47"/>
+          <use href="#star4" data-mag="4.4" data-nei="2" transform="translate(1029,20) scale(0.28)" style="opacity:0.63"/>
+          <use href="#star4" data-mag="5.0" data-nei="6" transform="translate(144,74) scale(0.18)" style="opacity:0.51"/>
+          <use href="#star4" data-mag="5.3" data-nei="4" transform="translate(172,53) scale(0.19)" style="opacity:0.52"/>
+          <use href="#star4" data-mag="5.2" data-nei="1" transform="translate(252,67) scale(0.24)" style="opacity:0.57"/>
+          <use href="#star4" data-mag="3.8" data-nei="6" transform="translate(868,58) scale(0.24)" style="opacity:0.60"/>
+          <use href="#star4" data-mag="5.4" data-nei="6" transform="translate(879,44) scale(0.16)" style="opacity:0.47"/>
+          <use href="#star4" data-mag="2.8" data-nei="9" transform="translate(936,64) scale(0.23)" style="opacity:0.62"/>
+          <use href="#star4" data-mag="5.1" data-nei="7" transform="translate(960,74) scale(0.15)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="4.6" data-nei="6" transform="translate(1010,56) scale(0.19)" style="opacity:0.54"/>
+          <use href="#star4" data-mag="4.7" data-nei="3" transform="translate(1071,41) scale(0.24)" style="opacity:0.58"/>
+          <use href="#star4" data-mag="5.4" data-nei="6" transform="translate(85,109) scale(0.16)" style="opacity:0.47"/>
+          <use href="#star4" data-mag="5.3" data-nei="7" transform="translate(123,101) scale(0.15)" style="opacity:0.47"/>
+          <use href="#star4" data-mag="5.7" data-nei="8" transform="translate(156,97) scale(0.12)" style="opacity:0.42"/>
+          <use href="#star4" data-mag="3.8" data-nei="9" transform="translate(905,88) scale(0.18)" style="opacity:0.55"/>
+          <use href="#star4" data-mag="4.8" data-nei="8" transform="translate(984,105) scale(0.15)" style="opacity:0.49"/>
+          <use href="#star4" data-mag="5.5" data-nei="8" transform="translate(1009,102) scale(0.12)" style="opacity:0.43"/>
+          <use href="#star4" data-mag="4.0" data-nei="8" transform="translate(1029,106) scale(0.18)" style="opacity:0.54"/>
+          <use href="#star4" data-mag="3.0" data-nei="6" transform="translate(1078,96) scale(0.29)" style="opacity:0.66"/>
+          <use href="#star4" data-mag="3.9" data-nei="2" transform="translate(18,138) scale(0.32)" style="opacity:0.67"/>
+          <use href="#star4" data-mag="5.1" data-nei="7" transform="translate(98,138) scale(0.15)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="5.5" data-nei="7" transform="translate(119,118) scale(0.14)" style="opacity:0.45"/>
+          <use href="#star4" data-mag="3.8" data-nei="7" transform="translate(165,149) scale(0.21)" style="opacity:0.58"/>
+          <use href="#star4" data-mag="5.0" data-nei="3" transform="translate(922,143) scale(0.23)" style="opacity:0.56"/>
+          <use href="#star4" data-mag="4.5" data-nei="7" transform="translate(955,121) scale(0.18)" style="opacity:0.52"/>
+          <use href="#star4" data-mag="5.1" data-nei="7" transform="translate(1034,131) scale(0.15)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="4.8" data-nei="5" transform="translate(1084,144) scale(0.20)" style="opacity:0.53"/>
+          <use href="#star4" data-mag="4.3" data-nei="4" transform="translate(56,161) scale(0.24)" style="opacity:0.59"/>
+          <use href="#star4" data-mag="5.8" data-nei="6" transform="translate(140,173) scale(0.14)" style="opacity:0.45"/>
+          <use href="#star4" data-mag="5.3" data-nei="4" transform="translate(174,187) scale(0.19)" style="opacity:0.51"/>
+          <use href="#star4" data-mag="5.5" data-nei="7" transform="translate(983,155) scale(0.14)" style="opacity:0.45"/>
+          <use href="#star4" data-mag="5.6" data-nei="6" transform="translate(1068,162) scale(0.15)" style="opacity:0.46"/>
+          <use href="#star4" data-mag="4.6" data-nei="3" transform="translate(12,197) scale(0.25)" style="opacity:0.58"/>
+          <use href="#star4" data-mag="5.0" data-nei="4" transform="translate(129,210) scale(0.21)" style="opacity:0.54"/>
+          <use href="#star4" data-mag="5.3" data-nei="2" transform="translate(980,193) scale(0.22)" style="opacity:0.54"/>
+          <use href="#star4" data-mag="3.7" data-nei="3" transform="translate(1057,221) scale(0.31)" style="opacity:0.67"/>
+          <use href="#star4" data-mag="4.4" data-nei="4" transform="translate(1067,206) scale(0.24)" style="opacity:0.59"/>
+          <use href="#star4" data-mag="5.4" data-nei="2" transform="translate(22,258) scale(0.22)" style="opacity:0.54"/>
+          <use href="#star4" data-mag="4.5" data-nei="4" transform="translate(135,231) scale(0.23)" style="opacity:0.58"/>
+          <use href="#star4" data-mag="4.4" data-nei="1" transform="translate(954,235) scale(0.30)" style="opacity:0.64"/>
+          <use href="#star4" data-mag="4.6" data-nei="2" transform="translate(1048,246) scale(0.27)" style="opacity:0.61"/>
+          <use href="#star4" data-mag="3.0" data-nei="5" transform="translate(51,302) scale(0.31)" style="opacity:0.68"/>
+          <use href="#star4" data-mag="4.2" data-nei="3" transform="translate(100,283) scale(0.28)" style="opacity:0.62"/>
+          <use href="#star4" data-mag="5.7" data-nei="5" transform="translate(48,339) scale(0.16)" style="opacity:0.47"/>
+          <use href="#star4" data-mag="4.4" data-nei="5" transform="translate(79,325) scale(0.22)" style="opacity:0.57"/>
+          <use href="#star4" data-mag="5.0" data-nei="1" transform="translate(994,320) scale(0.26)" style="opacity:0.58"/>
+          <use href="#star4" data-mag="4.3" data-nei="4" transform="translate(85,354) scale(0.25)" style="opacity:0.59"/>
+          <use href="#star4" data-mag="5.7" data-nei="4" transform="translate(23,407) scale(0.17)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="4.7" data-nei="5" transform="translate(90,391) scale(0.21)" style="opacity:0.55"/>
+          <use href="#star4" data-mag="4.6" data-nei="2" transform="translate(1017,385) scale(0.27)" style="opacity:0.61"/>
+          <use href="#star4" data-mag="5.4" data-nei="1" transform="translate(1039,415) scale(0.23)" style="opacity:0.55"/>
+          <use href="#star4" data-mag="4.7" data-nei="6" transform="translate(81,436) scale(0.19)" style="opacity:0.53"/>
+          <use href="#star4" data-mag="3.6" data-nei="5" transform="translate(15,459) scale(0.27)" style="opacity:0.64"/>
+          <use href="#star4" data-mag="3.2" data-nei="6" transform="translate(58,488) scale(0.27)" style="opacity:0.64"/>
+          <use href="#star4" data-mag="5.7" data-nei="5" transform="translate(81,467) scale(0.16)" style="opacity:0.47"/>
+          <use href="#star4" data-mag="4.9" data-nei="4" transform="translate(1061,491) scale(0.21)" style="opacity:0.54"/>
+          <use href="#star4" data-mag="5.1" data-nei="2" transform="translate(1088,493) scale(0.24)" style="opacity:0.57"/>
+          <use href="#star4" data-mag="4.4" data-nei="5" transform="translate(34,516) scale(0.22)" style="opacity:0.56"/>
+          <use href="#star4" data-mag="5.3" data-nei="5" transform="translate(97,498) scale(0.18)" style="opacity:0.50"/>
+          <use href="#star4" data-mag="4.9" data-nei="5" transform="translate(1001,521) scale(0.19)" style="opacity:0.53"/>
+          <use href="#star4" data-mag="5.5" data-nei="6" transform="translate(1072,528) scale(0.15)" style="opacity:0.46"/>
+          <use href="#star4" data-mag="3.3" data-nei="6" transform="translate(81,541) scale(0.27)" style="opacity:0.63"/>
+          <use href="#star4" data-mag="5.2" data-nei="5" transform="translate(1001,538) scale(0.18)" style="opacity:0.51"/>
+          <use href="#star4" data-mag="5.4" data-nei="6" transform="translate(1031,556) scale(0.16)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="3.1" data-nei="8" transform="translate(55,602) scale(0.22)" style="opacity:0.61"/>
+          <use href="#star4" data-mag="4.4" data-nei="6" transform="translate(89,602) scale(0.20)" style="opacity:0.55"/>
+          <use href="#star4" data-mag="5.8" data-nei="5" transform="translate(118,582) scale(0.16)" style="opacity:0.47"/>
+          <use href="#star4" data-mag="5.0" data-nei="6" transform="translate(1009,595) scale(0.17)" style="opacity:0.51"/>
+          <use href="#star4" data-mag="5.7" data-nei="7" transform="translate(1035,583) scale(0.13)" style="opacity:0.44"/>
+          <use href="#star4" data-mag="5.5" data-nei="4" transform="translate(16,623) scale(0.18)" style="opacity:0.49"/>
+          <use href="#star4" data-mag="5.7" data-nei="7" transform="translate(53,640) scale(0.13)" style="opacity:0.44"/>
+          <use href="#star4" data-mag="4.3" data-nei="6" transform="translate(105,614) scale(0.20)" style="opacity:0.55"/>
+          <use href="#star4" data-mag="5.0" data-nei="5" transform="translate(135,632) scale(0.19)" style="opacity:0.52"/>
+          <use href="#star4" data-mag="4.7" data-nei="3" transform="translate(964,623) scale(0.24)" style="opacity:0.58"/>
+          <use href="#star4" data-mag="3.8" data-nei="8" transform="translate(1033,641) scale(0.19)" style="opacity:0.55"/>
+          <use href="#star4" data-mag="5.6" data-nei="6" transform="translate(1071,638) scale(0.15)" style="opacity:0.46"/>
+          <use href="#star4" data-mag="5.7" data-nei="6" transform="translate(33,665) scale(0.15)" style="opacity:0.45"/>
+          <use href="#star4" data-mag="3.7" data-nei="6" transform="translate(49,673) scale(0.24)" style="opacity:0.60"/>
+          <use href="#star4" data-mag="3.9" data-nei="6" transform="translate(122,673) scale(0.23)" style="opacity:0.59"/>
+          <use href="#star4" data-mag="3.9" data-nei="3" transform="translate(161,662) scale(0.30)" style="opacity:0.65"/>
+          <use href="#star4" data-mag="4.8" data-nei="7" transform="translate(1005,650) scale(0.17)" style="opacity:0.50"/>
+          <use href="#star4" data-mag="3.0" data-nei="7" transform="translate(1049,675) scale(0.26)" style="opacity:0.64"/>
+          <use href="#star4" data-mag="5.6" data-nei="6" transform="translate(1068,666) scale(0.15)" style="opacity:0.46"/>
+          <use href="#star4" data-mag="5.0" data-nei="4" transform="translate(19,715) scale(0.21)" style="opacity:0.54"/>
+          <use href="#star4" data-mag="4.3" data-nei="6" transform="translate(66,695) scale(0.21)" style="opacity:0.56"/>
+          <use href="#star4" data-mag="4.2" data-nei="5" transform="translate(172,707) scale(0.23)" style="opacity:0.59"/>
+          <use href="#star4" data-mag="4.8" data-nei="4" transform="translate(211,720) scale(0.22)" style="opacity:0.55"/>
+          <use href="#star4" data-mag="4.4" data-nei="4" transform="translate(910,697) scale(0.24)" style="opacity:0.58"/>
+          <use href="#star4" data-mag="5.0" data-nei="6" transform="translate(967,719) scale(0.17)" style="opacity:0.50"/>
+          <use href="#star4" data-mag="4.2" data-nei="7" transform="translate(1010,691) scale(0.19)" style="opacity:0.55"/>
+          <use href="#star4" data-mag="5.5" data-nei="5" transform="translate(1077,705) scale(0.17)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="4.9" data-nei="5" transform="translate(45,750) scale(0.20)" style="opacity:0.53"/>
+          <use href="#star4" data-mag="3.7" data-nei="5" transform="translate(131,739) scale(0.26)" style="opacity:0.62"/>
+          <use href="#star4" data-mag="4.8" data-nei="5" transform="translate(173,736) scale(0.20)" style="opacity:0.53"/>
+          <use href="#star4" data-mag="5.4" data-nei="6" transform="translate(238,745) scale(0.16)" style="opacity:0.47"/>
+          <use href="#star4" data-mag="4.7" data-nei="4" transform="translate(895,728) scale(0.22)" style="opacity:0.56"/>
+          <use href="#star4" data-mag="4.1" data-nei="7" transform="translate(934,748) scale(0.20)" style="opacity:0.56"/>
+          <use href="#star4" data-mag="5.4" data-nei="9" transform="translate(954,750) scale(0.12)" style="opacity:0.44"/>
+          <use href="#star4" data-mag="5.4" data-nei="7" transform="translate(1036,736) scale(0.14)" style="opacity:0.46"/>
+          <use href="#star4" data-mag="4.7" data-nei="5" transform="translate(31,790) scale(0.21)" style="opacity:0.55"/>
+          <use href="#star4" data-mag="5.1" data-nei="7" transform="translate(57,794) scale(0.15)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="4.7" data-nei="5" transform="translate(117,796) scale(0.20)" style="opacity:0.54"/>
+          <use href="#star4" data-mag="4.9" data-nei="8" transform="translate(182,789) scale(0.14)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="5.1" data-nei="7" transform="translate(246,776) scale(0.15)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="5.5" data-nei="5" transform="translate(889,781) scale(0.17)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="3.3" data-nei="9" transform="translate(979,779) scale(0.21)" style="opacity:0.59"/>
+          <use href="#star4" data-mag="5.1" data-nei="7" transform="translate(991,794) scale(0.15)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="5.0" data-nei="6" transform="translate(1033,779) scale(0.18)" style="opacity:0.51"/>
+          <use href="#star4" data-mag="5.7" data-nei="4" transform="translate(1077,795) scale(0.17)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="4.3" data-nei="6" transform="translate(36,809) scale(0.21)" style="opacity:0.56"/>
+          <use href="#star4" data-mag="5.4" data-nei="9" transform="translate(94,833) scale(0.12)" style="opacity:0.44"/>
+          <use href="#star4" data-mag="5.0" data-nei="7" transform="translate(185,813) scale(0.15)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="5.8" data-nei="8" transform="translate(223,805) scale(0.11)" style="opacity:0.42"/>
+          <use href="#star4" data-mag="4.8" data-nei="8" transform="translate(232,807) scale(0.15)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="3.7" data-nei="6" transform="translate(273,811) scale(0.24)" style="opacity:0.60"/>
+          <use href="#star4" data-mag="4.5" data-nei="4" transform="translate(314,804) scale(0.24)" style="opacity:0.58"/>
+          <use href="#star4" data-mag="5.1" data-nei="4" transform="translate(367,831) scale(0.20)" style="opacity:0.53"/>
+          <use href="#star4" data-mag="5.4" data-nei="4" transform="translate(789,822) scale(0.19)" style="opacity:0.50"/>
+          <use href="#star4" data-mag="4.6" data-nei="5" transform="translate(817,808) scale(0.21)" style="opacity:0.56"/>
+          <use href="#star4" data-mag="3.4" data-nei="5" transform="translate(868,801) scale(0.28)" style="opacity:0.65"/>
+          <use href="#star4" data-mag="5.4" data-nei="9" transform="translate(943,808) scale(0.12)" style="opacity:0.43"/>
+          <use href="#star4" data-mag="4.1" data-nei="9" transform="translate(985,806) scale(0.17)" style="opacity:0.53"/>
+          <use href="#star4" data-mag="5.1" data-nei="9" transform="translate(992,825) scale(0.13)" style="opacity:0.46"/>
+          <use href="#star4" data-mag="5.7" data-nei="5" transform="translate(34,855) scale(0.16)" style="opacity:0.47"/>
+          <use href="#star4" data-mag="5.5" data-nei="7" transform="translate(68,849) scale(0.14)" style="opacity:0.45"/>
+          <use href="#star4" data-mag="5.1" data-nei="5" transform="translate(105,870) scale(0.18)" style="opacity:0.51"/>
+          <use href="#star4" data-mag="5.7" data-nei="6" transform="translate(148,863) scale(0.15)" style="opacity:0.45"/>
+          <use href="#star4" data-mag="5.5" data-nei="7" transform="translate(219,862) scale(0.14)" style="opacity:0.45"/>
+          <use href="#star4" data-mag="4.4" data-nei="8" transform="translate(274,849) scale(0.16)" style="opacity:0.51"/>
+          <use href="#star4" data-mag="4.5" data-nei="7" transform="translate(371,846) scale(0.18)" style="opacity:0.53"/>
+          <use href="#star4" data-mag="5.4" data-nei="6" transform="translate(392,853) scale(0.16)" style="opacity:0.47"/>
+          <use href="#star4" data-mag="4.9" data-nei="5" transform="translate(428,870) scale(0.19)" style="opacity:0.53"/>
+          <use href="#star4" data-mag="4.2" data-nei="3" transform="translate(508,869) scale(0.27)" style="opacity:0.62"/>
+          <use href="#star4" data-mag="4.9" data-nei="4" transform="translate(693,862) scale(0.21)" style="opacity:0.54"/>
+          <use href="#star4" data-mag="4.1" data-nei="4" transform="translate(734,859) scale(0.26)" style="opacity:0.61"/>
+          <use href="#star4" data-mag="5.5" data-nei="5" transform="translate(780,864) scale(0.17)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="4.3" data-nei="7" transform="translate(831,851) scale(0.19)" style="opacity:0.54"/>
+          <use href="#star4" data-mag="3.8" data-nei="6" transform="translate(856,856) scale(0.24)" style="opacity:0.60"/>
+          <use href="#star4" data-mag="3.3" data-nei="7" transform="translate(886,870) scale(0.24)" style="opacity:0.61"/>
+          <use href="#star4" data-mag="4.6" data-nei="6" transform="translate(928,843) scale(0.19)" style="opacity:0.53"/>
+          <use href="#star4" data-mag="4.6" data-nei="8" transform="translate(981,853) scale(0.16)" style="opacity:0.50"/>
+          <use href="#star4" data-mag="5.8" data-nei="6" transform="translate(997,870) scale(0.14)" style="opacity:0.45"/>
+          <use href="#star4" data-mag="4.4" data-nei="7" transform="translate(1051,852) scale(0.18)" style="opacity:0.53"/>
+          <use href="#star4" data-mag="4.9" data-nei="4" transform="translate(1076,856) scale(0.21)" style="opacity:0.54"/>
+          <use href="#star4" data-mag="4.6" data-nei="5" transform="translate(111,892) scale(0.21)" style="opacity:0.56"/>
+          <use href="#star4" data-mag="5.5" data-nei="4" transform="translate(131,888) scale(0.18)" style="opacity:0.49"/>
+          <use href="#star4" data-mag="5.1" data-nei="4" transform="translate(246,896) scale(0.20)" style="opacity:0.53"/>
+          <use href="#star4" data-mag="4.0" data-nei="5" transform="translate(285,881) scale(0.24)" style="opacity:0.60"/>
+          <use href="#star4" data-mag="5.0" data-nei="4" transform="translate(314,898) scale(0.21)" style="opacity:0.54"/>
+          <use href="#star4" data-mag="3.6" data-nei="5" transform="translate(368,911) scale(0.27)" style="opacity:0.63"/>
+          <use href="#star4" data-mag="5.3" data-nei="6" transform="translate(391,879) scale(0.16)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="3.4" data-nei="6" transform="translate(427,885) scale(0.26)" style="opacity:0.63"/>
+          <use href="#star4" data-mag="5.4" data-nei="4" transform="translate(484,910) scale(0.19)" style="opacity:0.50"/>
+          <use href="#star4" data-mag="4.3" data-nei="4" transform="translate(516,887) scale(0.25)" style="opacity:0.59"/>
+          <use href="#star4" data-mag="3.9" data-nei="3" transform="translate(563,889) scale(0.30)" style="opacity:0.65"/>
+          <use href="#star4" data-mag="5.4" data-nei="3" transform="translate(584,898) scale(0.20)" style="opacity:0.52"/>
+          <use href="#star4" data-mag="3.5" data-nei="3" transform="translate(635,887) scale(0.32)" style="opacity:0.68"/>
+          <use href="#star4" data-mag="5.5" data-nei="3" transform="translate(667,896) scale(0.20)" style="opacity:0.51"/>
+          <use href="#star4" data-mag="5.5" data-nei="4" transform="translate(718,895) scale(0.18)" style="opacity:0.49"/>
+          <use href="#star4" data-mag="4.5" data-nei="4" transform="translate(859,905) scale(0.23)" style="opacity:0.57"/>
+          <use href="#star4" data-mag="4.2" data-nei="4" transform="translate(891,907) scale(0.25)" style="opacity:0.60"/>
+          <use href="#star4" data-mag="5.7" data-nei="5" transform="translate(937,886) scale(0.16)" style="opacity:0.47"/>
+          <use href="#star4" data-mag="5.7" data-nei="4" transform="translate(1048,887) scale(0.17)" style="opacity:0.48"/>
+          <use href="#star4" data-mag="5.0" data-nei="3" transform="translate(1076,881) scale(0.22)" style="opacity:0.55"/>
+        </g>
       </g>
 
       {{/* ---------- 那颗"稍微不一样"的星星：里版入口（只是旁边多一颗小卫星） ---------- */}}

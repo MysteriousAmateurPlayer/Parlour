@@ -166,7 +166,7 @@
       g.appendChild(path);
     }
     piecesG.appendChild(g);
-    return { g: g, path: path, icon: icon, pc: pc, item: pc.item, cz: -1 };
+    return { g: g, path: path, icon: icon, pc: pc, item: pc.item, cz: -1, wasFront: null };
   });
 
   /* ---------- 每帧更新 ---------- */
@@ -239,7 +239,6 @@
         sx += s.x; sy += s.y;
         d += (k ? 'L' : 'M') + s.x.toFixed(1) + ' ' + s.y.toFixed(1);
       }
-      n.path.setAttribute('d', d + 'Z');
 
       var c = screen((n.pc.lat1 + n.pc.lat2) / 2, (n.pc.lon1 + n.pc.lon2) / 2);
       n.cz = c.z;
@@ -250,8 +249,14 @@
       var front = maxZ > 0.02;
       var show = front && fade > 0.04;
 
-      n.path.style.visibility = front ? 'visible' : 'hidden';
-      n.g.style.pointerEvents = front ? 'auto' : 'none';
+      if (front !== n.wasFront) {
+        n.path.style.visibility = front ? 'visible' : 'hidden';
+        n.g.style.pointerEvents = front ? 'auto' : 'none';
+        n.wasFront = front;
+      }
+      if (!front) { if (n.icon) n.icon.style.visibility = 'hidden'; return; }   // 背面：完全不碰 DOM
+
+      n.path.setAttribute('d', d + 'Z');
 
       // 渐变跟着片区走：中心在片区重心，半径约到片区边缘 → 颜色从中心向外淡出
       if (n.item) {
@@ -281,8 +286,9 @@
 
     // 远的先画、近的后画，避免球体边缘互相压盖
     var order = nodes.slice().sort(function (a, b) { return a.cz - b.cz; });
-    // 签名要跟着真实深度变，否则片区的绘制顺序永远停在第一帧（转到边缘会互相压盖、看着像跳）
-    var sig = order.map(function (n) { return n.pc.lon1 + ':' + n.pc.lat1 + ':' + n.cz.toFixed(3); }).join('|');
+    // 签名只用「身份序列」：相对顺序变了才动 DOM。
+    // （早前一版把 cz 也写进签名，导致每帧都重排 12 个节点，转动时抖动/出错）
+    var sig = order.map(function (n) { return n.pc.lon1 + ':' + n.pc.lat1; }).join('|');
     if (sig !== lastOrder) {
       lastOrder = sig;
       order.forEach(function (n) { piecesG.appendChild(n.g); });

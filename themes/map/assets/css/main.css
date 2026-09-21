@@ -806,15 +806,26 @@ button, input, select, textarea { font: inherit; color: inherit; }
   z-index: 0;
 }
 .hero__star-ring { display: block; width: 100%; height: 100%; }
-.star-ring__orbit {
-  fill: none;
-  stroke: var(--ring-line);
-  stroke-width: 1;
-  stroke-dasharray: 2 7;
+/* 太阳的星轨图纸：三条轨道静止，刻度与天体整体绕太阳转 */
+.ring-orbit { fill: none; stroke: var(--ring-line); }
+.ring-orbit--outer { stroke-width: 1.2; opacity: 0.5; }
+.ring-orbit--main { stroke-width: 1; stroke-dasharray: 3 6; }
+.ring-orbit--inner { stroke-width: 0.9; stroke-dasharray: 1 5; opacity: 0.75; }
+.ring-marks {
+  animation: ring-turn 300s linear infinite;
+  transform-box: view-box;
+  transform-origin: 800px 280px;
 }
-.star-ring__stars { color: var(--globe-star); }
-.star-ring__stars circle { fill: currentColor; }
-.star-ring__stars use { fill: none; stroke: currentColor; stroke-width: 0.9; }
+@keyframes ring-turn { to { transform: rotate(360deg); } }
+.ring-tick { stroke: var(--ring-line); stroke-width: 0.9; }
+.ring-tick--major { stroke-width: 1.3; opacity: 1; }
+.ring-star { fill: color-mix(in srgb, var(--globe-star) 45%, transparent); stroke: var(--globe-star); stroke-width: 0.9; stroke-linejoin: round; }
+.ring-star--bright { fill: color-mix(in srgb, var(--accent) 30%, transparent); stroke: color-mix(in srgb, var(--accent) 70%, var(--ink)); }
+.ring-halo { fill: none; stroke: var(--ring-line); stroke-width: 0.8; opacity: 0.7; }
+.ring-planet { fill: color-mix(in srgb, var(--accent) 26%, transparent); stroke: var(--accent); stroke-width: 1; }
+.ring-planet-ring { fill: none; stroke: color-mix(in srgb, var(--accent) 60%, transparent); stroke-width: 0.9; }
+.ring-comet { fill: none; stroke: color-mix(in srgb, var(--accent) 55%, var(--ink)); stroke-width: 1; stroke-linecap: round; opacity: 0.8; }
+.ring-comet-head { fill: color-mix(in srgb, var(--accent) 30%, transparent); stroke: color-mix(in srgb, var(--accent) 70%, var(--ink)); stroke-width: 1; stroke-linejoin: round; }
 
 /* 文字压在太阳与星环之上 */
 .hero__sun-wrap > *:not(.hero__sun-layer):not(.hero__ring-layer) {
@@ -850,14 +861,22 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .globe-svg:active, .globe-svg.is-dragging { cursor: grabbing; }
 
 /* 星野：纸上的墨色，像古典星图 */
-.globe-stars { color: var(--globe-star); }
-.globe-stars circle { fill: currentColor; }
-.globe-stars use {
+.sky-field use {
   fill: color-mix(in srgb, var(--globe-star) 55%, transparent);
-  stroke: currentColor;
+  stroke: var(--globe-star);
   stroke-width: 1;
   stroke-linejoin: round;
 }
+/* 星座（静止的图形） */
+.sky-figures { color: var(--globe-star); }
+/* 背景星：绕着地球缓慢流动（转到地球背后时被遮罩挡住，像星星落到地平线下） */
+.sky-drift {
+  color: var(--globe-star);
+  animation: sky-turn 480s linear infinite;
+  transform-box: view-box;
+  transform-origin: 550px 430px;
+}
+@keyframes sky-turn { to { transform: rotate(360deg); } }
 /* 星座图形连线与名称：像古典星图 */
 .sky-figure {
   fill: none;
@@ -2149,4 +2168,5 @@ body.is-modal-open { overflow: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   .brand__emblem, .sky-scale__mark { transition: none; }
+  .sky-drift, .ring-marks { animation: none; }
 }
