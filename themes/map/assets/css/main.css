@@ -522,7 +522,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .hero-act__orbit { fill: none; stroke: var(--ring-line); stroke-width: 1; transition: stroke 0.25s var(--ease); }
 .hero-act__orbit--in { stroke-dasharray: 2 4; opacity: 0.7; }
 .hero-act__dot { fill: var(--ring-line); transition: fill 0.25s var(--ease); }
-.hero-act:hover .hero-act__orbit, .hero-act:hover .hero-act__dot { stroke: var(--accent); fill: var(--accent); }
+/* 悬停只改线色：轨道永远不填充（fill 保持 none），内部镂空不会变色 */
+.hero-act:hover .hero-act__orbit { stroke: var(--accent); fill: none; }
+.hero-act:hover .hero-act__dot { fill: var(--accent); }
 .hero-act__icon { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); line-height: 0; }
 .hero-act__icon .icon { width: 1.6rem; height: 1.6rem; stroke-width: 1.2; }
 .hero-act__label { font-family: var(--font-serif); font-size: 0.7rem; letter-spacing: 0.22em; text-indent: 0.22em; white-space: nowrap; }

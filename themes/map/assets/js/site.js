@@ -183,8 +183,8 @@
   }
   function readColors() {
     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    colStreak = toRgba(cssColor('--flow-streak', dark ? '#e8c98d' : '#221f1c'), dark ? 0.3 : 0.22);
-    colSpark = toRgba(cssColor('--flow-spark', dark ? '#eccb8a' : '#8f4a2c'), dark ? 0.55 : 0.4);
+    colStreak = toRgba(cssColor('--flow-streak', dark ? '#e8c98d' : '#221f1c'), dark ? 0.5 : 0.4);
+    colSpark = toRgba(cssColor('--flow-spark', dark ? '#eccb8a' : '#8f4a2c'), dark ? 0.75 : 0.6);
   }
 
   var STRANDS = 7;
@@ -212,7 +212,7 @@
       ox: 0, oy: 0,
       hx: [], hy: [],
       age: 0, life: 600 + Math.random() * 1000,
-      hot: Math.random() < 0.16,
+      hot: Math.random() < 0.13,
       tw: Math.random() * Math.PI * 2, tws: 0.4 + Math.random() * 1.4
     };
   }
@@ -240,7 +240,7 @@
     var disc = document.querySelector('.sun-disc');
     var dr = disc ? disc.getBoundingClientRect() : null;
     sunR = (dr && r.width) ? (dr.width / 2) * (W / r.width) : W * 0.17;
-    var n = Math.max(600, Math.min(2200, Math.round((W + H) * 1.9)));
+    var n = Math.max(1800, Math.min(6600, Math.round((W + H) * 5.7)));   // 粒子数×3
     parts = [];
     for (var i = 0; i < n; i++) parts.push(spawn(i));
   }
@@ -292,9 +292,15 @@
       var tw = 0.55 + 0.45 * Math.sin(p.tw + t0 * 0.0012 * p.tws);
 
       ctx.strokeStyle = p.hot ? colSpark : colStreak;
-      ctx.globalAlpha = Math.max(0.015, (p.hot ? 0.55 : 0.3) * fade * tw * depth);
+      ctx.globalAlpha = Math.max(0.03, (p.hot ? 0.7 : 0.45) * fade * tw * depth);
       ctx.lineWidth = (p.hot ? 0.9 : 0.55) * (0.6 + 0.6 * depth);
       var n = p.hx.length;
+      if (!p.hot) {
+        // 普通粒子：一个极小的实心点（数量大也不拖慢）
+        ctx.fillStyle = colStreak;
+        ctx.fillRect(p.x - 0.45, p.y - 0.45, 0.9 * (0.6 + 0.6 * depth), 0.9 * (0.6 + 0.6 * depth));
+        continue;
+      }
       if (n >= 3) {
         // 用真实历史点画曲线：方向必然一致，且随轨迹弯曲
         ctx.beginPath();
