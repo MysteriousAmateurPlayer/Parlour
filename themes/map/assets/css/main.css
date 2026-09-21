@@ -468,6 +468,29 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 
+.hero-act {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.15rem 0.7rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.25s var(--ease), color 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.hero-act:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+.hero-act__icon .icon { width: 1.85rem; height: 1.85rem; stroke-width: 1.15; }
+.hero-act__label {
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  white-space: nowrap;
+}
+
 .hero__actions {
   margin-top: clamp(1.5rem, 3vw, 2.5rem);
   display: flex;
@@ -486,12 +509,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
   flex-direction: column;
   align-items: center;
   gap: 0.35rem;
-  font-family: var(--font-sans);
-  font-size: 0.72rem;
-  letter-spacing: 0.3em;
-  color: var(--ink-mute);
+  font-family: var(--font-serif);
+  font-size: 0.92rem;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  color: var(--ink-soft);
   transition: color 0.25s var(--ease);
 }
+.scroll-hint .icon { width: 1.5rem; height: 1.5rem; stroke-width: 1.2; }
 .scroll-hint:hover { color: var(--accent); }
 .scroll-hint .icon { animation: nudge 2.4s var(--ease) infinite; }
 
@@ -825,6 +850,18 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .ring-glyph { fill: none; stroke: color-mix(in srgb, var(--accent) 66%, var(--ink)); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; }
 .ring-glyph circle[r="1.5"], .ring-glyph circle[r="1.9"], .ring-glyph circle[r="1.15"] { fill: color-mix(in srgb, var(--accent) 45%, transparent); }
 .ring-dot { fill: var(--ring-line); opacity: 1; }
+
+/* 流动的星尘：大小与相位各异，缓慢闪烁，像细碎的特效 */
+.ring-flow {
+  fill: color-mix(in srgb, var(--globe-star) 72%, transparent);
+  animation-name: ring-flow-pulse;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes ring-flow-pulse {
+  0%, 100% { opacity: 0.14; }
+  45% { opacity: 0.95; }
+}
 .ring-star { fill: color-mix(in srgb, var(--globe-star) 45%, transparent); stroke: var(--globe-star); stroke-width: 0.9; stroke-linejoin: round; }
 .ring-star--bright { fill: color-mix(in srgb, var(--accent) 30%, transparent); stroke: color-mix(in srgb, var(--accent) 70%, var(--ink)); }
 .ring-halo { fill: none; stroke: var(--ring-line); stroke-width: 0.8; opacity: 0.7; }

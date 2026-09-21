@@ -439,18 +439,27 @@
     var o = orbits[el.getAttribute('data-orbit')] || orbits.main;
     // 刻度要贴着椭圆法线；天体/公式这类装饰只轻微倾斜，保持可读
     var glyph = !!el.querySelector('.ring-glyph, .ring-dot');
-    return { el: el, rx: o[0], ry: o[1], a: parseFloat(el.getAttribute('data-a')) || 0, glyph: glyph };
+    var sp = parseFloat(el.getAttribute('data-sp'));
+    return {
+      el: el, rx: o[0], ry: o[1], a: parseFloat(el.getAttribute('data-a')) || 0,
+      glyph: glyph,
+      bob: el.getAttribute('data-bob') === '1',
+      sp: isNaN(sp) ? 1 : sp          // 星尘速度略有差异 → 缓慢流动
+    };
   });
 
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var t = 0, visible = false, last = 0;
 
-  function draw() {
+  function draw(now) {
+    if (now == null) now = 0;
     for (var i = 0; i < list.length; i++) {
       var it = list[i];
-      var a = it.a + t;
+      var a = it.a + t * it.sp;
       var x = CX + it.rx * Math.cos(a);
       var y = CY + it.ry * Math.sin(a);
+      // 沿环做正弦上下浮动：相位随角度累进，整整一圈正好 7 个波长
+      if (it.bob) y += 9 * Math.sin(7 * a + now * 0.0006);
       var th = Math.atan2(it.rx * Math.sin(a), it.ry * Math.cos(a)) * 180 / Math.PI;
       it.el.setAttribute('transform', 'translate(' + x.toFixed(1) + ',' + y.toFixed(1) + ') rotate(' + (it.glyph ? th * 0.22 : th).toFixed(2) + ')');
     }
@@ -468,11 +477,11 @@
       var dt = Math.min(100, now - last);
       last = now;
       t += dt * (Math.PI * 2 / 300000);   // 一圈 5 分钟
-      draw();
+      draw(now);
     } else { last = 0; }
     requestAnimationFrame(loop);
   }
-  draw();
+  draw(0);
   requestAnimationFrame(loop);
 })();
 

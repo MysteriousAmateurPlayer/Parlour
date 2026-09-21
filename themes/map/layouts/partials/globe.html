@@ -13,7 +13,7 @@
 
 {{- $sections := slice -}}
 {{- range $key, $meta := hugo.Data.sections -}}
-  {{- if and $meta.home (ne $key "vault") -}}
+  {{- if and $meta.home (ne $key "vault") (ne $meta.globe false) -}}
     {{- $sec := site.GetPage (printf "/%s" $key) -}}
     {{- $href := partial "link.html" (printf "/%s/" $key) -}}
     {{- with $sec }}{{ $href = .RelPermalink }}{{ end -}}

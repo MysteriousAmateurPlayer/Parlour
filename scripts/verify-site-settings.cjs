@@ -32,7 +32,7 @@ try {
   ok('首页文案能解析成表单值', !!values['hero.name'], `名字=${values['hero.name']}`);
   ok('段落是多行文本', values['about.paragraphs'].includes('\n'), `${values['about.paragraphs'].split('\n').length} 段`);
   ok('速览是「名目 | 内容」', values['about.facts'].includes('|'), JSON.stringify(values['about.facts'].split('\n')[0]));
-  ok('字段表覆盖了 16 项', W.SITE_HOME_FIELDS.length === 16, String(W.SITE_HOME_FIELDS.length));
+  ok('字段表覆盖了 18 项', W.SITE_HOME_FIELDS.length === 18, String(W.SITE_HOME_FIELDS.length));
 
   const probe = { ...values };
   probe['hero.tabTitle'] = '__测试标签页标题__';

@@ -11,11 +11,13 @@ hero:
   tabTitle: "欢迎来到幻想星图会客厅！"
   # 两个按钮：primary 为实心，secondary 为描边
   primary:
-    label: "从头认识我"
-    url: "/about/"
+    label: "关于本站"
+    url: "#about-preview"
+    icon: "axes"
   secondary:
-    label: "最近的记录"
-    url: "/fanworks/"
+    label: "最近更新"
+    url: "#latest"
+    icon: "clock"
 
 # 首页「关于我」预览区块
 about:

@@ -20,16 +20,20 @@
     </div>
 
     {{/* 两个按钮放在太阳外面（太阳上只留"MAP的"与站名，盘面才装得下） */}}
+    {{/* 两个可点击的图标：坐标象征"空间"（关于本站），时钟象征"时间"（最近更新） */}}
     {{- if or $hero.primary $hero.secondary }}
     <div class="hero__actions reveal" style="--d:320ms">
       {{- with $hero.primary }}
-      <a class="btn btn--primary" href="{{ partial "link.html" .url }}">
-        <span>{{ .label }}</span>
-        {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
+      <a class="hero-act" href="{{ partial "link.html" .url }}" data-name="{{ .label }}">
+        <span class="hero-act__icon">{{ partial "icon.html" (dict "name" (default "axes" .icon) "class" "icon") }}</span>
+        <span class="hero-act__label">{{ .label }}</span>
       </a>
       {{- end }}
       {{- with $hero.secondary }}
-      <a class="btn btn--ghost" href="{{ partial "link.html" .url }}"><span>{{ .label }}</span></a>
+      <a class="hero-act" href="{{ partial "link.html" .url }}" data-name="{{ .label }}">
+        <span class="hero-act__icon">{{ partial "icon.html" (dict "name" (default "clock" .icon) "class" "icon") }}</span>
+        <span class="hero-act__label">{{ .label }}</span>
+      </a>
       {{- end }}
     </div>
     {{- end }}
@@ -38,7 +42,7 @@
   {{- if site.Params.appearance.showScrollHint }}
   <a class="scroll-hint" href="#globe" aria-label="向下看完整的地球">
     <span class="scroll-hint__text">向下</span>
-    {{ partial "icon.html" (dict "name" "arrow-down" "class" "icon icon--sm") }}
+    {{ partial "icon.html" (dict "name" "arrow-down" "class" "icon") }}
   </a>
   {{- end }}
 </section>

@@ -77,7 +77,9 @@ try {
   globeCapacity = gj.capacity || 0;
 } catch (e) { globeSections = -1; }
 check('地球仪数据可解析', globeSections >= 0, globeSections < 0 ? 'JSON 解析失败' : `${globeSections} 个板块`);
-check('地球仪覆盖全部首页板块', globeSections === homeSections.length, `${globeSections} / ${homeSections.length}`);
+// 板块可以用 globe: false 明确排除在地球拼图之外（例如"关于本站"在首页另有区块）
+const globeEligible = list.filter((s) => s.home && String(s.globe) !== 'false').length;
+check('地球仪覆盖全部该上拼图的板块', globeSections === globeEligible, `${globeSections} / ${globeEligible}`);
 check('地球仪留了空位给以后的板块', globeCapacity > homeSections.length, `capacity=${globeCapacity}`);
 check('星野里有里版入口那颗特殊的星星', home.includes('vault-star'));
 

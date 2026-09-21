@@ -8,6 +8,8 @@ about:
   weight: 10
   nav: true
   home: true
+  # 首页已有单独的「关于本站」区块，所以不再出现在地球拼图里
+  globe: false
 fanworks:
   title: "东方二次同人创作"
   en: "Fanworks"

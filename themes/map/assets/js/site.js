@@ -20,6 +20,9 @@
 
   function applyTheme(theme, remember) {
     root.setAttribute('data-theme', theme);
+  var fav = document.getElementById('favicon');
+  if (fav) fav.setAttribute('href', (fav.getAttribute('data-base') || fav.getAttribute('href')).replace(/favicon(-dark)?\.svg/, theme === 'dark' ? 'favicon-dark.svg' : 'favicon.svg'));
+
     if (remember) {
       try { localStorage.setItem(STORAGE_KEY, theme); } catch (e) {}
     }
