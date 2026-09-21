@@ -1,5 +1,7 @@
 {{- $hero := hugo.Data.home.hero -}}
 <section class="hero">
+  {{/* 首屏粒子流场（波浪 + 涡流），由 assets/js/site.js 驱动 */}}
+  <canvas class="hero__flow" aria-hidden="true"></canvas>
   <div class="wrap hero__inner">
     {{/* 站名放在一个典雅的太阳上（盘面用 CSS，光芒是古典的锥形 + 火焰形交替） */}}
     <div class="hero__sun-wrap">
