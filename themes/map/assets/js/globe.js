@@ -437,7 +437,9 @@
   };
   var list = Array.prototype.map.call(items, function (el) {
     var o = orbits[el.getAttribute('data-orbit')] || orbits.main;
-    return { el: el, rx: o[0], ry: o[1], a: parseFloat(el.getAttribute('data-a')) || 0 };
+    // 刻度要贴着椭圆法线；天体/公式这类装饰只轻微倾斜，保持可读
+    var glyph = !!el.querySelector('.ring-glyph, .ring-dot');
+    return { el: el, rx: o[0], ry: o[1], a: parseFloat(el.getAttribute('data-a')) || 0, glyph: glyph };
   });
 
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -450,7 +452,7 @@
       var x = CX + it.rx * Math.cos(a);
       var y = CY + it.ry * Math.sin(a);
       var th = Math.atan2(it.rx * Math.sin(a), it.ry * Math.cos(a)) * 180 / Math.PI;
-      it.el.setAttribute('transform', 'translate(' + x.toFixed(1) + ',' + y.toFixed(1) + ') rotate(' + th.toFixed(2) + ')');
+      it.el.setAttribute('transform', 'translate(' + x.toFixed(1) + ',' + y.toFixed(1) + ') rotate(' + (it.glyph ? th * 0.22 : th).toFixed(2) + ')');
     }
   }
 

@@ -388,7 +388,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   /* 一屏高，但在超高的显示器上设上限，避免主视觉被拉得过分空旷 */
   min-height: calc(100vh - var(--header-h));
   min-height: min(calc(100svh - var(--header-h)), var(--hero-max));
-  padding-block-start: clamp(2rem, 9vh, 6rem);
+  padding-block-start: clamp(3.5rem, 15vh, 9.5rem);   /* 让太阳连星轨一起完整露出来 */
   padding-block-end: clamp(1rem, 2vh, 2rem);
   text-align: center;
   overflow: hidden;
@@ -478,10 +478,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 .scroll-hint {
-  position: absolute;
-  left: 50%;
-  bottom: calc(var(--globe-overlap) + 1rem);
-  transform: translateX(-50%);
+  /* 跟在按钮之后、太阳星轨之下；用绝对定位会在矮视口里撞进太阳 */
+  position: relative;
+  margin: clamp(1.1rem, 3.2vh, 2.2rem) auto 0;
+  width: fit-content;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -727,7 +727,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
    -------------------------------------------------------------------------- */
 .hero__sun-wrap {
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* 固定一个不小于盘面的高度：文字多少不影响太阳圆心位置 */
+  min-height: calc(var(--sun-d) * 1.06);
 }
 
 .hero__sun-layer {
@@ -790,7 +795,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   position: absolute;
   left: 50%;
   top: 50%;
-  width: min(148vw, 92rem);
+  width: min(96vw, 90rem);
   aspect-ratio: 1600 / 560;
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -799,13 +804,27 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .hero__star-ring { display: block; width: 100%; height: 100%; }
 /* 太阳的星轨图纸：三条轨道静止，刻度与天体整体绕太阳转 */
 .ring-orbit { fill: none; stroke: var(--ring-line); }
-.ring-orbit--outer { stroke-width: 1.2; opacity: 0.5; }
+.ring-orbit--outer { stroke-width: 1.2; opacity: 0.55; }
 .ring-orbit--main { stroke-width: 1; stroke-dasharray: 3 6; }
 .ring-orbit--inner { stroke-width: 0.9; stroke-dasharray: 1 5; opacity: 0.75; }
 .ring-marks { }
 
-.ring-tick { stroke: var(--ring-line); stroke-width: 0.9; }
-.ring-tick--major { stroke-width: 1.3; opacity: 1; }
+.ring-tick { stroke: var(--ring-line); stroke-width: 0.9; opacity: 0.75; }
+.ring-tick--long { stroke-width: 1.15; opacity: 0.95; }
+.ring-tick--fine { stroke-width: 0.7; opacity: 0.6; }
+
+/* 天球仪般的构造线：虚线椭圆、赤道细线、径向标尺 */
+.ring-construct { fill: none; stroke: var(--ring-line); }
+.ring-construct--a { stroke-width: 0.8; stroke-dasharray: 1 7; opacity: 0.55; }
+.ring-construct--b { stroke-width: 0.8; stroke-dasharray: 6 5 1 5; opacity: 0.4; }
+.ring-construct--line { stroke-width: 0.7; stroke-dasharray: 2 6; opacity: 0.45; }
+.ring-rule path { fill: none; stroke: var(--ring-line); stroke-width: 0.8; opacity: 0.5; }
+.ring-rule path:last-child { stroke-width: 1.1; opacity: 0.7; }
+
+/* 轨道上的装饰：各色天体、数学公式、物理概念 */
+.ring-glyph { fill: none; stroke: color-mix(in srgb, var(--accent) 66%, var(--ink)); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; }
+.ring-glyph circle[r="1.5"], .ring-glyph circle[r="1.9"], .ring-glyph circle[r="1.15"] { fill: color-mix(in srgb, var(--accent) 45%, transparent); }
+.ring-dot { fill: var(--ring-line); opacity: 1; }
 .ring-star { fill: color-mix(in srgb, var(--globe-star) 45%, transparent); stroke: var(--globe-star); stroke-width: 0.9; stroke-linejoin: round; }
 .ring-star--bright { fill: color-mix(in srgb, var(--accent) 30%, transparent); stroke: color-mix(in srgb, var(--accent) 70%, var(--ink)); }
 .ring-halo { fill: none; stroke: var(--ring-line); stroke-width: 0.8; opacity: 0.7; }
