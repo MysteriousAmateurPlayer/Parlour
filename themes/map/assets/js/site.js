@@ -561,13 +561,16 @@
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   }
 
-  function build(el, count, ringBias) {
+  function build(el, count, ringBias, rightBias) {
     var frag = document.createDocumentFragment();
     for (var i = 0; i < count; i++) {
       var s = document.createElement('i');
       s.className = 'spark';
       var x, y;
-      if (ringBias) {
+      if (rightBias) {
+        x = 42 + rnd() * 56;
+        y = rnd() * 100;
+      } else if (ringBias) {
         // 靠近中部的环形带密度更高（贴合太阳星轨 / 地球轮廓）
         var a = rnd() * Math.PI * 2;
         var r = 0.18 + Math.pow(rnd(), 0.6) * 0.62;
@@ -585,6 +588,14 @@
       s.style.animationDelay = (-rnd() * 9).toFixed(2) + 's';
       s.style.animationDuration = (4.5 + rnd() * 5.5).toFixed(2) + 's';
       s.style.animationDirection = rnd() < 0.5 ? 'normal' : 'alternate';
+      // ④ 动画每循环一次就换一个位置：视觉上就是"此处消失、他处出现"
+      s.addEventListener('animationiteration', function () {
+        var nx, ny;
+        if (rightBias) { nx = 42 + rnd() * 56; ny = rnd() * 100; }
+        else { nx = rnd() * 100; ny = rnd() * 100; }
+        s.style.left = nx.toFixed(2) + '%';
+        s.style.top = ny.toFixed(2) + '%';
+      });
       frag.appendChild(s);
     }
     el.appendChild(frag);
@@ -592,9 +603,15 @@
 
   Array.prototype.forEach.call(fields, function (el) {
     // 与 css 里的三个装饰区对应：hero 最多、globe 次之、footer 适量
-    // 收敛：只在页眉与页脚，数量少、尺寸小、闪烁幅度低
-    var n = el.classList.contains('sparkle-field--header') ? 120 : 70;
-    build(el, n, true);
+    // 各处背景都铺星：页眉 / 旋臂 / 页脚为主，其余区域少量
+    var cls = el.className;
+    var n = cls.indexOf('sparkle-field--header') >= 0 ? 110
+          : cls.indexOf('sparkle-field--galaxy') >= 0 ? 130
+          : cls.indexOf('sparkle-field--footer') >= 0 ? 110
+          : cls.indexOf('sparkle-field--page') >= 0 ? 150
+          : 40;
+    var rightBias = cls.indexOf('sparkle-field--galaxy') >= 0;   // 旋臂区偏右分布
+    build(el, n, true, rightBias);
   });
   if (reduce) {
     // 减少动效：全部静止在最暗状态，不闪

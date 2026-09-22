@@ -12,6 +12,7 @@
 {{- end -}}
 
 <header class="page-head" style="--accent: {{ $meta.accent }}">
+  {{ partial "galaxy.html" . }}
   <div class="wrap">
     <p class="page-head__kicker">{{ $meta.en }}</p>
     <h1 class="page-head__title">{{ .Title }}</h1>

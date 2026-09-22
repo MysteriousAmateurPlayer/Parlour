@@ -2028,6 +2028,7 @@ body.is-modal-open { overflow: hidden; }
    13 页脚与 404
    -------------------------------------------------------------------------- */
 .site-footer {
+  position: relative;   /* 页脚星场以此为定位基准 */
   margin-top: clamp(3rem, 8vw, 6rem);
   padding-block: clamp(2.5rem, 5vw, 3.5rem) 2rem;
   border-top: 1px solid var(--line);
@@ -2426,6 +2427,9 @@ body.is-modal-open { overflow: hidden; }
 /* 定点闪烁星：数百颗，用 clip-path 画四角星（无 SVG，节点极轻） */
 .sparkle-field { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .sparkle-field--globe { z-index: 3; }
+/* 整页背景星场：极淡，只在空白处形成微光 */
+.site-main { position: relative; }
+.sparkle-field--page { z-index: 0; opacity: 0.5; }
 .spark--big { color: color-mix(in srgb, var(--accent) 85%, var(--ink)); }
 .spark {
   position: absolute;
@@ -2439,9 +2443,12 @@ body.is-modal-open { overflow: hidden; }
   will-change: opacity, transform;
 }
 @keyframes spark-twinkle {
-  0%, 100% { opacity: 0.12; transform: scale(0.65) rotate(0deg); }
-  38% { opacity: 1; transform: scale(1.15) rotate(8deg); }
-  58% { opacity: 0.55; transform: scale(0.95) rotate(-4deg); }
+  /* 亮起 → 熄灭 → 保持熄灭（熄灭期间由 JS 换到新位置，于是"此处消失、他处出现"） */
+  0% { opacity: 0; transform: scale(0.5); }
+  6% { opacity: 1; transform: scale(1.05); }
+  34% { opacity: 0.85; transform: scale(0.98); }
+  46% { opacity: 0; transform: scale(0.6); }
+  100% { opacity: 0; transform: scale(0.5); }
 }
 
 /* --------------------------------------------------------------------------
@@ -2466,7 +2473,7 @@ body.is-modal-open { overflow: hidden; }
 @keyframes galaxy-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .galaxy__arm { stroke: currentColor; stroke-width: 1.6; opacity: 0.72; }
 .galaxy__dust path { opacity: 0.66; }
-.galaxy__stars path { stroke-width: 1.05; opacity: 0.95; }
+.galaxy__stars path { stroke-width: 1.9; opacity: 0.9; }
 .galaxy__core-in { fill: currentColor; opacity: 0.55; }
 .galaxy__core-out { fill: currentColor; opacity: 0.22; }
 .galaxy__core-halo { fill: currentColor; opacity: 0.1; }

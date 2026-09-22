@@ -4,6 +4,7 @@
 {{- $about := hugo.Data.home.about -}}
 
 <header class="page-head page-head--profile" style="--accent: {{ $meta.accent }}">
+  {{ partial "galaxy.html" . }}
   <div class="wrap">
     <p class="page-head__kicker">{{ $meta.en | default "About" }}</p>
     <h1 class="page-head__title">{{ .Title }}</h1>

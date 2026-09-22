@@ -1,6 +1,7 @@
 {{ define "main" }}
 {{- $meta := partial "section-meta.html" .Section -}}
 <header class="page-head" style="--accent: {{ $meta.accent }}">
+  {{ partial "galaxy.html" . }}
   <div class="wrap">
     {{- with $meta.en }}<p class="page-head__kicker">{{ . }}</p>{{ end }}
     <h1 class="page-head__title">{{ .Title }}</h1>
