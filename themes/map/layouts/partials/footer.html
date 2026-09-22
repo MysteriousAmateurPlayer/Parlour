@@ -1,5 +1,12 @@
 <footer class="site-footer">
-  {{ partial "filigree.html" (dict "flip" true) }}
+  {{/* 花边：与页眉同款的涡卷花带 */}}
+  <div class="ornament-band ornament-band--foot" aria-hidden="true">
+    <span class="ornament-band__rule"></span>
+    {{ partial "frieze.html" (dict "dir" "h") }}
+    <span class="ornament-band__rule"></span>
+    <span class="ornament-band__medal">{{ partial "medallion.html" . }}</span>
+  </div>
+
   <div class="wrap">
     {{/* 天文仪器式的刻度带：细线 + 刻度 + 一组天体纹样 */}}
     <div class="sky-scale" aria-hidden="true">

@@ -53,5 +53,11 @@
       </nav>
     </div>
   </div>
-  {{ partial "filigree.html" (dict "flip" false) }}
+  {{/* 花边：连续涡卷花带 + 中央徽章 */}}
+  <div class="ornament-band" aria-hidden="true">
+    <span class="ornament-band__rule"></span>
+    {{ partial "frieze.html" (dict "dir" "h") }}
+    <span class="ornament-band__rule"></span>
+    <span class="ornament-band__medal">{{ partial "medallion.html" . }}</span>
+  </div>
 </header>
