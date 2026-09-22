@@ -579,9 +579,9 @@
       }
       s.style.left = x.toFixed(2) + '%';
       s.style.top = y.toFixed(2) + '%';
-      var big = rnd() < 0.09;                       // 约 9% 做成明亮的大星
+      var big = rnd() < 0.045;                       // 约 9% 做成明亮的大星
       if (big) s.className = 'spark spark--big';
-      s.style.setProperty('--sz', (big ? 0.8 + rnd() * 0.6 : 0.28 + rnd() * 0.5).toFixed(2));
+      s.style.setProperty('--sz', (big ? 0.5 + rnd() * 0.3 : 0.2 + rnd() * 0.28).toFixed(2));
       s.style.animationDelay = (-rnd() * 9).toFixed(2) + 's';
       s.style.animationDuration = (4.5 + rnd() * 5.5).toFixed(2) + 's';
       s.style.animationDirection = rnd() < 0.5 ? 'normal' : 'alternate';
@@ -592,8 +592,8 @@
 
   Array.prototype.forEach.call(fields, function (el) {
     // 与 css 里的三个装饰区对应：hero 最多、globe 次之、footer 适量
-    var n = el.classList.contains('sparkle-field--hero') ? 180
-          : el.classList.contains('sparkle-field--globe') ? 150 : 70;
+    // 收敛：只在页眉与页脚，数量少、尺寸小、闪烁幅度低
+    var n = el.classList.contains('sparkle-field--header') ? 120 : 70;
     build(el, n, true);
   });
   if (reduce) {

@@ -1,3 +1,3 @@
-{{- /* 闪烁星容器：具体星点由 assets/js/site.js 批量生成（数百颗，性能更省） */ -}}
-{{- $v := .variant | default "hero" -}}
+{{- /* 闪烁星容器：星点由 assets/js/site.js 批量生成。主要用于页眉与页脚花带 */ -}}
+{{- $v := .variant | default "header" -}}
 <span class="sparkle-field sparkle-field--{{ $v }}" aria-hidden="true"></span>
