@@ -404,19 +404,40 @@
     var A = parseFloat(cv.getAttribute('data-a')) || 7.5;
     var Hh = parseFloat(cv.getAttribute('data-h')) || 44;
     var ctx = cv.getContext('2d');
-    var st = { cv: cv, ctx: ctx, P: P, A: A, H: Hh, W: 0, H0: 0, parts: [] };
+    var st = { cv: cv, ctx: ctx, P: P, A: A, H: Hh, W: 0, H0: 0, parts: [],
+               phase: Math.random() * P,              // 匀速改变的初相位
+               lanes: [] };
+    // ② 五条平行曲线：纵向错开，各自略有差异的幅度与相位 → 形成有厚度的河
+    for (var L = 0; L < 5; L++) {
+      st.lanes.push({
+        off: (L - 2) * 6.2,
+        amp: A * (0.72 + 0.16 * Math.abs(2 - L)) / 1.1,
+        ph: L * 0.9,
+        dash: [30 + L * 9, 46 + (4 - L) * 11],     // 长短与间隔错落
+        speed: 0.020 + L * 0.0035
+      });
+    }
     items.push(st);
     resizeOne(st);
   });
 
-  function waveY(st, x) { return st.H0 / 2 + st.A * Math.sin((x / st.P) * Math.PI * 2); }
-  function waveSlope(st, x) { return st.A * (Math.PI * 2 / st.P) * Math.cos((x / st.P) * Math.PI * 2); }
+  function waveY(st, x, lane) {
+    var ph = st.phase + (lane ? lane.ph : 0);
+    var amp = lane ? lane.amp : st.A;
+    return st.H0 / 2 + (lane ? lane.off : 0) + amp * Math.sin(((x + ph) / st.P) * Math.PI * 2);
+  }
+  function waveSlope(st, x, lane) {
+    var ph = st.phase + (lane ? lane.ph : 0);
+    var amp = lane ? lane.amp : st.A;
+    return amp * (Math.PI * 2 / st.P) * Math.cos(((x + ph) / st.P) * Math.PI * 2);
+  }
 
   function spawn(st, atStart) {
     return {
       x: atStart ? -8 : Math.random() * st.W,   // 全宽均匀出生
       sp: 0.55 + Math.random() * 0.9,          // 个体速度差
-      off: ((Math.random() + Math.random() + Math.random()) / 1.5 - 1) * 15,   // 沿波上下铺开成一条河（中间密、两侧疏）
+      off: ((Math.random() + Math.random() + Math.random()) / 1.5 - 1) * 5,   // 沿波上下铺开成一条河（中间密、两侧疏）
+      lane: Math.floor(Math.random() * 5),
       tw: Math.random() * Math.PI * 2, tws: 0.5 + Math.random() * 1.6,
       hot: Math.random() < 0.18
     };
@@ -438,14 +459,38 @@
     ctx.clearRect(0, 0, st.W, st.H0);
     ctx.globalCompositeOperation = 'lighter';
     ctx.lineCap = 'round';
+
+    /* ① 匀速改变初相位 → 整条河缓缓起伏推移 */
+    st.phase -= dt * 0.016;
+
+    /* ② 多条平行曲线：各自虚线错落，虚线偏移持续移动 → 川流不息 */
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = col;
+    for (var L = 0; L < st.lanes.length; L++) {
+      var lane = st.lanes[L];
+      lane.offDash = (lane.offDash || 0) - dt * lane.speed;
+      ctx.lineWidth = 0.7;
+      ctx.setLineDash(lane.dash);
+      ctx.lineDashOffset = lane.offDash;
+      ctx.beginPath();
+      for (var x = -20; x <= st.W + 20; x += 8) {
+        var yy = waveY(st, x, lane);
+        if (x <= -20) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
+
     var lastA = -1;
     for (var i = 0; i < st.parts.length; i++) {
       var p = st.parts[i];
       var x0 = p.x;
       p.x += p.sp * 0.024 * dt;      // 缓缓流动：约 20~55 px/s
       if (p.x > st.W + 10) { st.parts[i] = spawn(st, true); continue; }   // 出右端 → 回左端，循环均匀
-      var y0 = waveY(st, x0) + p.off;
-      var y1 = waveY(st, p.x) + p.off;
+      var lane = st.lanes[p.lane || 0];
+      var y0 = waveY(st, x0, lane) + p.off;
+      var y1 = waveY(st, p.x, lane) + p.off;
       var tw = 0.5 + 0.5 * Math.sin(p.tw + performance.now() * 0.0012 * p.tws);
       var aq = Math.round(Math.max(0.05, (p.hot ? 0.75 : 0.42) * tw) * 7);
       if (aq !== lastA) { ctx.globalAlpha = aq / 7; lastA = aq; }
