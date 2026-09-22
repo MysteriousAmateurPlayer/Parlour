@@ -212,7 +212,7 @@
       t: 0.76 + (s + 0.5) / STRANDS * 0.32 + (Math.random() - 0.5) * 0.085,
       ox: 0, oy: 0,
       hx: [], hy: [],
-      age: 0, life: 600 + Math.random() * 1000,
+      age: 0, life: 600 + Math.random() * 1000, wave: 0,
       hot: Math.random() < 0.06,
       tw: Math.random() * Math.PI * 2, tws: 0.4 + Math.random() * 1.4
     };
@@ -252,14 +252,17 @@
       tick++;
       for (var i = 0; i < parts.length; i++) {
         var p = parts[i], S = st[p.s];
-        p.a += 0.00072 * S.speed;
+        p.a += 0.00086 * S.speed;      // 略提速（+20%），仍与星轨同量级
         var ex = cx + rx * p.t * Math.cos(p.a), ey = cy + ry * p.t * Math.sin(p.a);
         flow(ex, ey, S.seed, tmp);
         // 漂移收敛（幅度小、回位快）→ 始终贴着所属的那一股
-        p.ox += tmp[0] * 7 * S.drift - p.ox * 0.14;
-        p.oy += tmp[1] * 7 * S.drift - p.oy * 0.14;
+        p.ox += tmp[0] * 9 * S.drift - p.ox * 0.15;
+        p.oy += tmp[1] * 9 * S.drift - p.oy * 0.15;
         p.age++;
         if (p.age > p.life) parts[i] = spawn(p.s);
+        // 束内行进波：整束一起蜿蜒（组内一致），并随时间缓慢推进
+        p.wave = 0.022 * Math.sin(2 * p.a + S.seed + t0 * 0.00009)
+               + 0.010 * Math.sin(3 * p.a - S.bobP + t0 * 0.00013);
         // 每 SAMPLE 帧记一次真实位置 → 拖尾直接连这些点
         if (tick % SAMPLE === 0 && parts[i] === p) {
           p.hx.push(p.x == null ? ex + p.ox : p.x);
@@ -267,9 +270,11 @@
           if (p.hx.length > HIST) { p.hx.shift(); p.hy.shift(); }
         }
         // 当前位置（含上下浮动）
-        p.x = cx + rx * p.t * Math.cos(p.a) + p.ox;
-        p.y = cy + ry * p.t * Math.sin(p.a) + p.oy
-              + ry * 0.05 * S.bobA * Math.sin(S.bobF * 2 + S.bobP + t0 * 0.00025);
+        var w = p.wave || 0;
+        p.x = cx + rx * (p.t + w) * Math.cos(p.a) + p.ox;
+        p.y = cy + ry * (p.t + w) * Math.sin(p.a) + p.oy
+              + ry * 0.055 * S.bobA * (0.7 + 0.3 * Math.sin(3 * p.a + S.seed + t0 * 0.0001))
+                * Math.sin(S.bobF * 2 + S.bobP + t0 * 0.00028);
       }
       t0 += 16;
     }

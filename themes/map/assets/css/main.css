@@ -59,18 +59,18 @@
   --ink-mute: #8d857c;
   --line: #e4ddd2;
   --line-strong: #cfc6b8;
-  --accent: #8f4a2c;            /* 日间：色相往黄偏约 8°，仍远浅于夜间 */
-  --accent-ink: #7a3d25;
-  --accent-soft: rgba(143, 74, 44, 0.08);
+  --accent: #90582c;            /* 日间：色相再往金黄偏约 9°（共约 17°），仍远浅于夜间 */
+  --accent-ink: #794925;
+  --accent-soft: rgba(144, 88, 44, 0.08);
   --shadow-sm: 0 1px 2px rgba(34, 31, 28, 0.04);
   --shadow: 0 10px 30px -18px rgba(34, 31, 28, 0.35);
   --shadow-lg: 0 28px 60px -32px rgba(34, 31, 28, 0.42);
   --grain-opacity: 0.05;
 
   /* 承载简介的太阳 */
-  --sun-core: rgba(143, 74, 44, 0.13);
-  --sun-edge: rgba(143, 74, 44, 0.34);
-  --sun-edge-inner: rgba(143, 74, 44, 0.16);
+  --sun-core: rgba(144, 88, 44, 0.13);
+  --sun-edge: rgba(144, 88, 44, 0.34);
+  --sun-edge-inner: rgba(144, 88, 44, 0.16);
 
   /* 地球仪：纸底上的镂空线稿（星图质感），不做夜空反色 */
   --globe-overlap: clamp(10rem, 40vh, 30rem);   /* 地球往上顶进主视觉多少 */
@@ -99,7 +99,7 @@
   --code-type: #7a5a1f;
   --code-punct: #6b6259;
   --code-error: #a52f2f;
-  --code-hl: rgba(143, 74, 44, 0.07);
+  --code-hl: rgba(144, 88, 44, 0.07);
 }
 
 [data-theme="dark"] {
