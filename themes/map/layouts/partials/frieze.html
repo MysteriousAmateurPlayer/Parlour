@@ -1,34 +1,33 @@
-{{- /* 页眉/页脚花边：纯几何 —— 罗马扇形鳞纹（三层同心拱）+ 珠链轴线 + 拱顶星芒。
-       由 .tools/gen-ornament.cjs 生成；以 SVG pattern 无缝平铺，颜色随 currentColor。 */ -}}
+{{- /* 页眉/页脚花边：稀疏的"星之波浪" —— 一条平缓的正弦波，
+       每周期仅两枚星芒与数颗圆珠，位置与朝向都由波函数算出（不会错位）。
+       平铺无缝，颜色随 currentColor；贯通整个页面宽度，不断开。 */ -}}
 {{- $dir := .dir | default "h" -}}
 {{- if eq $dir "h" -}}
-<svg class="frieze frieze--h" width="100%" height="46" aria-hidden="true" focusable="false" preserveAspectRatio="none">
+<svg class="frieze frieze--h" width="100%" height="44" aria-hidden="true" focusable="false" preserveAspectRatio="none">
   <defs>
-    <pattern id="fr-h" patternUnits="userSpaceOnUse" width="44" height="46">
+    <pattern id="fr-h" patternUnits="userSpaceOnUse" width="240" height="44">
       <g fill="none" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M-10.00 32.00A21.00 21.00 0 0 1 32.00 32.00M-5.40 32.00A16.40 16.40 0 0 1 27.40 32.00M-0.80 32.00A11.80 11.80 0 0 1 22.80 32.00M12.00 32.00A21.00 21.00 0 0 1 54.00 32.00M16.60 32.00A16.40 16.40 0 0 1 49.40 32.00M21.20 32.00A11.80 11.80 0 0 1 44.80 32.00"/>
-        <path d="M0 32.00H44"/>
-        <path d="M7.58 23.20L11.00 23.20L14.42 23.20M11.00 19.78L11.00 23.20L11.00 26.62M29.58 23.20L33.00 23.20L36.42 23.20M33.00 19.78L33.00 23.20L33.00 26.62"/>
+        <path d="M0.00 22.00L4.00 22.78L8.00 23.56L12.00 24.32L16.00 25.05L20.00 25.75L24.00 26.41L28.00 27.02L32.00 27.57L36.00 28.07L40.00 28.50L44.00 28.85L48.00 29.13L52.00 29.34L56.00 29.46L60.00 29.50L64.00 29.46L68.00 29.34L72.00 29.13L76.00 28.85L80.00 28.50L84.00 28.07L88.00 27.57L92.00 27.02L96.00 26.41L100.00 25.75L104.00 25.05L108.00 24.32L112.00 23.56L116.00 22.78L120.00 22.00L124.00 21.22L128.00 20.44L132.00 19.68L136.00 18.95L140.00 18.25L144.00 17.59L148.00 16.98L152.00 16.43L156.00 15.93L160.00 15.50L164.00 15.15L168.00 14.87L172.00 14.66L176.00 14.54L180.00 14.50L184.00 14.54L188.00 14.66L192.00 14.87L196.00 15.15L200.00 15.50L204.00 15.93L208.00 16.43L212.00 16.98L216.00 17.59L220.00 18.25L224.00 18.95L228.00 19.68L232.00 20.44L236.00 21.22L240.00 22.00"/>
+        <path d="M56.60 34.30L60.00 34.30L63.40 34.30M60.00 30.90L60.00 34.30L60.00 37.70M60.00 29.50L60.00 34.30M176.60 19.30L180.00 19.30L183.40 19.30M180.00 15.90L180.00 19.30L180.00 22.70M180.00 14.50L180.00 19.30"/>
       </g>
-      <g fill="currentColor" stroke="none"><circle cx="5.50" cy="32.00" r="1.15"/><circle cx="16.50" cy="32.00" r="1.15"/><circle cx="27.50" cy="32.00" r="1.15"/><circle cx="38.50" cy="32.00" r="1.15"/><circle cx="11.00" cy="18.60" r="1.4"/><circle cx="33.00" cy="18.60" r="1.4"/></g>
+      <g fill="currentColor" stroke="none"><circle cx="0.00" cy="22.00" r="1.25"/><circle cx="120.00" cy="22.00" r="1.25"/><circle cx="30.00" cy="27.30" r="0.85"/><circle cx="90.00" cy="27.30" r="0.85"/><circle cx="150.00" cy="16.70" r="0.85"/><circle cx="210.00" cy="16.70" r="0.85"/></g>
     </pattern>
   </defs>
-  <rect width="100%" height="46" fill="url(#fr-h)"/>
+  <rect width="100%" height="44" fill="url(#fr-h)"/>
 </svg>
 {{- else -}}
-<svg class="frieze frieze--v" width="46" height="100%" aria-hidden="true" focusable="false" preserveAspectRatio="none">
+<svg class="frieze frieze--v" width="44" height="100%" aria-hidden="true" focusable="false" preserveAspectRatio="none">
   <defs>
-    <pattern id="fr-v" patternUnits="userSpaceOnUse" width="46" height="44">
-      <g transform="translate(46 0) rotate(90)">
+    <pattern id="fr-v" patternUnits="userSpaceOnUse" width="44" height="240">
+      <g transform="translate(44 0) rotate(90)">
       <g fill="none" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M-10.00 32.00A21.00 21.00 0 0 1 32.00 32.00M-5.40 32.00A16.40 16.40 0 0 1 27.40 32.00M-0.80 32.00A11.80 11.80 0 0 1 22.80 32.00M12.00 32.00A21.00 21.00 0 0 1 54.00 32.00M16.60 32.00A16.40 16.40 0 0 1 49.40 32.00M21.20 32.00A11.80 11.80 0 0 1 44.80 32.00"/>
-        <path d="M0 32.00H44"/>
-        <path d="M7.58 23.20L11.00 23.20L14.42 23.20M11.00 19.78L11.00 23.20L11.00 26.62M29.58 23.20L33.00 23.20L36.42 23.20M33.00 19.78L33.00 23.20L33.00 26.62"/>
+        <path d="M0.00 22.00L4.00 22.78L8.00 23.56L12.00 24.32L16.00 25.05L20.00 25.75L24.00 26.41L28.00 27.02L32.00 27.57L36.00 28.07L40.00 28.50L44.00 28.85L48.00 29.13L52.00 29.34L56.00 29.46L60.00 29.50L64.00 29.46L68.00 29.34L72.00 29.13L76.00 28.85L80.00 28.50L84.00 28.07L88.00 27.57L92.00 27.02L96.00 26.41L100.00 25.75L104.00 25.05L108.00 24.32L112.00 23.56L116.00 22.78L120.00 22.00L124.00 21.22L128.00 20.44L132.00 19.68L136.00 18.95L140.00 18.25L144.00 17.59L148.00 16.98L152.00 16.43L156.00 15.93L160.00 15.50L164.00 15.15L168.00 14.87L172.00 14.66L176.00 14.54L180.00 14.50L184.00 14.54L188.00 14.66L192.00 14.87L196.00 15.15L200.00 15.50L204.00 15.93L208.00 16.43L212.00 16.98L216.00 17.59L220.00 18.25L224.00 18.95L228.00 19.68L232.00 20.44L236.00 21.22L240.00 22.00"/>
+        <path d="M56.60 34.30L60.00 34.30L63.40 34.30M60.00 30.90L60.00 34.30L60.00 37.70M60.00 29.50L60.00 34.30M176.60 19.30L180.00 19.30L183.40 19.30M180.00 15.90L180.00 19.30L180.00 22.70M180.00 14.50L180.00 19.30"/>
       </g>
-      <g fill="currentColor" stroke="none"><circle cx="5.50" cy="32.00" r="1.15"/><circle cx="16.50" cy="32.00" r="1.15"/><circle cx="27.50" cy="32.00" r="1.15"/><circle cx="38.50" cy="32.00" r="1.15"/><circle cx="11.00" cy="18.60" r="1.4"/><circle cx="33.00" cy="18.60" r="1.4"/></g>
+      <g fill="currentColor" stroke="none"><circle cx="0.00" cy="22.00" r="1.25"/><circle cx="120.00" cy="22.00" r="1.25"/><circle cx="30.00" cy="27.30" r="0.85"/><circle cx="90.00" cy="27.30" r="0.85"/><circle cx="150.00" cy="16.70" r="0.85"/><circle cx="210.00" cy="16.70" r="0.85"/></g>
       </g>
     </pattern>
   </defs>
-  <rect width="46" height="100%" fill="url(#fr-v)"/>
+  <rect width="44" height="100%" fill="url(#fr-v)"/>
 </svg>
 {{- end -}}

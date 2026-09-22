@@ -2264,16 +2264,15 @@ body.is-modal-open { overflow: hidden; }
     z-index: 1;
   }
   .sky-margins__side {
+    /* 整高：这样波浪贯通上下，太阳徽章正好落在垂直中点 */
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.55rem;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    display: block;
   }
-  .sky-margins__side--left { left: clamp(0.9rem, 2vw, 2.1rem); align-items: flex-start; }
-  .sky-margins__side--right { right: clamp(0.9rem, 2vw, 2.1rem); align-items: flex-end; }
+  .sky-margins__side--left { left: clamp(0.9rem, 2vw, 2.1rem); }
+  .sky-margins__side--right { right: clamp(0.9rem, 2vw, 2.1rem); }
   .sky-margins__cap {
     display: inline-grid;
     place-items: center;
@@ -2348,8 +2347,7 @@ body.is-modal-open { overflow: hidden; }
    -------------------------------------------------------------------------- */
 .ornament-band {
   position: relative;
-  display: flex;
-  align-items: center;
+  display: block;
   width: 100%;
   color: var(--ring-line);
 }
@@ -2361,8 +2359,8 @@ body.is-modal-open { overflow: hidden; }
   background: currentColor;
   opacity: 0.45;
 }
-.frieze { display: block; color: var(--ring-line); opacity: 0.62; }
-.frieze--h { flex: 1 1 auto; min-width: 0; }
+.frieze { display: block; width: 100%; color: var(--ring-line); opacity: 0.6; }
+.frieze--h { width: 100%; }
 .frieze--v { flex: 1 1 auto; min-height: 0; }
 /* 中央徽章：以页面底色"切断"花带，形成古典的 cartouche 效果 */
 .ornament-band__medal {
@@ -2381,16 +2379,27 @@ body.is-modal-open { overflow: hidden; }
 
 /* 页边：纵向涡卷花边取代原来的刻度带 */
 .sky-margins__vine {
-  flex: 1 1 auto;
-  width: 2.6rem;
-  min-height: 4rem;
-  display: grid;
-  place-items: center;
+  position: absolute;
+  inset: 0;
+  display: block;
   overflow: hidden;
   color: var(--ring-line);
-  opacity: 0.6;
+  opacity: 0.55;
 }
 .sky-margins__vine .frieze--v { height: 100%; }
+/* 页边：太阳徽章居中，波浪在它上下贯通 */
+.sky-margins__medal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  color: color-mix(in srgb, var(--accent) 70%, var(--ring-line));
+}
+.sky-margins__medal .medallion { width: 100%; height: 100%; }
 .sky-margins__cap { color: color-mix(in srgb, var(--accent) 62%, var(--ring-line)); }
 .sky-margins__cap .medallion { width: 1.7rem; height: 1.7rem; }
 .sky-margins__cap--low { opacity: 0.6; }
