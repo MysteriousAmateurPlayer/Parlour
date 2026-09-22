@@ -693,19 +693,59 @@
     requestAnimationFrame(frame);
   }
 
-  /* ---- 旋臂上的星：SVG 内部元素，坐标天然贴着螺线 ---- */
+  /* ---- 旋臂上的星：SVG 内部四角星，与螺线同一坐标系 ----
+     取点规则：约 70% 贴着旋臂（带小抖动），30% 散布在整个区域内。 ---- */
   var svgStars = [];
+  var SPG = document.querySelector('.galaxy__sparkles');
+  var SP = null;
+  if (SPG) {
+    SP = {
+      a: parseFloat(SPG.getAttribute('data-a')) || 22,
+      b: parseFloat(SPG.getAttribute('data-b')) || 0.2,
+      thmax: parseFloat(SPG.getAttribute('data-thmax')) || 15.08,
+      cx: parseFloat(SPG.getAttribute('data-cx')) || 1190,
+      cy: parseFloat(SPG.getAttribute('data-cy')) || 152,
+      w: parseFloat(SPG.getAttribute('data-w')) || 1500,
+      h: parseFloat(SPG.getAttribute('data-h')) || 300
+    };
+  }
+  function sparkD(x, y, R) {          // 四角星（与生成器同形）
+    var k = R * 0.16;
+    var p = [[x, y - R], [x + k, y - k], [x + R, y], [x + k, y + k],
+             [x, y + R], [x - k, y + k], [x - R, y], [x - k, y - k]];
+    var d = 'M';
+    for (var q = 0; q < p.length; q++) d += p[q][0].toFixed(1) + ' ' + p[q][1].toFixed(1) + (q < 7 ? 'L' : 'Z');
+    return d;
+  }
+  function pickPoint() {
+    var arm = rnd() < 0.5 ? 0 : 1;
+    if (rnd() < 0.7) {                // 贴臂
+      var th = 0.35 + Math.pow(rnd(), 0.85) * (SP.thmax - 0.35);
+      var rr = SP.a * Math.exp(SP.b * th) * (0.92 + rnd() * 0.2);
+      var aa = th + (arm ? Math.PI : 0) + (rnd() - 0.5) * 0.06;
+      return [SP.cx + rr * Math.cos(aa), SP.cy + rr * Math.sin(aa)];
+    }
+    return [rnd() * SP.w, rnd() * SP.h];   // 非旋臂区域
+  }
   Array.prototype.forEach.call(document.querySelectorAll('.galaxy__sparkle'), function (el) {
-    var st = { el: el, life: 3000 + rnd() * 2000, born: performance.now() - rnd() * 5000 };
+    var st = { el: el, R: 2.6 + rnd() * 2.6, life: 3000 + rnd() * 2000, born: performance.now() - rnd() * 5000 };
+    var p = pickPoint();
+    el.setAttribute('d', sparkD(p[0], p[1], st.R));
     el.setAttribute('opacity', (opacityAt(Math.min(0.999, rnd())) * 0.75).toFixed(3));  // 首屏立即呈现
     svgStars.push(st);
   });
   function frameSvg(now) {
-    for (var i = 0; i < svgStars.length; i++) {
-      var st = svgStars[i];
+    for (var i2 = 0; i2 < svgStars.length; i2++) {
+      var st = svgStars[i2];
       var t = (now - st.born) / st.life;
-      if (t >= 1) { st.born = now; st.life = 3000 + rnd() * 2000; t = 0; }
-      var o = opacityAt(t) * 0.75;                     // ① 与其它星同样降 25%
+      if (t >= 1) {                   // 生命结束：重新取点（70% 贴臂 / 30% 区域）
+        var p2 = pickPoint();
+        st.el.setAttribute('d', sparkD(p2[0], p2[1], st.R));
+        st.born = now;
+        st.life = 3000 + rnd() * 2000;
+        t = 0;
+      }
+      var o = opacityAt(t) * 0.75;    // ① 与其它星同样降 25%
       st.el.setAttribute('opacity', o < 0.02 ? '0' : o.toFixed(3));
     }
     requestAnimationFrame(frameSvg);
