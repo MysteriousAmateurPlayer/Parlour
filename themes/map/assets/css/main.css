@@ -2440,16 +2440,16 @@ body.is-modal-open { overflow: hidden; }
   color: color-mix(in srgb, var(--accent) 62%, var(--ink));
   clip-path: polygon(50% 0%, 57% 43%, 100% 50%, 57% 57%, 50% 100%, 43% 57%, 0% 50%, 43% 43%);
   opacity: 0.12;
-  animation: spark-twinkle 11s ease-in-out infinite;
+  animation: spark-twinkle 18s linear infinite;
   will-change: opacity, transform;
 }
 @keyframes spark-twinkle {
-  /* 慢慢亮起 → 保持微亮 → 渐暗 → 全灭；换位只发生在全灭段内 */
-  0% { opacity: 0; transform: scale(0.7); }
-  16% { opacity: 0.6; transform: scale(1); }
-  46% { opacity: 0.5; transform: scale(0.98); }
-  62% { opacity: 0; transform: scale(0.75); }
-  100% { opacity: 0; transform: scale(0.7); }
+  /* 全程只在透明度上做连续插值，淡入淡出丝滑；末尾留出全灭段供换位 */
+  0% { opacity: 0; }
+  18% { opacity: 0.72; }
+  52% { opacity: 0.6; }
+  78% { opacity: 0; }
+  100% { opacity: 0; }
 }
 
 /* --------------------------------------------------------------------------

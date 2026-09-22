@@ -447,11 +447,15 @@
   function resizeOne(st) {
     var r = st.cv.getBoundingClientRect();
     st.W = Math.max(1, r.width);
-    st.H0 = Math.max(44, r.height);   // 兜底高度
+    st.H0 = Math.max(44, r.height);
+    if (st.W < 20) {      // ④ 布局未就绪时的兜底，保证页脚河流也画得出
+      var pw = st.cv.parentElement ? st.cv.parentElement.getBoundingClientRect().width : 0;
+      st.W = Math.max(st.W, pw || 0, (window.innerWidth || 0) - 40, 320);
+    }
     st.cv.width = Math.round(st.W * dpr);
     st.cv.height = Math.round(st.H0 * dpr);
     st.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var n = Math.max(50, Math.min(240, Math.round(st.W / 7)));   // ③ 更少
+    var n = Math.max(40, Math.min(150, Math.round(st.W / 11)));  // ⑤ 再减弱
     st.parts = [];
     for (var i = 0; i < n; i++) {
       var p = spawn(st, false);
@@ -501,7 +505,7 @@
       var y0 = waveY(st, x0, lane) + p.off;
       var y1 = waveY(st, p.x, lane) + p.off;
       var tw = 0.5 + 0.5 * Math.sin(p.tw + performance.now() * 0.0012 * p.tws);
-      var aq = Math.round(Math.max(0.04, (p.hot ? 0.5 : 0.26) * tw) * 7);
+      var aq = Math.round(Math.max(0.03, (p.hot ? 0.38 : 0.2) * tw) * 7);
       if (aq !== lastA) { ctx.globalAlpha = aq / 7; lastA = aq; }
       ctx.strokeStyle = p.hot ? colHot : col;
       ctx.lineWidth = p.hot ? 1.1 : 0.7;
@@ -535,6 +539,39 @@
   for (var k = 0; k < items.length; k++) drawOne(items[k], 0);
   if (reduce) return;
   requestAnimationFrame(loop);
+  /* ④ 自检兜底：若某个画布（尤其页脚的星河）没画出任何像素，
+     说明首次测量时布局还没就绪 —— 用视口宽重测并重绘，确保每条河都有星。 */
+  function audit() {
+    for (var a = 0; a < items.length; a++) {
+      var st = items[a];
+      var empty = false;
+      try {
+        var d = st.ctx.getImageData(0, 0, Math.max(1, Math.min(120, st.cv.width)), Math.max(1, Math.min(60, st.cv.height))).data;
+        empty = true;
+        for (var i2 = 3; i2 < d.length; i2 += 4) { if (d[i2] > 0) { empty = false; break; } }
+      } catch (e) { empty = false; }
+      if (empty) {
+        st.W = Math.max(320, (window.innerWidth || 900) - 40);
+        var r2 = st.cv.getBoundingClientRect();
+        st.H0 = Math.max(44, r2.height || 44);
+        st.cv.width = Math.round(st.W * dpr);
+        st.cv.height = Math.round(st.H0 * dpr);
+        st.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        var n2 = Math.max(40, Math.min(150, Math.round(st.W / 11)));
+        st.parts = [];
+        for (var i3 = 0; i3 < n2; i3++) st.parts.push(spawn(st, false));
+        drawOne(st, 0);
+      }
+    }
+  }
+  setTimeout(audit, 400);
+  setTimeout(audit, 1600);
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(function () {
+      for (var k3 = 0; k3 < items.length; k3++) { resizeOne(items[k3]); drawOne(items[k3], 0); }
+    });
+    for (var k4 = 0; k4 < items.length; k4++) ro.observe(items[k4].cv);
+  }
   window.addEventListener('resize', function () {
     for (var i = 0; i < items.length; i++) { resizeOne(items[i]); drawOne(items[i], 0); }
   }, { passive: true });
@@ -586,21 +623,20 @@
       if (big) s.className = 'spark spark--big';
       // tiny：旋臂与星轨上的星明显更小
       s.style.setProperty('--sz', tiny
-        ? (0.1 + rnd() * 0.16).toFixed(2)
-        : (big ? 0.34 + rnd() * 0.22 : 0.14 + rnd() * 0.2).toFixed(2));
+        ? (0.16 + rnd() * 0.24).toFixed(2)
+        : (big ? 0.36 + rnd() * 0.22 : 0.18 + rnd() * 0.22).toFixed(2));
       s.style.animationDelay = (-rnd() * 9).toFixed(2) + 's';
-      s.style.animationDuration = (9 + rnd() * 7).toFixed(2) + 's';   // 更慢，不再一闪即逝
+      s.style.animationDuration = (14 + rnd() * 10).toFixed(2) + 's';  // ③ 周期加长、更慢
       s.style.animationDirection = rnd() < 0.5 ? 'normal' : 'alternate';
       /* 换位只发生在"全灭"段（62%–100%），且只有约三分之一会换位，
          换位时连大小一起换 —— 看起来是"另一颗星亮起"，不会满屏乱跳 */
       s.addEventListener('animationiteration', function () {
-        if (rnd() > 0.35) return;
+        if (rnd() > 0.25) return;
         var nx, ny;
         if (rightBias) { nx = 42 + rnd() * 56; ny = rnd() * 100; }
         else { nx = rnd() * 100; ny = rnd() * 100; }
         s.style.left = nx.toFixed(2) + '%';
         s.style.top = ny.toFixed(2) + '%';
-        s.style.setProperty('--sz', (tiny ? 0.1 + rnd() * 0.16 : 0.14 + rnd() * 0.2).toFixed(2));
       });
       frag.appendChild(s);
     }
@@ -614,9 +650,9 @@
     var isRing = cls.indexOf('sparkle-field--ring') >= 0;
     // ② 子版块背景不再铺星；旋臂与星轨上的星更小，页眉/页脚（仅首页）略大
     // ②③ 数量收敛：旋臂 110（更小）、星轨 40（更小）、页眉 70、页脚 60
-    var n = isGalaxy ? 110 : isRing ? 40
-          : cls.indexOf('sparkle-field--header') >= 0 ? 70
-          : cls.indexOf('sparkle-field--footer') >= 0 ? 60 : 0;
+    var n = isGalaxy ? 120 : isRing ? 56
+          : cls.indexOf('sparkle-field--header') >= 0 ? 55
+          : cls.indexOf('sparkle-field--footer') >= 0 ? 55 : 0;
     var rightBias = isGalaxy;
     var tiny = isGalaxy || isRing;
     if (n > 0) build(el, n, true, rightBias, tiny);
