@@ -741,12 +741,14 @@
   var skyStars = [];
   (function () {
     var all = document.querySelectorAll('.sky-field use');
-    var picked = [], bgTotal = 0;
+    var picked = [], bgTotal = 0, scaled = 0;
     for (var i3 = 0; i3 < all.length; i3++) {
       var el3 = all[i3];
       if (el3.closest && el3.closest('.sky-set')) continue;   // 星座连线上的星不参与
+      var season = el3.closest ? el3.closest('.sky-season') : null;
+      if (season && !season.classList.contains('is-active')) continue;   // 隐藏季节组里的星不管
       bgTotal++;
-      if (rnd() < 0.35) picked.push(el3);
+      if (rnd() < 0.5) picked.push(el3);                     // 50%（只在可见星里抽）
       if (picked.length >= 400) break;                        // 上限兜底
     }
 
@@ -754,8 +756,17 @@
       var e3 = picked[j3];
       var base = parseFloat(e3.style.opacity || e3.getAttribute('opacity') || '0.6');
       if (!isFinite(base) || base <= 0) base = 0.6;
-      var st3 = { el: e3, base: base, life: 3000 + rnd() * 2000, born: performance.now() - rnd() * 5000 };
-      e3.style.opacity = (base * opacityAt(Math.min(0.999, rnd()))).toFixed(3);   // 首屏立即呈现
+      var peak = Math.min(1, base * 1.6);   // 亮峰：比原始亮度更亮一点，对比才明显
+      // 显示尺寸放大 1.45 倍：只重写 transform 里的 scale，translate（位置）原样保留，
+      // 旋转由父组 .sky-turn 驱动，因此"位置不变、旋转照旧"，只是更容易看见在明灭。
+      var tf = e3.getAttribute('transform') || '';
+      var mm = /translate\(([^)]+)\)\s*scale\(([\d.]+)\)/.exec(tf);
+      if (mm) {
+        e3.setAttribute('transform', 'translate(' + mm[1] + ') scale(' + (parseFloat(mm[2]) * 1.45).toFixed(3) + ')');
+        scaled++;
+      }
+      var st3 = { el: e3, base: peak, life: 3000 + rnd() * 2000, born: performance.now() - rnd() * 5000 };
+      e3.style.opacity = (peak * opacityAt(Math.min(0.999, rnd()))).toFixed(3);   // 首屏立即呈现
       skyStars.push(st3);
       svgStars.push(st3);        // 与旋臂星共用同一个逐帧循环
     }
@@ -770,11 +781,23 @@
       document.documentElement.setAttribute('data-sky-bg', String(bgTotal));
       document.documentElement.setAttribute('data-sky-spark', String(picked.length));
       document.documentElement.setAttribute('data-sky-vis', String(vis));
+      document.documentElement.setAttribute('data-sky-scaled', String(scaled));
       document.documentElement.setAttribute('data-sky-op', mn.toFixed(2) + '~' + mx.toFixed(2));
     } catch (e0) {}
   })();
 
+  var svgFrames = 0, skySample = '';
   function frameSvg(now) {
+    svgFrames++;
+    if (svgFrames % 30 === 0 && skyStars.length) {
+      try {                                   // 自证：帧在推进 + 天空星亮度在变化
+        document.documentElement.setAttribute('data-sky-frames', String(svgFrames));
+        var o4 = skyStars[0].el.style.opacity || '';
+        skySample = (skySample ? skySample + ' ' : '') + o4;
+        if (skySample.length > 90) skySample = skySample.slice(-90);
+        document.documentElement.setAttribute('data-sky-track', skySample);
+      } catch (e4) {}
+    }
     for (var i2 = 0; i2 < svgStars.length; i2++) {
       var st = svgStars[i2];
       var t = (now - st.born) / st.life;
