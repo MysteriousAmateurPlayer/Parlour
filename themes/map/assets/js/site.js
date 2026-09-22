@@ -411,8 +411,8 @@
     for (var L = 0; L < 5; L++) {
       st.lanes.push({
         off: (L - 2) * 6.2,
-        amp: A * (0.72 + 0.16 * Math.abs(2 - L)) / 1.1,
-        ph: L * (P / 5),                          // 相位按 1/5 波长依次错开 → 最交错
+        amp: A,                                   // 同振幅 → 平行
+        ph: 0,                                    // 无相位差：各条严格平行
         dash: [30 + L * 9, 46 + (4 - L) * 11],     // 长短与间隔错落
         dash0: -(L * (30 + L * 9 + 46 + (4 - L) * 11)) / 5,   // ② 初始虚线偏移按 1/5 周期错开
         // ① 速度剖面：距中心越远越慢（上下慢、中间快）
@@ -551,8 +551,15 @@
   var fields = document.querySelectorAll('.sparkle-field');
   if (!fields.length) return;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* 数值安全的伪随机（mulberry32）：旧的 LCG 在 JS 里会因整数溢出而退化，
+     导致 400 颗星全部落在同一个位置（看起来就是"一颗都没有"）。 */
   var seed = 20260922;
-  function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+  function rnd() {
+    seed = (seed + 0x6D2B79F5) | 0;
+    var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
 
   function build(el, count, ringBias) {
     var frag = document.createDocumentFragment();
@@ -572,7 +579,9 @@
       }
       s.style.left = x.toFixed(2) + '%';
       s.style.top = y.toFixed(2) + '%';
-      s.style.setProperty('--sz', (0.22 + rnd() * 0.42).toFixed(2));
+      var big = rnd() < 0.09;                       // 约 9% 做成明亮的大星
+      if (big) s.className = 'spark spark--big';
+      s.style.setProperty('--sz', (big ? 0.8 + rnd() * 0.6 : 0.28 + rnd() * 0.5).toFixed(2));
       s.style.animationDelay = (-rnd() * 9).toFixed(2) + 's';
       s.style.animationDuration = (4.5 + rnd() * 5.5).toFixed(2) + 's';
       s.style.animationDirection = rnd() < 0.5 ? 'normal' : 'alternate';

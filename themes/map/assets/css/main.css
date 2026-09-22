@@ -2426,19 +2426,20 @@ body.is-modal-open { overflow: hidden; }
 /* 定点闪烁星：数百颗，用 clip-path 画四角星（无 SVG，节点极轻） */
 .sparkle-field { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .sparkle-field--globe { z-index: 3; }
+.spark--big { color: color-mix(in srgb, var(--accent) 85%, var(--ink)); }
 .spark {
   position: absolute;
-  width: calc(1.15rem * var(--sz, 0.4));
-  height: calc(1.15rem * var(--sz, 0.4));
+  width: calc(1.5rem * var(--sz, 0.45));
+  height: calc(1.5rem * var(--sz, 0.45));
   background: currentColor;
-  color: color-mix(in srgb, var(--accent) 55%, var(--ink));
+  color: color-mix(in srgb, var(--accent) 62%, var(--ink));
   clip-path: polygon(50% 0%, 57% 43%, 100% 50%, 57% 57%, 50% 100%, 43% 57%, 0% 50%, 43% 43%);
-  opacity: 0.12;
-  animation: spark-twinkle 6s ease-in-out infinite;
+  opacity: 0.2;
+  animation: spark-twinkle 5.2s ease-in-out infinite;
   will-change: opacity, transform;
 }
 @keyframes spark-twinkle {
-  0%, 100% { opacity: 0.08; transform: scale(0.7); }
-  42% { opacity: 0.95; transform: scale(1.1); }
-  60% { opacity: 0.5; transform: scale(0.95); }
+  0%, 100% { opacity: 0.12; transform: scale(0.65) rotate(0deg); }
+  38% { opacity: 1; transform: scale(1.15) rotate(8deg); }
+  58% { opacity: 0.55; transform: scale(0.95) rotate(-4deg); }
 }
