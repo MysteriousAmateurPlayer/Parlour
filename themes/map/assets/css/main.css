@@ -2423,22 +2423,22 @@ body.is-modal-open { overflow: hidden; }
 .sky-margins__cap .medallion { width: 1.7rem; height: 1.7rem; }
 .sky-margins__cap--low { opacity: 0.6; }
 
-/* 定点闪烁星：分布在首屏、地球区与页脚的留白处 */
-.sparkle-field { position: absolute; inset: 0; pointer-events: none; }
+/* 定点闪烁星：数百颗，用 clip-path 画四角星（无 SVG，节点极轻） */
+.sparkle-field { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .sparkle-field--globe { z-index: 3; }
-.twinkle-star {
+.spark {
   position: absolute;
-  display: grid;
-  place-items: center;
-  width: calc(0.85rem * var(--s, 1));
-  height: calc(0.85rem * var(--s, 1));
-  color: color-mix(in srgb, var(--accent) 62%, var(--ink));
-  opacity: 0.25;
-  animation: twinkle 5.5s ease-in-out infinite;
-  animation-delay: var(--d, 0s);
+  width: calc(1.15rem * var(--sz, 0.4));
+  height: calc(1.15rem * var(--sz, 0.4));
+  background: currentColor;
+  color: color-mix(in srgb, var(--accent) 55%, var(--ink));
+  clip-path: polygon(50% 0%, 57% 43%, 100% 50%, 57% 57%, 50% 100%, 43% 57%, 0% 50%, 43% 43%);
+  opacity: 0.12;
+  animation: spark-twinkle 6s ease-in-out infinite;
+  will-change: opacity, transform;
 }
-.twinkle-star .icon { width: 100%; height: 100%; stroke-width: 1.2; }
-@keyframes twinkle {
-  0%, 100% { opacity: 0.12; transform: scale(0.85); }
-  45% { opacity: 0.95; transform: scale(1.06); }
+@keyframes spark-twinkle {
+  0%, 100% { opacity: 0.08; transform: scale(0.7); }
+  42% { opacity: 0.95; transform: scale(1.1); }
+  60% { opacity: 0.5; transform: scale(0.95); }
 }

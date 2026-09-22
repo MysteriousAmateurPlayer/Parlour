@@ -412,9 +412,11 @@
       st.lanes.push({
         off: (L - 2) * 6.2,
         amp: A * (0.72 + 0.16 * Math.abs(2 - L)) / 1.1,
-        ph: L * 0.9,
+        ph: L * (P / 5),                          // 相位按 1/5 波长依次错开 → 最交错
         dash: [30 + L * 9, 46 + (4 - L) * 11],     // 长短与间隔错落
-        speed: 0.020 + L * 0.0035
+        dash0: -(L * (30 + L * 9 + 46 + (4 - L) * 11)) / 5,   // ② 初始虚线偏移按 1/5 周期错开
+        // ① 速度剖面：距中心越远越慢（上下慢、中间快）
+        speed: 0.052 * (1 - 0.62 * Math.pow(Math.abs(L - 2) / 2, 1.35))
       });
     }
     items.push(st);
@@ -434,7 +436,7 @@
 
   function spawn(st, atStart) {
     return {
-      x: atStart ? -8 : Math.random() * st.W,   // 全宽均匀出生
+      x: atStart ? -8 : (spawn.i0 != null ? spawn.i0 : Math.random() * st.W),
       sp: 0.55 + Math.random() * 0.9,          // 个体速度差
       off: ((Math.random() + Math.random() + Math.random()) / 1.5 - 1) * 5,   // 沿波上下铺开成一条河（中间密、两侧疏）
       lane: Math.floor(Math.random() * 5),
@@ -451,7 +453,14 @@
     st.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     var n = Math.max(80, Math.min(420, Math.round(st.W / 4)));
     st.parts = [];
-    for (var i = 0; i < n; i++) st.parts.push(spawn(st, false));
+    for (var i = 0; i < n; i++) {
+      var p = spawn(st, false);
+      // ② 初始按等距网格 + 抖动铺开（每层的起点再错开，形成最交错的分布）
+      var lane = i % 5;
+      p.lane = lane;
+      p.x = ((Math.floor(i / 5) + lane / 5) / (n / 5)) * st.W + (Math.random() - 0.5) * 6;
+      st.parts.push(p);
+    }
   }
 
   function drawOne(st, dt) {
@@ -468,7 +477,7 @@
     ctx.strokeStyle = col;
     for (var L = 0; L < st.lanes.length; L++) {
       var lane = st.lanes[L];
-      lane.offDash = (lane.offDash || 0) - dt * lane.speed;
+      lane.offDash = (lane.offDash == null ? lane.dash0 : lane.offDash) - dt * lane.speed;
       ctx.lineWidth = 0.7;
       ctx.setLineDash(lane.dash);
       ctx.lineDashOffset = lane.offDash;
@@ -530,4 +539,58 @@
     for (var i = 0; i < items.length; i++) { resizeOne(items[i]); drawOne(items[i], 0); }
   }, { passive: true });
   new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();
+
+
+/* ==========================================================================
+   定点闪烁星：在首屏（太阳星轨周围）、地球区与页脚铺开数百颗小星。
+   用 CSS clip-path 画星形（无需 SVG，节点极轻），位置由固定种子的伪随机
+   序列生成，越靠近主体越密，闪烁周期与相位各不相同。
+   ========================================================================== */
+(function () {
+  var fields = document.querySelectorAll('.sparkle-field');
+  if (!fields.length) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var seed = 20260922;
+  function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+
+  function build(el, count, ringBias) {
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < count; i++) {
+      var s = document.createElement('i');
+      s.className = 'spark';
+      var x, y;
+      if (ringBias) {
+        // 靠近中部的环形带密度更高（贴合太阳星轨 / 地球轮廓）
+        var a = rnd() * Math.PI * 2;
+        var r = 0.18 + Math.pow(rnd(), 0.6) * 0.62;
+        x = 50 + Math.cos(a) * r * 62;
+        y = 50 + Math.sin(a) * r * 44;
+      } else {
+        x = rnd() * 100;
+        y = rnd() * 100;
+      }
+      s.style.left = x.toFixed(2) + '%';
+      s.style.top = y.toFixed(2) + '%';
+      s.style.setProperty('--sz', (0.22 + rnd() * 0.42).toFixed(2));
+      s.style.animationDelay = (-rnd() * 9).toFixed(2) + 's';
+      s.style.animationDuration = (4.5 + rnd() * 5.5).toFixed(2) + 's';
+      s.style.animationDirection = rnd() < 0.5 ? 'normal' : 'alternate';
+      frag.appendChild(s);
+    }
+    el.appendChild(frag);
+  }
+
+  Array.prototype.forEach.call(fields, function (el) {
+    // 与 css 里的三个装饰区对应：hero 最多、globe 次之、footer 适量
+    var n = el.classList.contains('sparkle-field--hero') ? 180
+          : el.classList.contains('sparkle-field--globe') ? 150 : 70;
+    build(el, n, true);
+  });
+  if (reduce) {
+    // 减少动效：全部静止在最暗状态，不闪
+    document.querySelectorAll('.spark').forEach(function (s) {
+      s.style.animation = 'none'; s.style.opacity = 0.35;
+    });
+  }
 })();

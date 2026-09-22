@@ -4,7 +4,7 @@
   <div class="wrap hero__inner">
     {{/* 站名放在一个典雅的太阳上（盘面用 CSS，光芒是古典的锥形 + 火焰形交替） */}}
     <div class="hero__sun-wrap">
-      <span class="sparkle-field sparkle-field--hero">{{ partial "sparkles.html" (dict "variant" "hero") }}</span>
+      {{ partial "sparkles.html" (dict "variant" "hero") }}
       {{/* 太阳与地球之间那一圈星星（很扁的星轨） */}}
       <span class="hero__ring-layer" aria-hidden="true">{{ partial "star-ring.html" . }}
         {{/* 流场分前后两层：背面在太阳之下、正面在太阳之上，绕星盘形成 3D 流 */}}
