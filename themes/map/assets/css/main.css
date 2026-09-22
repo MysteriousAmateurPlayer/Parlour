@@ -2428,6 +2428,9 @@ body.is-modal-open { overflow: hidden; }
 /* 定点闪烁星：数百颗，用 clip-path 画四角星（无 SVG，节点极轻） */
 .sparkle-field { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .sparkle-field--globe { z-index: 3; }
+/* 页脚版面：从花带下方铺满整块页脚 */
+.sparkle-field--footer { top: 58px; }
+.sparkle-field--live { z-index: 3; }
 /* 整页背景星场：极淡，只在空白处形成微光 */
 .site-main { position: relative; }
 .sparkle-field--page { z-index: 0; opacity: 0.5; }
@@ -2440,16 +2443,7 @@ body.is-modal-open { overflow: hidden; }
   color: color-mix(in srgb, var(--accent) 62%, var(--ink));
   clip-path: polygon(50% 0%, 57% 43%, 100% 50%, 57% 57%, 50% 100%, 43% 57%, 0% 50%, 43% 43%);
   opacity: 0.12;
-  animation: spark-twinkle 18s linear infinite;
-  will-change: opacity, transform;
-}
-@keyframes spark-twinkle {
-  /* 全程只在透明度上做连续插值，淡入淡出丝滑；末尾留出全灭段供换位 */
-  0% { opacity: 0; }
-  18% { opacity: 0.72; }
-  52% { opacity: 0.6; }
-  78% { opacity: 0; }
-  100% { opacity: 0; }
+  will-change: opacity;
 }
 
 /* --------------------------------------------------------------------------

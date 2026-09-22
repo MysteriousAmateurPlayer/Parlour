@@ -55,7 +55,7 @@
   </div>
   {{/* 花边：连续涡卷花带 + 中央徽章 */}}
   <div class="ornament-band" aria-hidden="true">
-    {{- if .IsHome }}{{ partial "sparkles.html" (dict "variant" "header") }}{{ end }}
+    {{ partial "sparkles.html" (dict "variant" "header") }}{{/* 每一页的页眉河流都有星 */}}
     {{ partial "frieze.html" (dict "dir" "h") }}
     <canvas class="wave-flow" data-p="240" data-a="7.5" data-h="44" aria-hidden="true"></canvas>
     <span class="ornament-band__medal">{{ partial "medallion.html" . }}</span>

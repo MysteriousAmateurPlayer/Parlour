@@ -578,89 +578,117 @@
   new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 })();
 
-
 /* ==========================================================================
-   定点闪烁星：在首屏（太阳星轨周围）、地球区与页脚铺开数百颗小星。
-   用 CSS clip-path 画星形（无需 SVG，节点极轻），位置由固定种子的伪随机
-   序列生成，越靠近主体越密，闪烁周期与相位各不相同。
+   闪烁星（重写版）：每颗星是一个独立的状态机，由 JS 逐帧驱动。
+   · 生命周期 3~5 秒随机：0 → 0.22 丝滑淡入；0.22 → 0.58 稳定在最亮；
+     0.58 → 1 丝滑淡出；寿命结束后在**同一区域内重新随机取点**重生。
+   · 因为重生时透明度本来就是 0，所以换位置永远不会被看见（不存在瞬移）。
+   · 区域：页眉河流、页脚河流、页脚版面、首页太阳星轨椭圆、板块页旋臂。
    ========================================================================== */
 (function () {
   var fields = document.querySelectorAll('.sparkle-field');
   if (!fields.length) return;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  /* 数值安全的伪随机（mulberry32）：旧的 LCG 在 JS 里会因整数溢出而退化，
-     导致 400 颗星全部落在同一个位置（看起来就是"一颗都没有"）。 */
-  var seed = 20260922;
+
+  /* ---- 数值安全的伪随机 ---- */
+  var seed = 20260924;
   function rnd() {
     seed = (seed + 0x6D2B79F5) | 0;
     var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   }
+  var ease = function (t) { return t * t * (3 - 2 * t); };   // smoothstep，淡入淡出丝滑
 
-  function build(el, count, ringBias, rightBias, tiny) {
-    var frag = document.createDocumentFragment();
-    for (var i = 0; i < count; i++) {
+  /* ---- 区域定义：数量、尺寸、取样方式 ---- */
+  function regionOf(el) {
+    var c = el.className;
+    if (c.indexOf('--header') >= 0) return { n: 62, mode: 'band', s0: 0.16, s1: 0.34 };   // 页眉河流
+    if (c.indexOf('--footer-band') >= 0) return { n: 62, mode: 'band', s0: 0.14, s1: 0.3 }; // 页脚河流
+    if (c.indexOf('--footer') >= 0) return { n: 78, mode: 'fill', s0: 0.16, s1: 0.38, pad: 46 }; // 页脚版面
+    if (c.indexOf('--ring') >= 0) return { n: 74, mode: 'ellipse', s0: 0.16, s1: 0.4, rx: 49, ry: 15, r0: 0.66, r1: 1.02 }; // 太阳星轨椭圆
+    if (c.indexOf('--galaxy') >= 0) return { n: 90, mode: 'right', s0: 0.14, s1: 0.34 };   // 旋臂区（右侧）
+    return null;
+  }
+
+  /* ---- 在区域内均匀取点（返回百分比） ---- */
+  function pick(rg) {
+    var a, r;
+    if (rg.mode === 'band') {                 // 河流：整条带子内均匀，纵向略向中间收
+      return { x: rnd() * 100, y: 22 + rnd() * 56 };
+    }
+    if (rg.mode === 'right') {                // 旋臂区：右侧均匀
+      return { x: 44 + rnd() * 56, y: rnd() * 100 };
+    }
+    if (rg.mode === 'ellipse') {              // 星轨：椭圆环带内均匀（角度均匀 + 半径按环带随机）
+      a = rnd() * Math.PI * 2;
+      r = rg.r0 + Math.sqrt(rnd()) * (rg.r1 - rg.r0);
+      return { x: 50 + Math.cos(a) * rg.rx * r, y: 50 + Math.sin(a) * rg.ry * r };
+    }
+    return { x: rnd() * 100, y: rnd() * 100 };  // 版面：整块均匀
+  }
+
+  /* ---- 建立星点 ---- */
+  var stars = [], fieldList = [];
+  Array.prototype.forEach.call(fields, function (el) {
+    var rg = regionOf(el);
+    if (!rg) return;
+    el.classList.add('sparkle-field--live');
+    fieldList.push({ el: el, rg: rg });
+    for (var i = 0; i < rg.n; i++) {
       var s = document.createElement('i');
       s.className = 'spark';
-      var x, y;
-      if (rightBias) {
-        x = 42 + rnd() * 56;
-        y = rnd() * 100;
-      } else if (ringBias) {
-        // 靠近中部的环形带密度更高（贴合太阳星轨 / 地球轮廓）
-        var a = rnd() * Math.PI * 2;
-        var r = 0.18 + Math.pow(rnd(), 0.6) * 0.62;
-        x = 50 + Math.cos(a) * r * 62;
-        y = 50 + Math.sin(a) * r * 44;
-      } else {
-        x = rnd() * 100;
-        y = rnd() * 100;
-      }
-      s.style.left = x.toFixed(2) + '%';
-      s.style.top = y.toFixed(2) + '%';
-      var big = rnd() < 0.045;                       // 约 9% 做成明亮的大星
-      if (big) s.className = 'spark spark--big';
-      // tiny：旋臂与星轨上的星明显更小
-      s.style.setProperty('--sz', tiny
-        ? (0.16 + rnd() * 0.24).toFixed(2)
-        : (big ? 0.36 + rnd() * 0.22 : 0.18 + rnd() * 0.22).toFixed(2));
-      s.style.animationDelay = (-rnd() * 9).toFixed(2) + 's';
-      s.style.animationDuration = (14 + rnd() * 10).toFixed(2) + 's';  // ③ 周期加长、更慢
-      s.style.animationDirection = rnd() < 0.5 ? 'normal' : 'alternate';
-      /* 换位只发生在"全灭"段（62%–100%），且只有约三分之一会换位，
-         换位时连大小一起换 —— 看起来是"另一颗星亮起"，不会满屏乱跳 */
-      s.addEventListener('animationiteration', function () {
-        if (rnd() > 0.25) return;
-        var nx, ny;
-        if (rightBias) { nx = 42 + rnd() * 56; ny = rnd() * 100; }
-        else { nx = rnd() * 100; ny = rnd() * 100; }
-        s.style.left = nx.toFixed(2) + '%';
-        s.style.top = ny.toFixed(2) + '%';
+      var p = pick(rg);
+      s.style.left = p.x.toFixed(2) + '%';
+      s.style.top = p.y.toFixed(2) + '%';
+      var base = rg.s0 + rnd() * (rg.s1 - rg.s0);
+      s.style.width = (1.5 * base).toFixed(2) + 'rem';
+      s.style.height = (1.5 * base).toFixed(2) + 'rem';
+      s.style.opacity = '0';
+      el.appendChild(s);
+      stars.push({
+        el: s, rg: rg,
+        life: 3000 + rnd() * 2000,                 // 生命周期 3~5 秒
+        born: performance.now() - rnd() * 5000     // 初始相位打散，避免同时闪
       });
-      frag.appendChild(s);
     }
-    el.appendChild(frag);
+  });
+  if (!stars.length) return;
+
+  /* ---- 单颗星：按寿命推进，结束后在区域内重生 ---- */
+  function respawn(st) {
+    var rg = st.rg;
+    var p = pick(rg);
+    st.el.style.left = p.x.toFixed(2) + '%';
+    st.el.style.top = p.y.toFixed(2) + '%';
+    var base = rg.s0 + rnd() * (rg.s1 - rg.s0);   // 重生时才改尺寸（此刻 opacity 为 0，看不见跳变）
+    st.el.style.width = (1.5 * base).toFixed(2) + 'rem';
+    st.el.style.height = (1.5 * base).toFixed(2) + 'rem';
+    st.life = 3000 + rnd() * 2000;
+    st.born = performance.now();
   }
 
-  Array.prototype.forEach.call(fields, function (el) {
-    // 与 css 里的三个装饰区对应：hero 最多、globe 次之、footer 适量
-    var cls = el.className;
-    var isGalaxy = cls.indexOf('sparkle-field--galaxy') >= 0;
-    var isRing = cls.indexOf('sparkle-field--ring') >= 0;
-    // ② 子版块背景不再铺星；旋臂与星轨上的星更小，页眉/页脚（仅首页）略大
-    // ②③ 数量收敛：旋臂 110（更小）、星轨 40（更小）、页眉 70、页脚 60
-    var n = isGalaxy ? 120 : isRing ? 56
-          : cls.indexOf('sparkle-field--header') >= 0 ? 55
-          : cls.indexOf('sparkle-field--footer') >= 0 ? 55 : 0;
-    var rightBias = isGalaxy;
-    var tiny = isGalaxy || isRing;
-    if (n > 0) build(el, n, true, rightBias, tiny);
-  });
-  if (reduce) {
-    // 减少动效：全部静止在最暗状态，不闪
-    document.querySelectorAll('.spark').forEach(function (s) {
-      s.style.animation = 'none'; s.style.opacity = 0.35;
-    });
+  function opacityAt(t) {
+    if (t < 0.22) return ease(t / 0.22);                 // 丝滑淡入
+    if (t < 0.58) return 1;                              // 稳定存在一小会（满亮）
+    return 1 - ease((t - 0.58) / 0.42);                  // 丝滑淡出
   }
+
+  function frame(now) {
+    for (var i = 0; i < stars.length; i++) {
+      var st = stars[i];
+      var t = (now - st.born) / st.life;
+      if (t >= 1) { respawn(st); t = 0; }
+      var o = opacityAt(t);
+      st.el.style.opacity = o < 0.02 ? '0' : o.toFixed(3);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  if (reduce) {                                          // 减少动效：静态微亮
+    for (var i = 0; i < stars.length; i++) stars[i].el.style.opacity = '0.35';
+    return;
+  }
+  requestAnimationFrame(frame);
+  // 布局变化后（例如页脚进入视口）重新测量容器尺寸无需处理：坐标是百分比，天然自适应
 })();
