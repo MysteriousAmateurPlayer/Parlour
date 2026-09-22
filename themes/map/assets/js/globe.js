@@ -137,32 +137,20 @@
   // 板块按「列优先」落位：起始角度下所有板块都在正面
   var slotOrder = [];
   for (var c0 = 0; c0 < cols; c0++) for (var r0 = 0; r0 < rows; r0++) slotOrder.push(r0 * cols + c0);
-  /* ④ 每个板块在地球上出现两份：原槽位 + 同一行对面那一侧，
-
-     这样转动时正反两面都有内容，不会一面塞满一面空着。 */
-
-  var itemsDup = items.slice();
-
-  items.forEach(function (it) {
-
-    if (it.slot == null) return;
-
-    var row = Math.floor(it.slot / cols), col = it.slot % cols;
-
-    var mirror = row * cols + ((col + 2) % cols);
-
-    if (mirror === it.slot || itemsDup.some(function (x) { return x.slot === mirror; })) return;
-
-    itemsDup.push(Object.assign({}, it, { slot: mirror }));
-
-  });
-
-  items = itemsDup;
-
+  /* ④ 每个板块在地球上出现两份，而且两份的经纬度都不同：
+     原槽位 + "下一行、隔两列"的槽位（行/列都变 → 经纬度都不同）。 */
+  var placements = items.map(function (it, k) { return { it: it, slot: slotOrder[k] }; });
   items.forEach(function (it, k) {
-    var slot = slotOrder[k];
-    if (slot != null && pieces[slot]) pieces[slot].item = it;
+    var s0 = slotOrder[k];
+    if (s0 == null) return;
+    var row = Math.floor(s0 / cols), col = s0 % cols;
+    var s2 = ((row + 1) % rows) * cols + ((col + 2) % cols);
+    if (s2 === s0) return;
+    if (placements.some(function (p) { return p.slot === s2; })) return;
+    placements.push({ it: it, slot: s2 });
   });
+  placements.forEach(function (p) { if (p.slot != null && pieces[p.slot]) pieces[p.slot].item = p.it; });
+  console.log('[地球] 板块落位：' + placements.map(function (p) { return p.it.title + '@' + p.slot; }).join('、'));
 
   var TAB = 7;
   function tabBump(t) {
