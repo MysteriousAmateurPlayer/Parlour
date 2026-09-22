@@ -2438,17 +2438,17 @@ body.is-modal-open { overflow: hidden; }
   background: currentColor;
   color: color-mix(in srgb, var(--accent) 62%, var(--ink));
   clip-path: polygon(50% 0%, 57% 43%, 100% 50%, 57% 57%, 50% 100%, 43% 57%, 0% 50%, 43% 43%);
-  opacity: 0.2;
-  animation: spark-twinkle 5.2s ease-in-out infinite;
+  opacity: 0.15;
+  animation: spark-twinkle 6.4s ease-in-out infinite;
   will-change: opacity, transform;
 }
 @keyframes spark-twinkle {
-  /* 亮起 → 熄灭 → 保持熄灭（熄灭期间由 JS 换到新位置，于是"此处消失、他处出现"） */
-  0% { opacity: 0; transform: scale(0.5); }
-  6% { opacity: 1; transform: scale(1.05); }
-  34% { opacity: 0.85; transform: scale(0.98); }
-  46% { opacity: 0; transform: scale(0.6); }
-  100% { opacity: 0; transform: scale(0.5); }
+  /* 亮起 → 渐暗 → 全灭（后半程完全不可见，换位就发生在这段，因而看不出瞬移） */
+  0% { opacity: 0; transform: scale(0.55); }
+  8% { opacity: 0.75; transform: scale(1); }
+  30% { opacity: 0.6; transform: scale(0.96); }
+  44% { opacity: 0; transform: scale(0.6); }
+  100% { opacity: 0; transform: scale(0.55); }
 }
 
 /* --------------------------------------------------------------------------
@@ -2469,8 +2469,8 @@ body.is-modal-open { overflow: hidden; }
   mask-image: linear-gradient(100deg, transparent 0%, rgba(0,0,0,.25) 26%, #000 58%);
 }
 .galaxy__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.galaxy__spin { animation: galaxy-spin 300s linear infinite; transform-origin: 1190px 152px; }
-@keyframes galaxy-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.galaxy__spin { animation: galaxy-spin 420s linear infinite; transform-origin: 1190px 152px; }
+@keyframes galaxy-spin { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }   /* 逆时针 */
 .galaxy__arm { stroke: currentColor; stroke-width: 1.6; opacity: 0.72; }
 .galaxy__dust path { opacity: 0.66; }
 .galaxy__stars path { stroke-width: 1.9; opacity: 0.9; }

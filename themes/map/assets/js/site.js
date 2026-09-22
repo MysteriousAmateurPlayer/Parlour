@@ -561,7 +561,7 @@
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   }
 
-  function build(el, count, ringBias, rightBias) {
+  function build(el, count, ringBias, rightBias, tiny) {
     var frag = document.createDocumentFragment();
     for (var i = 0; i < count; i++) {
       var s = document.createElement('i');
@@ -584,7 +584,10 @@
       s.style.top = y.toFixed(2) + '%';
       var big = rnd() < 0.045;                       // 约 9% 做成明亮的大星
       if (big) s.className = 'spark spark--big';
-      s.style.setProperty('--sz', (big ? 0.5 + rnd() * 0.3 : 0.2 + rnd() * 0.28).toFixed(2));
+      // tiny：旋臂与星轨上的星明显更小
+      s.style.setProperty('--sz', tiny
+        ? (0.1 + rnd() * 0.16).toFixed(2)
+        : (big ? 0.5 + rnd() * 0.3 : 0.2 + rnd() * 0.28).toFixed(2));
       s.style.animationDelay = (-rnd() * 9).toFixed(2) + 's';
       s.style.animationDuration = (4.5 + rnd() * 5.5).toFixed(2) + 's';
       s.style.animationDirection = rnd() < 0.5 ? 'normal' : 'alternate';
@@ -603,15 +606,15 @@
 
   Array.prototype.forEach.call(fields, function (el) {
     // 与 css 里的三个装饰区对应：hero 最多、globe 次之、footer 适量
-    // 各处背景都铺星：页眉 / 旋臂 / 页脚为主，其余区域少量
     var cls = el.className;
-    var n = cls.indexOf('sparkle-field--header') >= 0 ? 110
-          : cls.indexOf('sparkle-field--galaxy') >= 0 ? 130
-          : cls.indexOf('sparkle-field--footer') >= 0 ? 110
-          : cls.indexOf('sparkle-field--page') >= 0 ? 150
-          : 40;
-    var rightBias = cls.indexOf('sparkle-field--galaxy') >= 0;   // 旋臂区偏右分布
-    build(el, n, true, rightBias);
+    var isGalaxy = cls.indexOf('sparkle-field--galaxy') >= 0;
+    var isRing = cls.indexOf('sparkle-field--ring') >= 0;
+    // ② 子版块背景不再铺星；旋臂与星轨上的星更小，页眉/页脚（仅首页）略大
+    var n = isGalaxy ? 130 : isRing ? 46 : cls.indexOf('sparkle-field--header') >= 0 ? 110
+          : cls.indexOf('sparkle-field--footer') >= 0 ? 110 : 0;
+    var rightBias = isGalaxy;
+    var tiny = isGalaxy || isRing;
+    if (n > 0) build(el, n, true, rightBias, tiny);
   });
   if (reduce) {
     // 减少动效：全部静止在最暗状态，不闪

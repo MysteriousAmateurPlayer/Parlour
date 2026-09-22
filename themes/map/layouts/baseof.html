@@ -12,7 +12,6 @@
   
   {{- partial "header.html" . -}}
   <main id="main" class="site-main">
-    {{ partial "sparkles.html" (dict "variant" "page") }}
     {{- block "main" . }}{{ end -}}
   </main>
   {{- partial "footer.html" . -}}
