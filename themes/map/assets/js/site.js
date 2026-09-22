@@ -416,7 +416,7 @@
     return {
       x: atStart ? -8 : Math.random() * st.W,
       sp: 0.55 + Math.random() * 0.9,          // 个体速度差
-      off: (Math.random() - 0.5) * 7,          // 离波的微小偏移
+      off: ((Math.random() + Math.random() + Math.random()) / 1.5 - 1) * 15,   // 沿波上下铺开成一条河（中间密、两侧疏）
       tw: Math.random() * Math.PI * 2, tws: 0.5 + Math.random() * 1.6,
       hot: Math.random() < 0.18
     };
@@ -428,7 +428,7 @@
     st.cv.width = Math.round(st.W * dpr);
     st.cv.height = Math.round(st.H0 * dpr);
     st.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var n = Math.max(40, Math.min(220, Math.round(st.W / 7)));
+    var n = Math.max(60, Math.min(320, Math.round(st.W / 5)));
     st.parts = [];
     for (var i = 0; i < n; i++) st.parts.push(spawn(st, false));
   }
@@ -442,7 +442,7 @@
     for (var i = 0; i < st.parts.length; i++) {
       var p = st.parts[i];
       var x0 = p.x;
-      p.x += p.sp * 0.55 * dt;
+      p.x += p.sp * 0.024 * dt;      // 缓缓流动：约 20~55 px/s
       if (p.x > st.W + 10) { st.parts[i] = spawn(st, true); continue; }
       var y0 = waveY(st, x0) + p.off;
       var y1 = waveY(st, p.x) + p.off;
@@ -471,7 +471,7 @@
   readColors();
   // 预热并先画一帧：无头/首屏都立刻有内容
   for (var w = 0; w < 90; w++) for (var i = 0; i < items.length; i++) {
-    items[i].parts.forEach(function (p) { p.x += p.sp * 0.55 * 16; });
+    items[i].parts.forEach(function (p) { p.x += p.sp * 0.024 * 16 * 90; });
   }
   for (var k = 0; k < items.length; k++) drawOne(items[k], 0);
   if (reduce) return;

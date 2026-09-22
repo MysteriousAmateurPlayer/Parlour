@@ -6,14 +6,8 @@
 </head>
 <body class="kind-{{ .Kind }}{{ with .Section }} section-{{ . }}{{ end }}{{ if .IsHome }} is-home{{ end }}{{ if .Params.private }} is-private{{ end }}">
   <a class="skip-link" href="#main">跳到主要内容</a>
-  <div class="sky-margins" aria-hidden="true">
-    <span class="sky-margins__side sky-margins__side--left">
-      <span class="sky-margins__vine">{{ partial "frieze.html" (dict "dir" "v") }}</span>
-    </span>
-    <span class="sky-margins__side sky-margins__side--right">
-      <span class="sky-margins__vine">{{ partial "frieze.html" (dict "dir" "v") }}</span>
-    </span>
-  </div>
+  {{- /* 页边栏已按需求移除：页面更宽敞。需要恢复时把这一段放回即可 */ -}}
+  
 
   
   {{- partial "header.html" . -}}
