@@ -414,7 +414,7 @@
 
   function spawn(st, atStart) {
     return {
-      x: atStart ? -8 : Math.random() * st.W,
+      x: atStart ? -8 : Math.random() * st.W,   // 全宽均匀出生
       sp: 0.55 + Math.random() * 0.9,          // 个体速度差
       off: ((Math.random() + Math.random() + Math.random()) / 1.5 - 1) * 15,   // 沿波上下铺开成一条河（中间密、两侧疏）
       tw: Math.random() * Math.PI * 2, tws: 0.5 + Math.random() * 1.6,
@@ -428,7 +428,7 @@
     st.cv.width = Math.round(st.W * dpr);
     st.cv.height = Math.round(st.H0 * dpr);
     st.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var n = Math.max(60, Math.min(320, Math.round(st.W / 5)));
+    var n = Math.max(80, Math.min(420, Math.round(st.W / 4)));
     st.parts = [];
     for (var i = 0; i < n; i++) st.parts.push(spawn(st, false));
   }
@@ -443,7 +443,7 @@
       var p = st.parts[i];
       var x0 = p.x;
       p.x += p.sp * 0.024 * dt;      // 缓缓流动：约 20~55 px/s
-      if (p.x > st.W + 10) { st.parts[i] = spawn(st, true); continue; }
+      if (p.x > st.W + 10) { st.parts[i] = spawn(st, true); continue; }   // 出右端 → 回左端，循环均匀
       var y0 = waveY(st, x0) + p.off;
       var y1 = waveY(st, p.x) + p.off;
       var tw = 0.5 + 0.5 * Math.sin(p.tw + performance.now() * 0.0012 * p.tws);
@@ -469,9 +469,14 @@
   }
 
   readColors();
-  // 预热并先画一帧：无头/首屏都立刻有内容
-  for (var w = 0; w < 90; w++) for (var i = 0; i < items.length; i++) {
-    items[i].parts.forEach(function (p) { p.x += p.sp * 0.024 * 16 * 90; });
+  // 粒子出生即均匀分布在全宽上；这里只轻轻推进几帧（不可推进过头，否则会全部重生到左端）
+  for (var t2 = 0; t2 < 12; t2++) {
+    for (var i2 = 0; i2 < items.length; i2++) {
+      items[i2].parts.forEach(function (p) {
+        p.x += p.sp * 0.024 * 16;
+        if (p.x > items[i2].W + 10) p.x = -8;      // 循环回到左端，保持整段均匀
+      });
+    }
   }
   for (var k = 0; k < items.length; k++) drawOne(items[k], 0);
   if (reduce) return;
