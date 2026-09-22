@@ -187,7 +187,7 @@
     colSpark = toRgba(cssColor('--flow-spark', dark ? '#eccb8a' : '#8f4a2c'), dark ? 0.75 : 0.6);
   }
 
-  var STRANDS = 7;
+  var STRANDS = 4;                                  // 束数减少 → 每束更粗，且束间留得出空隙
   var st = [];
   (function () {
     for (var i = 0; i < STRANDS; i++) {
@@ -208,11 +208,12 @@
     return {
       a: Math.random() * Math.PI * 2,
       s: s,
-      t: 0.8 + (s + 0.5) / STRANDS * 0.2 + (Math.random() - 0.5) * 0.012,   // 束内很紧
+      // 束的粗细由"束内抖动"决定：0.012 → 0.025（约两倍厚）；束心间距 0.32/4 = 0.08 更大 → 仍能分开
+      t: 0.76 + (s + 0.5) / STRANDS * 0.32 + (Math.random() - 0.5) * 0.05,
       ox: 0, oy: 0,
       hx: [], hy: [],
       age: 0, life: 600 + Math.random() * 1000,
-      hot: Math.random() < 0.13,
+      hot: Math.random() < 0.08,
       tw: Math.random() * Math.PI * 2, tws: 0.4 + Math.random() * 1.4
     };
   }
@@ -240,7 +241,7 @@
     var disc = document.querySelector('.sun-disc');
     var dr = disc ? disc.getBoundingClientRect() : null;
     sunR = (dr && r.width) ? (dr.width / 2) * (W / r.width) : W * 0.17;
-    var n = Math.max(1800, Math.min(6600, Math.round((W + H) * 5.7)));   // 粒子数×3
+    var n = Math.max(2400, Math.min(8200, Math.round((W + H) * 6.8)));   // 更粗的束需要更多粒子
     parts = [];
     for (var i = 0; i < n; i++) parts.push(spawn(i));
   }
@@ -281,6 +282,9 @@
     cf.globalCompositeOperation = 'lighter';
     cb.lineCap = cf.lineCap = 'round';
     cb.lineJoin = cf.lineJoin = 'round';
+    cf.fillStyle = colStreak;
+    cb.fillStyle = colStreak;
+    var lastA = -1;
     for (var i = 0; i < parts.length; i++) {
       var p = parts[i];
       if (p.x == null) continue;
@@ -291,14 +295,16 @@
       var fade = Math.min(1, p.age / 80) * Math.min(1, (p.life - p.age) / 130);
       var tw = 0.55 + 0.45 * Math.sin(p.tw + t0 * 0.0012 * p.tws);
 
-      ctx.strokeStyle = p.hot ? colSpark : colStreak;
-      ctx.globalAlpha = Math.max(0.03, (p.hot ? 0.7 : 0.45) * fade * tw * depth);
-      ctx.lineWidth = (p.hot ? 0.9 : 0.55) * (0.6 + 0.6 * depth);
+      ctx.strokeStyle = colSpark;
+      ctx.globalAlpha = Math.max(0.03, 0.7 * fade * tw * depth);
+      ctx.lineWidth = 0.9 * (0.6 + 0.6 * depth);
       var n = p.hx.length;
+      var aq = Math.round(Math.max(0.015, (p.hot ? 0.7 : 0.42) * fade * tw * depth) * 7);   // 量化成 8 档
+      if (aq !== lastA) { ctx.globalAlpha = aq / 7; lastA = aq; }
       if (!p.hot) {
-        // 普通粒子：一个极小的实心点（数量大也不拖慢）
-        ctx.fillStyle = colStreak;
-        ctx.fillRect(p.x - 0.45, p.y - 0.45, 0.9 * (0.6 + 0.6 * depth), 0.9 * (0.6 + 0.6 * depth));
+        // 普通粒子：一个极小的实心点（数量大也不拖慢；不改 fillStyle）
+        var sz = 0.9 * (0.6 + 0.6 * depth);
+        ctx.fillRect(p.x - sz / 2, p.y - sz / 2, sz, sz);
         continue;
       }
       if (n >= 3) {
@@ -318,7 +324,6 @@
         ctx.stroke();
       }
       if (p.hot) {
-        ctx.globalAlpha = Math.max(0.03, 0.5 * fade * tw * depth);
         ctx.beginPath();
         ctx.arc(p.x, p.y, 0.7 + 0.5 * tw, 0, Math.PI * 2);
         ctx.fillStyle = colSpark;
