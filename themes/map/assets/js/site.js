@@ -607,7 +607,9 @@
     if (c.indexOf('--footer-band') >= 0) return { n: 62, mode: 'band', s0: 0.14, s1: 0.3 }; // 页脚河流
     if (c.indexOf('--footer') >= 0) return { n: 78, mode: 'fill', s0: 0.16, s1: 0.38, pad: 46 }; // 页脚版面
     if (c.indexOf('--ring') >= 0) return { n: 74, mode: 'ellipse', s0: 0.16, s1: 0.4, rx: 49, ry: 15, r0: 0.66, r1: 1.02 }; // 太阳星轨椭圆
-    if (c.indexOf('--galaxy') >= 0) return { n: 90, mode: 'right', s0: 0.14, s1: 0.34 };   // 旋臂区（右侧）
+    // 旋臂上的星由 SVG 内部元素承担（.galaxy__sparkle，与螺线同坐标系），此处不生成
+    if (c.indexOf('--galaxy') >= 0) return null;
+
     return null;
   }
 
@@ -617,8 +619,12 @@
     if (rg.mode === 'band') {                 // 河流：整条带子内均匀，纵向略向中间收
       return { x: rnd() * 100, y: 22 + rnd() * 56 };
     }
-    if (rg.mode === 'right') {                // 旋臂区：右侧均匀
-      return { x: 44 + rnd() * 56, y: rnd() * 100 };
+    if (rg.mode === 'spiral') {               // ② 沿对数螺线取样（两臂交替 + 轻微抖动）
+      var sp = rg.sp;
+      var th = 0.35 + Math.pow(rnd(), 0.85) * (sp.thMax - 0.35);
+      var rr = sp.a * Math.exp(sp.b * th) * (0.87 + rnd() * 0.26);
+      var aa = th + (rnd() < 0.5 ? 0 : Math.PI) + (rnd() - 0.5) * 0.05;
+      return { x: sp.cx + (rr * Math.cos(aa)) / sp.kx, y: sp.cy + (rr * Math.sin(aa)) / sp.ky };
     }
     if (rg.mode === 'ellipse') {              // 星轨：椭圆环带内均匀（角度均匀 + 半径按环带随机）
       a = rnd() * Math.PI * 2;
@@ -645,6 +651,7 @@
       s.style.width = (1.5 * base).toFixed(2) + 'rem';
       s.style.height = (1.5 * base).toFixed(2) + 'rem';
       s.style.opacity = '0';
+      s.style.opacity = opacityAt(Math.min(0.999, rnd())).toFixed(3);   // 首屏立即呈现
       el.appendChild(s);
       stars.push({
         el: s, rg: rg,
@@ -679,16 +686,37 @@
       var st = stars[i];
       var t = (now - st.born) / st.life;
       if (t >= 1) { respawn(st); t = 0; }
-      var o = opacityAt(t);
+      // ① 整体亮度降 25%
+      var o = opacityAt(t) * 0.75;
       st.el.style.opacity = o < 0.02 ? '0' : o.toFixed(3);
     }
     requestAnimationFrame(frame);
   }
 
+  /* ---- 旋臂上的星：SVG 内部元素，坐标天然贴着螺线 ---- */
+  var svgStars = [];
+  Array.prototype.forEach.call(document.querySelectorAll('.galaxy__sparkle'), function (el) {
+    var st = { el: el, life: 3000 + rnd() * 2000, born: performance.now() - rnd() * 5000 };
+    el.setAttribute('opacity', (opacityAt(Math.min(0.999, rnd())) * 0.75).toFixed(3));  // 首屏立即呈现
+    svgStars.push(st);
+  });
+  function frameSvg(now) {
+    for (var i = 0; i < svgStars.length; i++) {
+      var st = svgStars[i];
+      var t = (now - st.born) / st.life;
+      if (t >= 1) { st.born = now; st.life = 3000 + rnd() * 2000; t = 0; }
+      var o = opacityAt(t) * 0.75;                     // ① 与其它星同样降 25%
+      st.el.setAttribute('opacity', o < 0.02 ? '0' : o.toFixed(3));
+    }
+    requestAnimationFrame(frameSvg);
+  }
+
   if (reduce) {                                          // 减少动效：静态微亮
-    for (var i = 0; i < stars.length; i++) stars[i].el.style.opacity = '0.35';
+    for (var i = 0; i < stars.length; i++) stars[i].el.style.opacity = '0.26';
+    for (var i2 = 0; i2 < svgStars.length; i2++) svgStars[i2].el.setAttribute('opacity', '0.2');
     return;
   }
   requestAnimationFrame(frame);
+  if (svgStars.length) requestAnimationFrame(frameSvg);
   // 布局变化后（例如页脚进入视口）重新测量容器尺寸无需处理：坐标是百分比，天然自适应
 })();

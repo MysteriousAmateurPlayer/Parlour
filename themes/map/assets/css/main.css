@@ -2464,6 +2464,13 @@ body.is-modal-open { overflow: hidden; }
   mask-image: linear-gradient(100deg, transparent 0%, rgba(0,0,0,.25) 26%, #000 58%);
 }
 .galaxy__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* ③ 夜间旋臂：与正文墨色混合，避免某些板块的 accent 太暗而看不见 */
+html[data-theme="dark"] .galaxy {
+  color: color-mix(in srgb, var(--accent) 52%, var(--ink) 48%);
+  opacity: 0.95;
+}
+html[data-theme="dark"] .galaxy__arm { opacity: 0.78; }
+html[data-theme="dark"] .galaxy__dust path { opacity: 0.72; }
 /* ④ 日间（浅底）旋臂要更实更清楚 */
 html[data-theme="light"] .galaxy {
   color: color-mix(in srgb, var(--ink) 62%, var(--accent));
