@@ -183,8 +183,8 @@
   }
   function readColors() {
     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    colStreak = toRgba(cssColor('--flow-streak', dark ? '#e8c98d' : '#221f1c'), dark ? 0.5 : 0.4);
-    colSpark = toRgba(cssColor('--flow-spark', dark ? '#eccb8a' : '#8f4a2c'), dark ? 0.75 : 0.6);
+    colStreak = toRgba(cssColor('--flow-streak', dark ? '#e8c98d' : '#221f1c'), dark ? 0.26 : 0.2);
+    colSpark = toRgba(cssColor('--flow-spark', dark ? '#eccb8a' : '#8f4a2c'), dark ? 0.5 : 0.4);
   }
 
   var STRANDS = 3;                                  // 继续加粗：3 束，每束最粗
@@ -369,7 +369,7 @@
   if (!bands.length || !window.requestAnimationFrame) return;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var dpr = Math.min(2, window.devicePixelRatio || 1);
-  var col = 'rgba(240,235,225,.5)', colHot = 'rgba(230,200,140,.85)';
+  var col = 'rgba(240,235,225,.3)', colHot = 'rgba(230,200,140,.6)';
 
   var probe = document.createElement('span');
   probe.setAttribute('aria-hidden', 'true');
@@ -441,17 +441,17 @@
       off: ((Math.random() + Math.random() + Math.random()) / 1.5 - 1) * 5,   // 沿波上下铺开成一条河（中间密、两侧疏）
       lane: Math.floor(Math.random() * 5),
       tw: Math.random() * Math.PI * 2, tws: 0.5 + Math.random() * 1.6,
-      hot: Math.random() < 0.18
+      hot: Math.random() < 0.09
     };
   }
   function resizeOne(st) {
     var r = st.cv.getBoundingClientRect();
     st.W = Math.max(1, r.width);
-    st.H0 = Math.max(1, r.height);
+    st.H0 = Math.max(44, r.height);   // 兜底高度
     st.cv.width = Math.round(st.W * dpr);
     st.cv.height = Math.round(st.H0 * dpr);
     st.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    var n = Math.max(80, Math.min(420, Math.round(st.W / 4)));
+    var n = Math.max(50, Math.min(240, Math.round(st.W / 7)));   // ③ 更少
     st.parts = [];
     for (var i = 0; i < n; i++) {
       var p = spawn(st, false);
@@ -501,7 +501,7 @@
       var y0 = waveY(st, x0, lane) + p.off;
       var y1 = waveY(st, p.x, lane) + p.off;
       var tw = 0.5 + 0.5 * Math.sin(p.tw + performance.now() * 0.0012 * p.tws);
-      var aq = Math.round(Math.max(0.05, (p.hot ? 0.75 : 0.42) * tw) * 7);
+      var aq = Math.round(Math.max(0.04, (p.hot ? 0.5 : 0.26) * tw) * 7);
       if (aq !== lastA) { ctx.globalAlpha = aq / 7; lastA = aq; }
       ctx.strokeStyle = p.hot ? colHot : col;
       ctx.lineWidth = p.hot ? 1.1 : 0.7;
@@ -587,17 +587,20 @@
       // tiny：旋臂与星轨上的星明显更小
       s.style.setProperty('--sz', tiny
         ? (0.1 + rnd() * 0.16).toFixed(2)
-        : (big ? 0.5 + rnd() * 0.3 : 0.2 + rnd() * 0.28).toFixed(2));
+        : (big ? 0.34 + rnd() * 0.22 : 0.14 + rnd() * 0.2).toFixed(2));
       s.style.animationDelay = (-rnd() * 9).toFixed(2) + 's';
-      s.style.animationDuration = (4.5 + rnd() * 5.5).toFixed(2) + 's';
+      s.style.animationDuration = (9 + rnd() * 7).toFixed(2) + 's';   // 更慢，不再一闪即逝
       s.style.animationDirection = rnd() < 0.5 ? 'normal' : 'alternate';
-      // ④ 动画每循环一次就换一个位置：视觉上就是"此处消失、他处出现"
+      /* 换位只发生在"全灭"段（62%–100%），且只有约三分之一会换位，
+         换位时连大小一起换 —— 看起来是"另一颗星亮起"，不会满屏乱跳 */
       s.addEventListener('animationiteration', function () {
+        if (rnd() > 0.35) return;
         var nx, ny;
         if (rightBias) { nx = 42 + rnd() * 56; ny = rnd() * 100; }
         else { nx = rnd() * 100; ny = rnd() * 100; }
         s.style.left = nx.toFixed(2) + '%';
         s.style.top = ny.toFixed(2) + '%';
+        s.style.setProperty('--sz', (tiny ? 0.1 + rnd() * 0.16 : 0.14 + rnd() * 0.2).toFixed(2));
       });
       frag.appendChild(s);
     }
@@ -610,8 +613,10 @@
     var isGalaxy = cls.indexOf('sparkle-field--galaxy') >= 0;
     var isRing = cls.indexOf('sparkle-field--ring') >= 0;
     // ② 子版块背景不再铺星；旋臂与星轨上的星更小，页眉/页脚（仅首页）略大
-    var n = isGalaxy ? 130 : isRing ? 46 : cls.indexOf('sparkle-field--header') >= 0 ? 110
-          : cls.indexOf('sparkle-field--footer') >= 0 ? 110 : 0;
+    // ②③ 数量收敛：旋臂 110（更小）、星轨 40（更小）、页眉 70、页脚 60
+    var n = isGalaxy ? 110 : isRing ? 40
+          : cls.indexOf('sparkle-field--header') >= 0 ? 70
+          : cls.indexOf('sparkle-field--footer') >= 0 ? 60 : 0;
     var rightBias = isGalaxy;
     var tiny = isGalaxy || isRing;
     if (n > 0) build(el, n, true, rightBias, tiny);

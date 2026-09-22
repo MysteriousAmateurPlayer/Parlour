@@ -1,5 +1,5 @@
 <footer class="site-footer">
-  {{- if .IsHome }}{{ partial "sparkles.html" (dict "variant" "footer") }}{{ end }}
+  {{ partial "sparkles.html" (dict "variant" "footer") }}
   {{/* 花边：与页眉同款的涡卷花带 */}}
   <div class="ornament-band ornament-band--foot" aria-hidden="true">
     {{ partial "frieze.html" (dict "dir" "h") }}
