@@ -2341,3 +2341,47 @@ body.is-modal-open { overflow: hidden; }
   width: 2px;
   background: color-mix(in srgb, var(--accent) 70%, transparent);
 }
+
+/* --------------------------------------------------------------------------
+   花边装饰：页眉下方 / 页脚上方 / 页边花链
+   手绘 SVG（卷草 + 莨苕 + 日轮徽章 + 轨道环）配细刻度线，典雅且有天文仪器感
+   -------------------------------------------------------------------------- */
+.filigree {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.5rem, 1.6vw, 1.4rem);
+  width: min(96vw, 92rem);
+  margin: 0 auto;
+  padding: 0 clamp(0.75rem, 3vw, 2rem);
+  color: var(--ring-line);
+}
+.filigree--flip { margin-bottom: clamp(1.2rem, 3vh, 2.2rem); }
+.filigree .icon { stroke-width: 1.1; }
+.filigree__end { display: flex; color: color-mix(in srgb, var(--accent) 55%, var(--ring-line)); }
+.filigree__scroll { display: flex; opacity: 0.9; }
+.filigree__node { display: flex; color: color-mix(in srgb, var(--accent) 70%, var(--ring-line)); }
+/* 细刻度线：像仪器上的游标尺 */
+.filigree__rule {
+  flex: 1 1 auto;
+  height: 6px;
+  min-width: 3rem;
+  background-image:
+    repeating-linear-gradient(to right, currentColor 0 0.6px, transparent 0.6px 4px),
+    linear-gradient(to bottom, transparent calc(50% - 0.35px), currentColor calc(50% - 0.35px) calc(50% + 0.35px), transparent calc(50% + 0.35px));
+  background-size: 100% 5px, 100% 100%;
+  background-position: 0 calc(50% - 2.5px), 0 0;
+  background-repeat: repeat-x, no-repeat;
+  opacity: 0.55;
+}
+.filigree__rule--short { flex: 0 0 auto; width: clamp(1.6rem, 4vw, 3.4rem); opacity: 0.4; }
+/* 中央徽章：轨道环 + 日轮 */
+.filigree__medal { position: relative; display: grid; place-items: center; width: 2.5rem; height: 2.5rem; }
+.filigree__medal-ring { position: absolute; inset: 0; display: grid; place-items: center; color: color-mix(in srgb, var(--accent) 45%, var(--ring-line)); animation: fil-rotate 180s linear infinite; }
+.filigree__medal-ring .icon { width: 100%; height: 100%; stroke-width: 0.9; }
+.filigree__medal-core { position: relative; color: color-mix(in srgb, var(--accent) 80%, var(--ink)); }
+@keyframes fil-rotate { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+/* 页边：把纹样串成一条花链 */
+.sky-margins__mark--orn { opacity: 0.5; }
+.sky-margins__mark--orn .icon { stroke-width: 1; }
+.sky-margins__scale { background-image: repeating-linear-gradient(to bottom, currentColor 0 0.5px, transparent 0.5px 3px); }

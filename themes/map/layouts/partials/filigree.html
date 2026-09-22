@@ -1,0 +1,19 @@
+{{- /* 花边横带：卷草 + 刻度细线 + 中央徽章 + 卷草。
+       参数：flip（true 时上下翻转，用于页脚顶边） */ -}}
+{{- $flip := .flip -}}
+<div class="filigree{{ if $flip }} filigree--flip{{ end }}" aria-hidden="true">
+  <span class="filigree__end">{{ partial "icon.html" (dict "name" "fil-leaf" "class" "icon icon--sm") }}</span>
+  <span class="filigree__scroll">{{ partial "icon.html" (dict "name" "fil-scroll" "class" "icon icon--sm") }}</span>
+  <span class="filigree__rule"></span>
+  <span class="filigree__node">{{ partial "icon.html" (dict "name" "sparkle" "class" "icon icon--xs") }}</span>
+  <span class="filigree__rule filigree__rule--short"></span>
+  <span class="filigree__medal">
+    <span class="filigree__medal-ring">{{ partial "icon.html" (dict "name" "fil-orbit" "class" "icon") }}</span>
+    <span class="filigree__medal-core">{{ partial "icon.html" (dict "name" "sun-seal" "class" "icon icon--sm") }}</span>
+  </span>
+  <span class="filigree__rule filigree__rule--short"></span>
+  <span class="filigree__node">{{ partial "icon.html" (dict "name" "sparkle" "class" "icon icon--xs") }}</span>
+  <span class="filigree__rule"></span>
+  <span class="filigree__scroll">{{ partial "icon.html" (dict "name" "fil-scroll" "class" "icon icon--sm") }}</span>
+  <span class="filigree__end">{{ partial "icon.html" (dict "name" "fil-leaf" "class" "icon icon--sm") }}</span>
+</div>
