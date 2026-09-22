@@ -247,6 +247,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
    04 页头与导航
    -------------------------------------------------------------------------- */
 .site-header {
+  z-index: 4;   /* 页眉与花带要高于两侧固定边栏 */
   position: sticky;
   top: 0;
   z-index: 50;
@@ -2347,6 +2348,7 @@ body.is-modal-open { overflow: hidden; }
    -------------------------------------------------------------------------- */
 .ornament-band {
   position: relative;
+  isolation: isolate;
   display: block;
   width: 100%;
   color: var(--ring-line);
@@ -2358,6 +2360,15 @@ body.is-modal-open { overflow: hidden; }
   height: 1px;
   background: currentColor;
   opacity: 0.45;
+}
+.wave-flow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
 }
 .frieze { display: block; width: 100%; color: var(--ring-line); opacity: 0.6; }
 .frieze--h { width: 100%; }
@@ -2380,12 +2391,20 @@ body.is-modal-open { overflow: hidden; }
 /* 页边：纵向涡卷花边取代原来的刻度带 */
 .sky-margins__vine {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: calc(100% + 240px);   /* 多出一个单元高度，便于无缝循环 */
   display: block;
   overflow: hidden;
   color: var(--ring-line);
-  opacity: 0.55;
+  opacity: 0.5;
+  animation: rail-drift-up 36s linear infinite;
+  will-change: transform;
 }
+.sky-margins__side--right .sky-margins__vine { top: -240px; animation-name: rail-drift-down; }
+@keyframes rail-drift-up   { from { transform: translateY(0); } to { transform: translateY(-240px); } }
+@keyframes rail-drift-down { from { transform: translateY(0); } to { transform: translateY(240px); } }
 .sky-margins__vine .frieze--v { height: 100%; }
 /* 页边：太阳徽章居中，波浪在它上下贯通 */
 .sky-margins__medal {

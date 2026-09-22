@@ -358,3 +358,126 @@
   }
   new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 })();
+
+
+/* ==========================================================================
+   花带上的流场星特效：粒子沿"星之波浪"的切线流动，带个体速度差与闪烁。
+   与页面主色的流场同一套语言，但更轻更小，只作花带的呼吸感。
+   ========================================================================== */
+(function () {
+  var bands = document.querySelectorAll('.wave-flow');
+  if (!bands.length || !window.requestAnimationFrame) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+  var col = 'rgba(240,235,225,.5)', colHot = 'rgba(230,200,140,.85)';
+
+  var probe = document.createElement('span');
+  probe.setAttribute('aria-hidden', 'true');
+  probe.style.cssText = 'position:absolute;left:-9999px;top:0;width:0;height:0';
+  document.body.appendChild(probe);
+  function toRgba(c, a) {
+    c = (c || '').trim();
+    var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(c);
+    if (m) {
+      var h = m[1];
+      if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+      return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')';
+    }
+    var m2 = /^rgba?\(([^)]+)\)$/.exec(c);
+    if (m2) { var p = m2[1].split(','); return 'rgba(' + p[0].trim() + ',' + p[1].trim() + ',' + p[2].trim() + ',' + a + ')'; }
+    return 'rgba(240,235,225,' + a + ')';
+  }
+  function cssColor(name, fallback) {
+    var v = '';
+    try { probe.style.color = ''; probe.style.color = 'var(' + name + ')'; v = getComputedStyle(probe).color; } catch (e) {}
+    return (!v || v === 'rgba(0, 0, 0, 0)') ? fallback : v;
+  }
+  function readColors() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    col = toRgba(cssColor('--flow-streak', dark ? '#e8c98d' : '#221f1c'), dark ? 0.4 : 0.3);
+    colHot = toRgba(cssColor('--flow-spark', dark ? '#eccb8a' : '#8f4a2c'), dark ? 0.7 : 0.55);
+  }
+
+  var items = [];
+  Array.prototype.forEach.call(bands, function (cv) {
+    var P = parseFloat(cv.getAttribute('data-p')) || 240;
+    var A = parseFloat(cv.getAttribute('data-a')) || 7.5;
+    var Hh = parseFloat(cv.getAttribute('data-h')) || 44;
+    var ctx = cv.getContext('2d');
+    var st = { cv: cv, ctx: ctx, P: P, A: A, H: Hh, W: 0, H0: 0, parts: [] };
+    items.push(st);
+    resizeOne(st);
+  });
+
+  function waveY(st, x) { return st.H0 / 2 + st.A * Math.sin((x / st.P) * Math.PI * 2); }
+  function waveSlope(st, x) { return st.A * (Math.PI * 2 / st.P) * Math.cos((x / st.P) * Math.PI * 2); }
+
+  function spawn(st, atStart) {
+    return {
+      x: atStart ? -8 : Math.random() * st.W,
+      sp: 0.55 + Math.random() * 0.9,          // 个体速度差
+      off: (Math.random() - 0.5) * 7,          // 离波的微小偏移
+      tw: Math.random() * Math.PI * 2, tws: 0.5 + Math.random() * 1.6,
+      hot: Math.random() < 0.18
+    };
+  }
+  function resizeOne(st) {
+    var r = st.cv.getBoundingClientRect();
+    st.W = Math.max(1, r.width);
+    st.H0 = Math.max(1, r.height);
+    st.cv.width = Math.round(st.W * dpr);
+    st.cv.height = Math.round(st.H0 * dpr);
+    st.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = Math.max(40, Math.min(220, Math.round(st.W / 7)));
+    st.parts = [];
+    for (var i = 0; i < n; i++) st.parts.push(spawn(st, false));
+  }
+
+  function drawOne(st, dt) {
+    var ctx = st.ctx;
+    ctx.clearRect(0, 0, st.W, st.H0);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    var lastA = -1;
+    for (var i = 0; i < st.parts.length; i++) {
+      var p = st.parts[i];
+      var x0 = p.x;
+      p.x += p.sp * 0.55 * dt;
+      if (p.x > st.W + 10) { st.parts[i] = spawn(st, true); continue; }
+      var y0 = waveY(st, x0) + p.off;
+      var y1 = waveY(st, p.x) + p.off;
+      var tw = 0.5 + 0.5 * Math.sin(p.tw + performance.now() * 0.0012 * p.tws);
+      var aq = Math.round(Math.max(0.05, (p.hot ? 0.75 : 0.42) * tw) * 7);
+      if (aq !== lastA) { ctx.globalAlpha = aq / 7; lastA = aq; }
+      ctx.strokeStyle = p.hot ? colHot : col;
+      ctx.lineWidth = p.hot ? 1.1 : 0.7;
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(p.x, y1);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  var last = 0;
+  function loop(now) {
+    if (!last) last = now;
+    var dt = Math.min(60, now - last); last = now;
+    for (var i = 0; i < items.length; i++) drawOne(items[i], dt);
+    requestAnimationFrame(loop);
+  }
+
+  readColors();
+  // 预热并先画一帧：无头/首屏都立刻有内容
+  for (var w = 0; w < 90; w++) for (var i = 0; i < items.length; i++) {
+    items[i].parts.forEach(function (p) { p.x += p.sp * 0.55 * 16; });
+  }
+  for (var k = 0; k < items.length; k++) drawOne(items[k], 0);
+  if (reduce) return;
+  requestAnimationFrame(loop);
+  window.addEventListener('resize', function () {
+    for (var i = 0; i < items.length; i++) { resizeOne(items[i]); drawOne(items[i], 0); }
+  }, { passive: true });
+  new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();

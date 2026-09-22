@@ -56,6 +56,7 @@
   {{/* 花边：连续涡卷花带 + 中央徽章 */}}
   <div class="ornament-band" aria-hidden="true">
     {{ partial "frieze.html" (dict "dir" "h") }}
+    <canvas class="wave-flow" data-p="240" data-a="7.5" data-h="44" aria-hidden="true"></canvas>
     <span class="ornament-band__medal">{{ partial "medallion.html" . }}</span>
   </div>
 </header>
