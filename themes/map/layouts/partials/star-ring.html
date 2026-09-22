@@ -41,9 +41,14 @@
       <g id="orb-graph"><path d="M-7.6 7 V-7.6 H7.6"/><path d="M-6 5 q4.6 -6.6 6.4 -2.6 t6.6 -4.6"/></g>
       <g id="orb-satellite"><rect x="-2.6" y="-2.6" width="5.2" height="5.2"/><path d="M-3.4 -3.4 L-8.6 -8.6 M3.4 -3.4 L8.6 -8.6 M-3.4 3.4 L-8.6 8.6 M3.4 3.4 L8.6 8.6"/><circle cx="9.6" cy="-9.6" r="1.4"/></g>
       <g id="orb-eclipse"><circle r="5.4"/><path d="M-9.4 0 a9.4 9.4 0 0 1 18.8 0"/><path d="M-11.6 -3.6 a11.6 11.6 0 0 1 23.2 0" opacity=".55"/></g>
+    {{/* 3D 遮挡：星轨在"太阳上半盘"范围内的内容属于远景，应当被太阳挡住 */}}
+    <mask id="sun-occlude" maskUnits="userSpaceOnUse">
+      <rect x="-60" y="-60" width="1760" height="720" fill="#fff"/>
+      <path id="sun-occlude-path" fill="#000" d=""/>
+    </mask>
   </defs>
 
-  <g class="ring-plan">
+  <g class="ring-plan" mask="url(#sun-occlude)">
       <ellipse class="ring-orbit ring-orbit--outer" cx="800" cy="280" rx="806" ry="236"/>
       <ellipse class="ring-orbit ring-orbit--main" cx="800" cy="280" rx="736" ry="214"/>
       <ellipse class="ring-orbit ring-orbit--inner" cx="800" cy="280" rx="560" ry="166"/>
@@ -52,7 +57,7 @@
       <path class="ring-construct ring-construct--line" d="M-6 280 H1606"/>
   </g>
 
-  <g class="ring-marks">
+  <g class="ring-marks" mask="url(#sun-occlude)">
           <g class="ring-item" data-orbit="outer" data-a="0.0000"><path class="ring-tick ring-tick--long" d="M0 -7.5 V0"/></g>
           <g class="ring-item" data-orbit="outer" data-a="0.1047"><path class="ring-tick" d="M0 -3.6 V0"/></g>
           <g class="ring-item" data-orbit="outer" data-a="0.2094"><path class="ring-tick" d="M0 -3.6 V0"/></g>

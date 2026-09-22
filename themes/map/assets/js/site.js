@@ -187,7 +187,7 @@
     colSpark = toRgba(cssColor('--flow-spark', dark ? '#eccb8a' : '#8f4a2c'), dark ? 0.75 : 0.6);
   }
 
-  var STRANDS = 4;                                  // 束数减少 → 每束更粗，且束间留得出空隙
+  var STRANDS = 3;                                  // 继续加粗：3 束，每束最粗
   var st = [];
   (function () {
     for (var i = 0; i < STRANDS; i++) {
@@ -208,12 +208,12 @@
     return {
       a: Math.random() * Math.PI * 2,
       s: s,
-      // 束的粗细由"束内抖动"决定：0.012 → 0.025（约两倍厚）；束心间距 0.32/4 = 0.08 更大 → 仍能分开
-      t: 0.76 + (s + 0.5) / STRANDS * 0.32 + (Math.random() - 0.5) * 0.05,
+      // 束的粗细=束内抖动：0.05 → 0.085（再粗 1.7 倍）；束心间距 0.32/3 ≈ 0.107 > 0.085 → 仍分得开
+      t: 0.76 + (s + 0.5) / STRANDS * 0.32 + (Math.random() - 0.5) * 0.085,
       ox: 0, oy: 0,
       hx: [], hy: [],
       age: 0, life: 600 + Math.random() * 1000,
-      hot: Math.random() < 0.08,
+      hot: Math.random() < 0.06,
       tw: Math.random() * Math.PI * 2, tws: 0.4 + Math.random() * 1.4
     };
   }
@@ -241,7 +241,7 @@
     var disc = document.querySelector('.sun-disc');
     var dr = disc ? disc.getBoundingClientRect() : null;
     sunR = (dr && r.width) ? (dr.width / 2) * (W / r.width) : W * 0.17;
-    var n = Math.max(2400, Math.min(8200, Math.round((W + H) * 6.8)));   // 更粗的束需要更多粒子
+    var n = Math.max(3000, Math.min(11000, Math.round((W + H) * 8.6)));   // 更粗的束需要更多粒子
     parts = [];
     for (var i = 0; i < n; i++) parts.push(spawn(i));
   }
