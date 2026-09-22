@@ -2490,3 +2490,15 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 .galaxy__core-in { fill: currentColor; opacity: 0.55; }
 .galaxy__core-out { fill: currentColor; opacity: 0.22; }
 .galaxy__core-halo { fill: currentColor; opacity: 0.1; }
+
+/* --------------------------------------------------------------------------
+   ① 旋臂上的四角星：位置随整体（.galaxy__spin）旋转，但朝向恒定。
+      做法：自身绕中心做「同周期、反方向」的自转，正好抵消外层旋转。
+      注意：420s 必须与 .galaxy__spin 的时长保持一致，改一处要同时改另一处。
+   -------------------------------------------------------------------------- */
+.galaxy__sparkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: galaxy-spin-rev 420s linear infinite;
+}
+@keyframes galaxy-spin-rev { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

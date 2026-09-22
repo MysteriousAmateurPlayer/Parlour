@@ -606,7 +606,9 @@
     if (c.indexOf('--header') >= 0) return { n: 62, mode: 'band', s0: 0.16, s1: 0.34 };   // 页眉河流
     if (c.indexOf('--footer-band') >= 0) return { n: 62, mode: 'band', s0: 0.14, s1: 0.3 }; // 页脚河流
     if (c.indexOf('--footer') >= 0) return { n: 78, mode: 'fill', s0: 0.16, s1: 0.38, pad: 46 }; // 页脚版面
-    if (c.indexOf('--ring') >= 0) return { n: 74, mode: 'ellipse', s0: 0.16, s1: 0.4, rx: 49, ry: 15, r0: 0.66, r1: 1.02 }; // 太阳星轨椭圆
+    // ② 星轨：与太阳星轨椭圆完全对齐（主轨 rx736 ry214 → 45.0%/35.9%；外轨 49.3%/39.6%）
+    if (c.indexOf('--ring') >= 0) return { n: 82, mode: 'ellipse', s0: 0.16, s1: 0.4,
+                                           rx: 45.0, ry: 35.9, r0: 0.972, r1: 1.095 };
     // 旋臂上的星由 SVG 内部元素承担（.galaxy__sparkle，与螺线同坐标系），此处不生成
     if (c.indexOf('--galaxy') >= 0) return null;
 
