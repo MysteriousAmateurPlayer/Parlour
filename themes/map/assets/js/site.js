@@ -736,6 +736,44 @@
     el.setAttribute('opacity', (opacityAt(Math.min(0.999, rnd())) * 0.75).toFixed(3));  // 首屏立即呈现
     svgStars.push(st);
   });
+  /* ---- 首页天空里的背景随机星（非星座）：取 35% 用同一套状态机闪烁。
+     只改 opacity，绝不触碰 transform —— 因此它们仍按原速随天空旋转。 ---- */
+  var skyStars = [];
+  (function () {
+    var all = document.querySelectorAll('.sky-field use');
+    var picked = [], bgTotal = 0;
+    for (var i3 = 0; i3 < all.length; i3++) {
+      var el3 = all[i3];
+      if (el3.closest && el3.closest('.sky-set')) continue;   // 星座连线上的星不参与
+      bgTotal++;
+      if (rnd() < 0.35) picked.push(el3);
+      if (picked.length >= 400) break;                        // 上限兜底
+    }
+
+    for (var j3 = 0; j3 < picked.length; j3++) {
+      var e3 = picked[j3];
+      var base = parseFloat(e3.style.opacity || e3.getAttribute('opacity') || '0.6');
+      if (!isFinite(base) || base <= 0) base = 0.6;
+      var st3 = { el: e3, base: base, life: 3000 + rnd() * 2000, born: performance.now() - rnd() * 5000 };
+      e3.style.opacity = (base * opacityAt(Math.min(0.999, rnd()))).toFixed(3);   // 首屏立即呈现
+      skyStars.push(st3);
+      svgStars.push(st3);        // 与旋臂星共用同一个逐帧循环
+    }
+    try {                                   // 供自检读取的统计
+      var mn = 2, mx = -1, vis = 0;
+      for (var q3 = 0; q3 < skyStars.length; q3++) {
+        var o3 = parseFloat(skyStars[q3].el.style.opacity || '0');
+        if (o3 < mn) mn = o3;
+        if (o3 > mx) mx = o3;
+        if (o3 > 0.01) vis++;
+      }
+      document.documentElement.setAttribute('data-sky-bg', String(bgTotal));
+      document.documentElement.setAttribute('data-sky-spark', String(picked.length));
+      document.documentElement.setAttribute('data-sky-vis', String(vis));
+      document.documentElement.setAttribute('data-sky-op', mn.toFixed(2) + '~' + mx.toFixed(2));
+    } catch (e0) {}
+  })();
+
   function frameSvg(now) {
     for (var i2 = 0; i2 < svgStars.length; i2++) {
       var st = svgStars[i2];
@@ -747,15 +785,23 @@
         st.life = 3000 + rnd() * 2000;
         t = 0;
       }
-      var o = opacityAt(t) * 0.75;    // ① 与其它星同样降 25%
-      st.el.setAttribute('opacity', o < 0.02 ? '0' : o.toFixed(3));
+      // base 为空的用统一亮度（×0.75）；天空背景星则按其原始亮度调制，避免整体变暗
+      var o = opacityAt(t) * (st.base != null ? st.base : 0.75);
+      var val = o < 0.02 ? '0' : o.toFixed(3);
+      if (st.base != null) st.el.style.opacity = val;   // 天空 <use>：用 style（保留 transform）
+      else st.el.setAttribute('opacity', val);          // 旋臂 <path>：用属性
     }
     requestAnimationFrame(frameSvg);
   }
 
   if (reduce) {                                          // 减少动效：静态微亮
     for (var i = 0; i < stars.length; i++) stars[i].el.style.opacity = '0.26';
-    for (var i2 = 0; i2 < svgStars.length; i2++) svgStars[i2].el.setAttribute('opacity', '0.2');
+    for (var i2 = 0; i2 < svgStars.length; i2++) {
+      var s3 = svgStars[i2];
+      var v3 = s3.base != null ? s3.base : 0.2;
+      if (s3.el.tagName.toLowerCase() === 'use') s3.el.style.opacity = String(v3);
+      else s3.el.setAttribute('opacity', String(v3));
+    }
     return;
   }
   requestAnimationFrame(frame);
