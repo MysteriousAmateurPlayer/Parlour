@@ -40,18 +40,22 @@
         {{/* 太阳附近的柔和淡出：中心全透明，向外渐显，
              这样星空仍是完整一圈，但在太阳与光芒范围内自然让位 */}}
         <radialGradient id="sun-fade">
-          <stop offset="0.34" stop-color="#000"/>
-          <stop offset="0.62" stop-color="#000" stop-opacity="0.6"/>
+          <stop offset="0.30" stop-color="#000"/>
+          <stop offset="0.58" stop-color="#000" stop-opacity="0.72"/>
           <stop offset="1" stop-color="#fff"/>
         </radialGradient>
         <mask id="sky-mask" maskUnits="userSpaceOnUse" x="-600" y="-600" width="2700" height="2500">
           <rect x="-500" y="-500" width="2500" height="2300" fill="#fff"/>
           <circle cx="750" cy="640" r="430" fill="#000"/>
-          <ellipse cx="750" cy="-230" rx="800" ry="300" fill="url(#sun-fade)"/>
+          <ellipse cx="750" cy="-230" rx="820" ry="430" fill="url(#sun-fade)"/>
         </mask>
         <path id="star5" d="M0 -10 L2.5 -3.4 L9.5 -3.1 L4 1.3 L5.9 8.1 L0 4.2 L-5.9 8.1 L-4 1.3 L-9.5 -3.1 L-2.5 -3.4 Z"/>
         <path id="star4" d="M0 -10 Q1.2 -1.2 10 0 Q1.2 1.2 0 10 Q-1.2 1.2 -10 0 Q-1.2 -1.2 0 -10 Z"/>
-        <clipPath id="globe-clip"><circle cx="750" cy="640" r="430"/></clipPath>
+        {{/* 复古铜版画质感：细斜线雕版纹 + 海岸沙色晕染 */}}
+    <pattern id="globe-hatch" width="5.5" height="5.5" patternUnits="userSpaceOnUse" patternTransform="rotate(38)">
+      <line x1="0" y1="0" x2="0" y2="5.5" stroke="var(--globe-hatch)" stroke-width="0.75"/>
+    </pattern>
+    <clipPath id="globe-clip"><circle cx="750" cy="640" r="430"/></clipPath>
         <filter id="globe-glow" x="-25%" y="-25%" width="150%" height="150%">
           <feGaussianBlur stdDeviation="7"/>
         </filter>
@@ -626,7 +630,6 @@
             <use href="#star4" transform="translate(682.5,1127.1) scale(0.36)" style="opacity:0.67"/>
             <use href="#star4" transform="translate(640.0,1138.0) scale(0.38)" style="opacity:0.70"/>
             <use href="#star4" transform="translate(745.1,1158.0) scale(0.48)" style="opacity:0.78"/>
-            <use href="#star4" transform="translate(696.7,1168.7) scale(0.29)" style="opacity:0.59"/>
             <use href="#star4" transform="translate(683.4,1179.8) scale(0.40)" style="opacity:0.71"/>
             <use href="#star4" transform="translate(660.1,1196.6) scale(0.41)" style="opacity:0.71"/>
             <use href="#star4" transform="translate(663.1,1200.6) scale(0.37)" style="opacity:0.68"/>
@@ -669,7 +672,6 @@
             <use href="#star4" transform="translate(534.2,103.3) scale(0.37)" style="opacity:0.68"/>
             <use href="#star4" transform="translate(546.2,133.2) scale(0.37)" style="opacity:0.69"/>
             <use href="#star4" transform="translate(519.1,159.7) scale(0.48)" style="opacity:0.78"/>
-            <use href="#star4" transform="translate(493.7,79.1) scale(0.32)" style="opacity:0.62"/>
             <use href="#star4" transform="translate(501.5,54.7) scale(0.33)" style="opacity:0.64"/>
         </g>
         <g class="sky-set" data-name="室女座" data-cx="990" data-cy="139">
@@ -688,14 +690,12 @@
             <use href="#star4" transform="translate(976.1,81.5) scale(0.43)" style="opacity:0.74"/>
             <use href="#star4" transform="translate(968.0,118.4) scale(0.38)" style="opacity:0.69"/>
             <use href="#star4" transform="translate(951.0,142.0) scale(0.44)" style="opacity:0.75"/>
-            <use href="#star4" transform="translate(985.5,162.0) scale(0.30)" style="opacity:0.61"/>
             <use href="#star4" transform="translate(1015.7,137.9) scale(0.38)" style="opacity:0.69"/>
-            <use href="#star4" transform="translate(1048.6,127.4) scale(0.31)" style="opacity:0.62"/>
             <use href="#star4" transform="translate(1103.0,125.7) scale(0.35)" style="opacity:0.66"/>
         </g>
         <g class="sky-set" data-name="天秤座" data-cx="1304" data-cy="513">
-            <path class="sky-figure" d="M1275.3 562.1L1249.8 486.4L1300.3 431.8L1339.0 585.5L1342.2 599.0"/>
-            <path class="sky-hit" d="M1275.3 562.1L1249.8 486.4L1300.3 431.8L1339.0 585.5L1342.2 599.0"/>
+            <path class="sky-figure" d="M1275.3 562.1L1249.8 486.4L1300.3 431.8L1336.1 476.1L1339.0 585.5L1342.2 599.0"/>
+            <path class="sky-hit" d="M1275.3 562.1L1249.8 486.4L1300.3 431.8L1336.1 476.1L1339.0 585.5L1342.2 599.0"/>
             <path class="sky-figure" d="M1249.8 486.4L1336.1 476.1"/>
             <path class="sky-hit" d="M1249.8 486.4L1336.1 476.1"/>
             <use href="#star4" transform="translate(1275.3,562.1) scale(0.39)" style="opacity:0.70"/>
@@ -773,7 +773,6 @@
             <use href="#star4" transform="translate(996.2,70.1) scale(0.35)" style="opacity:0.66"/>
             <use href="#star4" transform="translate(1004.9,64.6) scale(0.43)" style="opacity:0.74"/>
             <use href="#star4" transform="translate(984.4,65.2) scale(0.37)" style="opacity:0.68"/>
-            <use href="#star4" transform="translate(978.3,77.9) scale(0.27)" style="opacity:0.57"/>
         </g>
         <g class="sky-set" data-name="蛇夫座" data-cx="1287" data-cy="512">
             <path class="sky-figure" d="M1363.1 521.2L1343.2 446.8L1332.2 405.4L1284.4 421.9L1228.8 489.7L1233.9 494.8L1258.1 525.3L1300.7 552.1"/>
@@ -790,10 +789,7 @@
             <use href="#star4" transform="translate(1233.9,494.8) scale(0.39)" style="opacity:0.71"/>
             <use href="#star4" transform="translate(1258.1,525.3) scale(0.46)" style="opacity:0.76"/>
             <use href="#star4" transform="translate(1300.7,552.1) scale(0.47)" style="opacity:0.77"/>
-            <use href="#star4" transform="translate(1250.3,556.7) scale(0.31)" style="opacity:0.62"/>
-            <use href="#star4" transform="translate(1245.0,566.2) scale(0.31)" style="opacity:0.62"/>
             <use href="#star4" transform="translate(1315.6,600.1) scale(0.39)" style="opacity:0.70"/>
-            <use href="#star4" transform="translate(1322.5,625.4) scale(0.31)" style="opacity:0.62"/>
         </g>
         <g class="sky-set" data-name="武仙座" data-cx="1186" data-cy="980">
             <path class="sky-figure" d="M1154.1 1036.2L1161.4 1026.4L1171.2 983.9L1172.6 953.2"/>
@@ -850,15 +846,10 @@
             <use href="#star4" transform="translate(548.9,137.8) scale(0.52)" style="opacity:0.80"/>
             <use href="#star4" transform="translate(514.3,165.5) scale(0.39)" style="opacity:0.70"/>
             <use href="#star4" transform="translate(479.2,175.8) scale(0.52)" style="opacity:0.80"/>
-            <use href="#star4" transform="translate(523.4,203.9) scale(0.32)" style="opacity:0.63"/>
-            <use href="#star4" transform="translate(444.8,93.3) scale(0.31)" style="opacity:0.62"/>
             <use href="#star4" transform="translate(403.6,98.8) scale(0.36)" style="opacity:0.67"/>
-            <use href="#star4" transform="translate(447.4,87.1) scale(0.32)" style="opacity:0.63"/>
             <use href="#star4" transform="translate(444.1,74.7) scale(0.35)" style="opacity:0.66"/>
             <use href="#star4" transform="translate(534.1,121.0) scale(0.34)" style="opacity:0.65"/>
-            <use href="#star4" transform="translate(548.6,70.1) scale(0.31)" style="opacity:0.62"/>
             <use href="#star4" transform="translate(581.0,62.1) scale(0.36)" style="opacity:0.67"/>
-            <use href="#star4" transform="translate(453.8,74.9) scale(0.26)" style="opacity:0.56"/>
         </g>
         <g class="sky-set" data-name="英仙座" data-cx="1026" data-cy="126">
             <path class="sky-figure" d="M1072.1 233.9L1077.5 167.3L1055.9 103.5L1029.1 86.5L1000.9 56.6L1005.8 159.5L1001.5 176.9L1005.8 159.5"/>
@@ -877,15 +868,12 @@
             <use href="#star4" transform="translate(1007.1,88.5) scale(0.33)" style="opacity:0.64"/>
             <use href="#star4" transform="translate(1005.8,159.5) scale(0.51)" style="opacity:0.80"/>
             <use href="#star4" transform="translate(1001.5,176.9) scale(0.39)" style="opacity:0.70"/>
-            <use href="#star4" transform="translate(1090.1,82.5) scale(0.31)" style="opacity:0.62"/>
-            <use href="#star4" transform="translate(1102.0,98.4) scale(0.32)" style="opacity:0.63"/>
             <use href="#star4" transform="translate(1093.0,104.1) scale(0.33)" style="opacity:0.64"/>
-            <use href="#star4" transform="translate(971.2,91.7) scale(0.32)" style="opacity:0.63"/>
             <use href="#star4" transform="translate(883.9,79.7) scale(0.33)" style="opacity:0.64"/>
         </g>
         <g class="sky-set" data-name="宝瓶座" data-cx="1304" data-cy="505">
-            <path class="sky-figure" d="M1255.9 499.2L1287.7 479.6L1309.0 478.4L1346.7 557.6"/>
-            <path class="sky-hit" d="M1255.9 499.2L1287.7 479.6L1309.0 478.4L1346.7 557.6"/>
+            <path class="sky-figure" d="M1215.2 513.9L1255.9 499.2L1287.7 479.6L1302.4 483.6L1309.0 478.4L1315.1 478.8L1331.1 506.7L1354.6 512.7L1346.7 557.6"/>
+            <path class="sky-hit" d="M1215.2 513.9L1255.9 499.2L1287.7 479.6L1302.4 483.6L1309.0 478.4L1315.1 478.8L1331.1 506.7L1354.6 512.7L1346.7 557.6"/>
             <path class="sky-figure" d="M1255.9 499.2L1288.3 530.2"/>
             <path class="sky-hit" d="M1255.9 499.2L1288.3 530.2"/>
             <path class="sky-figure" d="M1287.7 479.6L1297.9 507.5"/>
@@ -894,11 +882,13 @@
             <path class="sky-hit" d="M1309.0 478.4L1305.8 473.2"/>
             <path class="sky-figure" d="M1359.3 553.6L1354.6 512.7L1376.7 545.0"/>
             <path class="sky-hit" d="M1359.3 553.6L1354.6 512.7L1376.7 545.0"/>
-            <path class="sky-figure" d="M1346.7 557.6L1359.3 553.6"/>
-            <path class="sky-hit" d="M1346.7 557.6L1359.3 553.6"/>
+            <use href="#star4" transform="translate(1215.2,513.9) scale(0.35)" style="opacity:0.66"/>
             <use href="#star4" transform="translate(1255.9,499.2) scale(0.43)" style="opacity:0.73"/>
             <use href="#star4" transform="translate(1287.7,479.6) scale(0.42)" style="opacity:0.73"/>
+            <use href="#star4" transform="translate(1302.4,483.6) scale(0.34)" style="opacity:0.65"/>
             <use href="#star4" transform="translate(1309.0,478.4) scale(0.36)" style="opacity:0.67"/>
+            <use href="#star4" transform="translate(1315.1,478.8) scale(0.33)" style="opacity:0.64"/>
+            <use href="#star4" transform="translate(1331.1,506.7) scale(0.35)" style="opacity:0.66"/>
             <use href="#star4" transform="translate(1354.6,512.7) scale(0.30)" style="opacity:0.61"/>
             <use href="#star4" transform="translate(1346.7,557.6) scale(0.36)" style="opacity:0.67"/>
             <use href="#star4" transform="translate(1288.3,530.2) scale(0.31)" style="opacity:0.62"/>
@@ -908,14 +898,31 @@
             <use href="#star4" transform="translate(1376.7,545.0) scale(0.27)" style="opacity:0.57"/>
         </g>
         <g class="sky-set" data-name="双鱼座" data-cx="1190" data-cy="1020">
-            <path class="sky-figure" d="M1260.1 990.8L1297.8 1053.9L1146.3 1033.3L1094.2 1051.3"/>
-            <path class="sky-hit" d="M1260.1 990.8L1297.8 1053.9L1146.3 1033.3L1094.2 1051.3"/>
+            <path class="sky-figure" d="M1238.2 944.5L1235.6 916.9L1245.2 931.0L1238.2 944.5L1235.4 962.3L1260.1 990.8L1277.3 1021.8L1297.8 1053.9L1287.3 1051.7L1272.4 1040.2L1258.5 1036.9L1238.2 1029.7L1224.8 1028.2L1207.2 1029.7L1146.3 1033.3L1122.4 1039.5L1107.6 1035.7L1098.2 1040.7L1094.2 1051.3L1106.3 1061.4L1125.0 1058.8L1130.3 1050.2L1122.4 1039.5"/>
+            <path class="sky-hit" d="M1238.2 944.5L1235.6 916.9L1245.2 931.0L1238.2 944.5L1235.4 962.3L1260.1 990.8L1277.3 1021.8L1297.8 1053.9L1287.3 1051.7L1272.4 1040.2L1258.5 1036.9L1238.2 1029.7L1224.8 1028.2L1207.2 1029.7L1146.3 1033.3L1122.4 1039.5L1107.6 1035.7L1098.2 1040.7L1094.2 1051.3L1106.3 1061.4L1125.0 1058.8L1130.3 1050.2L1122.4 1039.5"/>
             <path class="sky-figure" d="M1094.2 1051.3L1077.8 1048.6"/>
             <path class="sky-hit" d="M1094.2 1051.3L1077.8 1048.6"/>
+            <use href="#star4" transform="translate(1238.2,944.5) scale(0.28)" style="opacity:0.58"/>
+            <use href="#star4" transform="translate(1235.6,916.9) scale(0.29)" style="opacity:0.60"/>
+            <use href="#star4" transform="translate(1245.2,931.0) scale(0.28)" style="opacity:0.58"/>
+            <use href="#star4" transform="translate(1235.4,962.3) scale(0.28)" style="opacity:0.58"/>
             <use href="#star4" transform="translate(1260.1,990.8) scale(0.36)" style="opacity:0.67"/>
+            <use href="#star4" transform="translate(1277.3,1021.8) scale(0.31)" style="opacity:0.62"/>
             <use href="#star4" transform="translate(1297.8,1053.9) scale(0.34)" style="opacity:0.66"/>
+            <use href="#star4" transform="translate(1287.3,1051.7) scale(0.29)" style="opacity:0.59"/>
+            <use href="#star4" transform="translate(1272.4,1040.2) scale(0.30)" style="opacity:0.60"/>
+            <use href="#star4" transform="translate(1258.5,1036.9) scale(0.27)" style="opacity:0.57"/>
+            <use href="#star4" transform="translate(1238.2,1029.7) scale(0.25)" style="opacity:0.54"/>
+            <use href="#star4" transform="translate(1224.8,1028.2) scale(0.31)" style="opacity:0.62"/>
+            <use href="#star4" transform="translate(1207.2,1029.7) scale(0.30)" style="opacity:0.60"/>
             <use href="#star4" transform="translate(1146.3,1033.3) scale(0.33)" style="opacity:0.64"/>
+            <use href="#star4" transform="translate(1122.4,1039.5) scale(0.32)" style="opacity:0.63"/>
+            <use href="#star4" transform="translate(1107.6,1035.7) scale(0.31)" style="opacity:0.62"/>
+            <use href="#star4" transform="translate(1098.2,1040.7) scale(0.26)" style="opacity:0.55"/>
             <use href="#star4" transform="translate(1094.2,1051.3) scale(0.35)" style="opacity:0.67"/>
+            <use href="#star4" transform="translate(1106.3,1061.4) scale(0.27)" style="opacity:0.56"/>
+            <use href="#star4" transform="translate(1125.0,1058.8) scale(0.30)" style="opacity:0.60"/>
+            <use href="#star4" transform="translate(1130.3,1050.2) scale(0.27)" style="opacity:0.56"/>
             <use href="#star4" transform="translate(1077.8,1048.6) scale(0.30)" style="opacity:0.60"/>
         </g>
       </g>
@@ -931,14 +938,11 @@
             <path class="sky-hit" d="M222.0 568.6L213.8 563.2L206.1 556.5"/>
             <path class="sky-figure" d="M193.5 507.7L131.6 513.2"/>
             <path class="sky-hit" d="M193.5 507.7L131.6 513.2"/>
-            <use href="#star4" transform="translate(246.9,405.4) scale(0.30)" style="opacity:0.61"/>
-            <use href="#star4" transform="translate(261.5,483.5) scale(0.32)" style="opacity:0.63"/>
             <use href="#star4" transform="translate(248.3,499.9) scale(0.75)" style="opacity:0.94"/>
             <use href="#star4" transform="translate(193.5,507.7) scale(0.57)" style="opacity:0.84"/>
             <use href="#star4" transform="translate(137.2,536.4) scale(0.35)" style="opacity:0.66"/>
             <use href="#star4" transform="translate(131.6,513.2) scale(0.36)" style="opacity:0.67"/>
             <use href="#star4" transform="translate(129.1,503.2) scale(0.40)" style="opacity:0.71"/>
-            <use href="#star4" transform="translate(141.1,455.1) scale(0.33)" style="opacity:0.63"/>
             <use href="#star4" transform="translate(192.3,572.0) scale(0.38)" style="opacity:0.70"/>
             <use href="#star4" transform="translate(206.1,556.5) scale(0.49)" style="opacity:0.79"/>
             <use href="#star4" transform="translate(211.8,481.4) scale(0.38)" style="opacity:0.69"/>
@@ -964,7 +968,6 @@
             <use href="#star4" transform="translate(400.9,168.1) scale(0.35)" style="opacity:0.66"/>
             <use href="#star4" transform="translate(460.5,193.7) scale(0.34)" style="opacity:0.65"/>
             <use href="#star4" transform="translate(397.0,172.9) scale(0.36)" style="opacity:0.67"/>
-            <use href="#star4" transform="translate(417.0,231.9) scale(0.31)" style="opacity:0.62"/>
         </g>
         <g class="sky-set" data-name="双子座" data-cx="1000" data-cy="132">
             <path class="sky-figure" d="M912.8 134.6L927.1 134.5L964.3 114.3L1054.2 62.3L1073.2 92.0L1028.5 138.6L953.3 181.6L966.7 208.7"/>
@@ -1001,16 +1004,18 @@
             <use href="#star4" transform="translate(1299.7,441.5) scale(0.32)" style="opacity:0.63"/>
         </g>
         <g class="sky-set" data-name="天兔座" data-cx="1181" data-cy="985">
-            <path class="sky-figure" d="M1209.6 965.6L1181.8 990.2L1143.0 976.9L1128.4 1027.5L1173.0 1014.3L1204.8 1028.1"/>
-            <path class="sky-hit" d="M1209.6 965.6L1181.8 990.2L1143.0 976.9L1128.4 1027.5L1173.0 1014.3L1204.8 1028.1"/>
+            <path class="sky-figure" d="M1228.1 960.2L1209.6 965.6L1181.8 990.2L1143.0 976.9L1128.4 1027.5L1173.0 1014.3L1204.8 1028.1L1218.2 1015.3"/>
+            <path class="sky-hit" d="M1228.1 960.2L1209.6 965.6L1181.8 990.2L1143.0 976.9L1128.4 1027.5L1173.0 1014.3L1204.8 1028.1L1218.2 1015.3"/>
             <path class="sky-figure" d="M1143.6 950.2L1143.0 976.9L1156.1 952.1"/>
             <path class="sky-hit" d="M1143.6 950.2L1143.0 976.9L1156.1 952.1"/>
+            <use href="#star4" transform="translate(1228.1,960.2) scale(0.35)" style="opacity:0.66"/>
             <use href="#star4" transform="translate(1209.6,965.6) scale(0.37)" style="opacity:0.68"/>
             <use href="#star4" transform="translate(1181.8,990.2) scale(0.46)" style="opacity:0.76"/>
             <use href="#star4" transform="translate(1143.0,976.9) scale(0.39)" style="opacity:0.70"/>
             <use href="#star4" transform="translate(1128.4,1027.5) scale(0.40)" style="opacity:0.71"/>
             <use href="#star4" transform="translate(1173.0,1014.3) scale(0.44)" style="opacity:0.74"/>
             <use href="#star4" transform="translate(1204.8,1028.1) scale(0.36)" style="opacity:0.67"/>
+            <use href="#star4" transform="translate(1218.2,1015.3) scale(0.35)" style="opacity:0.66"/>
             <use href="#star4" transform="translate(1143.6,950.2) scale(0.30)" style="opacity:0.61"/>
             <use href="#star4" transform="translate(1156.1,952.1) scale(0.31)" style="opacity:0.62"/>
         </g>
@@ -1026,6 +1031,8 @@
         <circle class="globe__atmos" cx="750" cy="640" r="432" filter="url(#globe-glow)"/>
         <circle class="globe__sphere" cx="750" cy="640" r="430"/>
         <g clip-path="url(#globe-clip)">
+          <circle class="globe__texture" cx="750" cy="640" r="430" fill="url(#globe-hatch)"/>
+          <g class="globe__coast-wash" id="globe-coast-wash"></g>
           <g class="globe__coasts" id="globe-coasts"></g>
           <g class="globe__grid" id="globe-grid"></g>
           <g class="globe__pieces" id="globe-pieces"></g>

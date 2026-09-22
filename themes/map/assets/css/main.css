@@ -75,6 +75,9 @@
   /* 地球仪：纸底上的镂空线稿（星图质感），不做夜空反色 */
   --globe-overlap: clamp(10rem, 40vh, 30rem);   /* 地球往上顶进主视觉多少 */
   --globe-star: color-mix(in srgb, var(--ink) 78%, transparent);
+  /* 复古地表：雕版斜线纹与海岸晕染 */
+  --globe-hatch: color-mix(in srgb, #8a6c4a 22%, transparent);
+  --globe-wash: color-mix(in srgb, #c9a86e 26%, transparent);
   /* 星流点缀：在雅致基底上加一点偏金的暖色 */
   /* 日间：星流沿用原来的墨色搭配，不做金色化 */
   --flow-streak: var(--ink);
@@ -1034,6 +1037,16 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 /* 海岸线（七大洲轮廓） */
+.globe__texture { pointer-events: none; }
+.globe__coast-wash {
+  fill: none;
+  stroke: var(--globe-wash);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+  filter: blur(1.1px);
+}
 .globe__coast {
   fill: none;
   stroke: var(--globe-coast);

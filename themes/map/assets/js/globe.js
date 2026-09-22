@@ -107,9 +107,15 @@
     if (pts.length < 3) return;
     rings.push({ pts: pts, clat: sum[0] / pts.length, clon: sum[1] / pts.length });
   });
-  var coastPaths = [];
+  var coastPaths = [], coastWash = [];
+  var washG = document.getElementById('globe-coast-wash');
   if (coastG) {
     rings.forEach(function () {
+      if (washG) {
+        var w = el('path', { 'class': 'globe__coast-wash' });
+        washG.appendChild(w);
+        coastWash.push(w);
+      }
       var p = el('path', { 'class': 'globe__coast' });
       coastG.appendChild(p);
       coastPaths.push(p);
@@ -131,6 +137,28 @@
   // 板块按「列优先」落位：起始角度下所有板块都在正面
   var slotOrder = [];
   for (var c0 = 0; c0 < cols; c0++) for (var r0 = 0; r0 < rows; r0++) slotOrder.push(r0 * cols + c0);
+  /* ④ 每个板块在地球上出现两份：原槽位 + 同一行对面那一侧，
+
+     这样转动时正反两面都有内容，不会一面塞满一面空着。 */
+
+  var itemsDup = items.slice();
+
+  items.forEach(function (it) {
+
+    if (it.slot == null) return;
+
+    var row = Math.floor(it.slot / cols), col = it.slot % cols;
+
+    var mirror = row * cols + ((col + 2) % cols);
+
+    if (mirror === it.slot || itemsDup.some(function (x) { return x.slot === mirror; })) return;
+
+    itemsDup.push(Object.assign({}, it, { slot: mirror }));
+
+  });
+
+  items = itemsDup;
+
   items.forEach(function (it, k) {
     var slot = slotOrder[k];
     if (slot != null && pieces[slot]) pieces[slot].item = it;
@@ -237,6 +265,10 @@
       if (run.length > 1) d += smoothRun(run);
       coastPaths[i].setAttribute('d', d);
       coastPaths[i].style.visibility = d ? 'visible' : 'hidden';
+      if (coastWash[i]) {                       // ③ 底衬：沙色晕染，做出复古地表的厚度
+        coastWash[i].setAttribute('d', d);
+        coastWash[i].style.visibility = d ? 'visible' : 'hidden';
+      }
     }
   }
 
