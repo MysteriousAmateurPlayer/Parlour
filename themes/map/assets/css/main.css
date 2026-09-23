@@ -2603,8 +2603,16 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 @keyframes arm-whole { to { transform: rotate(360deg); } }
 
 /* 经纬线：远淡近浓（由生成器拆分好近/远两段） */
-.arm3d__far { opacity: 0.2; stroke-width: 0.8; }
-.arm3d__near { opacity: 0.4; stroke-width: 1; }
+.arm3d__grid-far { opacity: 0.16; stroke-width: 0.8; }
+.arm3d__parallels { opacity: 0.4; stroke-width: 1; }
+/* 经线组：绕天球轴缓慢旋转（经度旋转，轴朝向不变） */
+.arm3d__meridians {
+  opacity: 0.4;
+  stroke-width: 1;
+  transform-origin: 500px 500px;
+  animation: arm-lon-rotate 300s linear infinite;
+}
+@keyframes arm-lon-rotate { to { transform: rotate(360deg); } }
 
 /* ④ 四圈刻度环带：面=背景色（evenodd 挖空成环带），边线=--ring-line，外缘刻度 */
 .ringband { transform-origin: 500px 500px; animation: arm-band-spin 220s linear infinite; }
@@ -2612,15 +2620,23 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 .ringband--2 { animation-duration: 190s; }
 .ringband--3 { animation-duration: 320s; animation-direction: reverse; }
 @keyframes arm-band-spin { to { transform: rotate(360deg); } }
-.ringband__fill {
+.ringband__side {
   fill: var(--bg);
   fill-rule: evenodd;
   stroke: var(--ring-line);
-  stroke-width: 1.3;
-  opacity: 0.92;
+  stroke-width: 1.25;
+  opacity: 0.94;
 }
-.ringband__ticks { fill: none; stroke: var(--ring-line); stroke-width: 0.9; opacity: 0.55; }
-.ringband__ticks--far { opacity: 0.22; }
+.ringband__side--in { opacity: 0.76; stroke-width: 1; }
+.ringband__top {
+  fill: var(--bg);
+  fill-rule: evenodd;
+  stroke: var(--ring-line);
+  stroke-width: 0.85;
+  opacity: 0.86;
+}
+.ringband__ticks { fill: none; stroke: var(--ring-line); stroke-width: 0.9; opacity: 0.6; }
+.ringband__ticks--far { opacity: 0.2; }
 
 /* ⑤ 星座与散星 */
 .sk__lines line { stroke: var(--ring-line); stroke-width: 1.05; opacity: 0.4; }
