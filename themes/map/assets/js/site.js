@@ -747,7 +747,17 @@
       var base = parseFloat(e3.style.opacity || e3.getAttribute('opacity') || '0.6');
       if (!isFinite(base) || base <= 0) base = 0.6;
       var peak = base;                      // 亮度上限＝原始亮度（原版观感）
-      // （已撤销尺寸放大：保持原版贴图与大小）
+      /* ④ 朝向：四角星有朝向（转 45° 就是「×」、0° 是「+」）。
+         基准指向地球（天空画布中心 750,640），再叠加一个随机初始偏移量；
+         因为位置与朝向会一起随天空自转，所以它们始终朝着地球。 */
+      var tf = e3.getAttribute('transform') || '';
+      var mm = /translate\(([-\d.]+),([-\d.]+)\)\s*scale\(([\d.]+)\)/.exec(tf);
+      if (mm) {
+        var sx = parseFloat(mm[1]), sy = parseFloat(mm[2]), sc = parseFloat(mm[3]);
+        var ang = Math.atan2(640 - sy, 750 - sx) * 180 / Math.PI + (rnd() - 0.5) * 60;
+        e3.setAttribute('transform',
+          'translate(' + sx + ',' + sy + ') rotate(' + ang.toFixed(1) + ') scale(' + sc.toFixed(3) + ')');
+      }      // （已撤销尺寸放大：保持原版贴图与大小）
       var st3 = { el: e3, base: peak, life: 3000 + rnd() * 2000, born: Date.now() - rnd() * 5000 };
       e3.style.opacity = (peak * opacityAt(Math.min(0.999, rnd()))).toFixed(3);   // 首屏立即呈现
       skyStars.push(st3);
