@@ -2615,7 +2615,7 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 /* 经线：12 条，竖直大圆，绕极轴（本坐标系的 Y 轴）均匀分布 */
 .arm3d__lon {
   position: absolute;
-  inset: calc(50% - 452px);        /* 与纬线同一半径基准，避免经纬线大小不一 */
+  inset: calc(50% - 740px);        /* 与纬线同一半径基准（占容器约 82%，即范围最大那一版） */
   border-radius: 50%;
   box-shadow: 0 0 0 1px var(--ring-line);
   opacity: 0.36;
