@@ -844,3 +844,36 @@
   setInterval(function () { tick(40); }, 40);
   // 布局变化后（例如页脚进入视口）重新测量容器尺寸无需处理：坐标是百分比，天然自适应
 })();
+
+/* ==========================================================================
+   ④ 古典时钟：按访问者的本地时间驱动三根指针，并显示数字时间。
+   秒针连续走（每 100ms 更新一次），因此看上去是平滑扫秒。
+   ========================================================================== */
+(function () {
+  var root = document.querySelector('[data-clock]');
+  if (!root) return;
+  var hh = root.querySelector('[data-hand="hour"]');
+  var mm = root.querySelector('[data-hand="min"]');
+  var ss = root.querySelector('[data-hand="sec"]');
+  var out = root.querySelector('[data-clock-time]');
+  var zone = root.querySelector('[data-clock-zone]');
+  var CX = 470, CY = 258;                    // 与生成器一致的表盘中心
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function draw() {
+    var d = new Date();
+    var ms = d.getMilliseconds();
+    var s = d.getSeconds() + ms / 1000;
+    var m = d.getMinutes() + s / 60;
+    var h = (d.getHours() % 12) + m / 60;
+    if (ss) ss.setAttribute('transform', 'rotate(' + (s * 6).toFixed(2) + ' ' + CX + ' ' + CY + ')');
+    if (mm) mm.setAttribute('transform', 'rotate(' + (m * 6).toFixed(2) + ' ' + CX + ' ' + CY + ')');
+    if (hh) hh.setAttribute('transform', 'rotate(' + (h * 30).toFixed(2) + ' ' + CX + ' ' + CY + ')');
+    if (out) out.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    if (zone) {
+      var off = -d.getTimezoneOffset() / 60;
+      zone.textContent = 'UTC' + (off >= 0 ? '+' : '') + (off % 1 === 0 ? off : off.toFixed(1));
+    }
+  }
+  draw();
+  setInterval(draw, 100);
+})();

@@ -3,7 +3,7 @@
 {{- $paginator := .Paginate .RegularPages.ByDate.Reverse -}}
 
 <header class="page-head" style="--accent: {{ $meta.accent }}">
-  {{ partial "galaxy.html" . }}
+  {{- if eq .Section "blogs" }}{{ partial "classical-clock.html" . }}{{ else }}{{ partial "galaxy.html" . }}{{ end }}
   <div class="wrap">
     {{- with $meta.en }}<p class="page-head__kicker">{{ . }}</p>{{ end }}
     <h1 class="page-head__title">{{ .Title }}</h1>

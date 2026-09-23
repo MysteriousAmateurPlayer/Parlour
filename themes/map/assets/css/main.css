@@ -75,6 +75,10 @@
   /* 地球仪：纸底上的镂空线稿（星图质感），不做夜空反色 */
   --globe-overlap: clamp(10rem, 40vh, 30rem);   /* 地球往上顶进主视觉多少 */
   --globe-star: color-mix(in srgb, var(--ink) 78%, transparent);
+  /* 天球仪太阳的三段光色（浅色主题） */
+  --arm-sun-core: #b06a2c;
+  --arm-sun-mid: #d9a05a;
+  --arm-sun-edge: #e8c98d;
   /* 复古地表：雕版斜线纹与海岸晕染 */
   --globe-hatch: color-mix(in srgb, #8a6c4a 22%, transparent);
   --globe-wash: color-mix(in srgb, #c9a86e 26%, transparent);
@@ -2502,3 +2506,101 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
   animation: galaxy-spin-rev 420s linear infinite;
 }
 @keyframes galaxy-spin-rev { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* --------------------------------------------------------------------------
+   ③ 关于本站页的宏装饰：精密 3D 天球仪（中心为太阳）
+   经线/纬线/黄道/地平/刻度/星点都是真实正交投影，按深度分近远两段浓淡
+   -------------------------------------------------------------------------- */
+.armillary {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  color: var(--accent);
+  opacity: 0.8;
+  /* 左侧（文字所在）渐隐，右侧天球仪完整 */
+  -webkit-mask-image: linear-gradient(100deg, transparent 0%, rgba(0,0,0,.22) 24%, #000 56%);
+  mask-image: linear-gradient(100deg, transparent 0%, rgba(0,0,0,.22) 24%, #000 56%);
+}
+.armillary__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* 让天球占据右侧：整组向右平移并放大一点 */
+.armillary__svg > g { transform: translate(9%, 2%); }
+.arm__far { stroke-width: 0.65; opacity: 0.28; }
+.arm__near { stroke-width: 1.05; opacity: 0.6; }
+/* 整体缓慢进动 */
+.arm__precess { animation: arm-precess 280s linear infinite; transform-origin: 450px 312px; }
+@keyframes arm-precess { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+/* 太阳：光晕与核心脉动 */
+.arm__core-glow { opacity: 0.5; animation: arm-pulse 11s ease-in-out infinite; }
+.arm__sun-halo { fill: currentColor; opacity: 0.16; animation: arm-pulse 7s ease-in-out infinite; }
+.arm__sun-disc { fill: currentColor; opacity: 0.85; }
+@keyframes arm-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.85; }
+}
+/* 行星轨道与行星 */
+.arm__orbit { stroke: currentColor; stroke-width: 0.55; opacity: 0.24; }
+.arm__planet { fill: currentColor; opacity: 0.8; }
+/* 夜色下与正文墨色混合，保证看得清 */
+html[data-theme="dark"] .armillary {
+  color: color-mix(in srgb, var(--accent) 50%, var(--ink) 50%);
+  opacity: 0.95;
+}
+html[data-theme="dark"] .arm__near { opacity: 0.7; }
+html[data-theme="dark"] .arm__far { opacity: 0.34; }
+
+/* --------------------------------------------------------------------------
+   ④ 随性笔记页的宏装饰：巨大的古典时钟（显示访问者本地时间）
+   -------------------------------------------------------------------------- */
+.clockwork {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  color: var(--accent);
+  opacity: 0.85;
+  -webkit-mask-image: linear-gradient(100deg, transparent 0%, rgba(0,0,0,.22) 24%, #000 56%);
+  mask-image: linear-gradient(100deg, transparent 0%, rgba(0,0,0,.22) 24%, #000 56%);
+}
+.clockwork__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.clockwork__dial { transform: translate(0, 0); }
+.clock__ring { fill: none; stroke: currentColor; stroke-width: 0.8; opacity: 0.5; }
+.clock__ring--outer { stroke-width: 1.6; opacity: 0.72; }
+.clock__ring--inner { stroke-width: 0.6; opacity: 0.35; }
+.clock__ring--hub { stroke-width: 0.9; opacity: 0.5; }
+.clock__tick { stroke: currentColor; stroke-width: 0.9; opacity: 0.5; }
+.clock__tick--major { stroke-width: 2.1; opacity: 0.8; }
+.clock__star { fill: currentColor; opacity: 0.55; }
+.clock__numeral {
+  fill: currentColor;
+  opacity: 0.82;
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: 30px;
+  letter-spacing: 0.02em;
+}
+.clock__hand line { stroke: currentColor; opacity: 0.9; }
+.clock__hand--sec line, .clock__hand--sec circle { stroke: currentColor; fill: currentColor; opacity: 0.75; }
+.clock__cap { fill: currentColor; opacity: 0.9; }
+/* 数字时间 */
+.clockwork__readout {
+  position: absolute;
+  left: 50%;
+  top: 76%;          /* 表盘正下方，避免压到任何文字 */
+  transform: translateX(-50%);
+  margin: 0;
+  text-align: center;
+  color: color-mix(in srgb, var(--accent) 70%, var(--ink));
+  font-variant-numeric: tabular-nums;
+}
+.clockwork__time {
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.1rem, 2.4vw, 1.9rem);
+  letter-spacing: 0.12em;
+}
+.clockwork__zone { display: block; margin-top: 0.3rem; font-size: 0.72rem; letter-spacing: 0.22em; opacity: 0.6; }
+html[data-theme="dark"] .clockwork {
+  color: color-mix(in srgb, var(--accent) 50%, var(--ink) 50%);
+  opacity: 0.95;
+}
+html[data-theme="dark"] .clock__ring, html[data-theme="dark"] .clock__tick { opacity: 0.6; }

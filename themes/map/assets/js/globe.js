@@ -55,6 +55,11 @@
 
   var autoRotate = !reduceMotion;
   var theta = -90;                // 地球初始角度：让有内容的片区正对观众
+  /* ① 自动旋转用"速度模型"而不是直接改角度：
+     每帧把当前角速度缓动逼近目标角速度，于是启动与停止都是丝滑的加减速。 */
+  var spinVel = 0;                // 当前角速度
+  var spinTarget = 0;             // 目标角速度
+  var SPIN_BASE = 0.05;           // 默认转速（原 0.04 的 1.25 倍）
   // ?rotate=90 可以直接打开某个角度（方便分享特定视角，也便于自检）
   try {
     var rq = new URLSearchParams(window.location.search).get('rotate');
@@ -426,7 +431,16 @@
   }
 
   (function loop() {
-    if (active && autoRotate && !dragging) { theta += 0.04; render(); }
+    spinTarget = (active && autoRotate && !dragging) ? SPIN_BASE : 0;
+    if (Math.abs(spinVel - spinTarget) > 1e-4) {
+      spinVel += (spinTarget - spinVel) * 0.045;      // 指数缓动：起停都丝滑
+      theta += spinVel;
+      render();
+    } else if (Math.abs(spinVel) > 1e-4) {
+      spinVel = spinTarget;
+      theta += spinVel;
+      render();
+    }
     requestAnimationFrame(loop);
   })();
 
