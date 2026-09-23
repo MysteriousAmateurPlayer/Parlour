@@ -2762,11 +2762,3 @@ html[data-theme="light"] .arm3d { opacity: 1; }
   .page-head.page-head--profile { min-height: clamp(420px, 72vh, 680px); }
 }
 
-/* --------------------------------------------------------------------------
-   紧急修复：自我介绍页顶栏闪烁/消失
-   · 天球仪是很"重"的 3D 合成层，用 contain: paint 把它的重绘范围限制在自身，
-     避免它反复触发整个页面（含固定顶栏）重绘；
-   · 顶栏建立独立层叠上下文并提升为独立合成层，稳定压在装饰之上。
-   -------------------------------------------------------------------------- */
-.armillary { contain: paint; }
-.site-header { isolation: isolate; transform: translateZ(0); }

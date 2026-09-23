@@ -56,3 +56,30 @@ Get-Process hugo,msedge -ErrorAction SilentlyContinue | Stop-Process -Force
 3. 提交后用 `push.bat` 推送（它自带 SSH 443 通道设置；**不要**直接 `git push`）
 4. 用 `.tools/gh-status.cjs` 看 Actions，`scripts/check-live.cjs` 体检线上
 5. 最后恢复 `localhost:1313` 预览
+
+## ⛔ 禁止用"全局通配 + 显隐切换"做兜底（事故记录 2026-09-23）
+
+为了让"样式表尚未就绪"这个极小概率的瞬间不出现满屏巨大 SVG，助手在 `<head>` 里加过一段兜底：
+
+```css
+:where(html:not(.css-ready)) svg { display: none; }
+```
+
+后果极其严重：**顶栏的徽标与导航图标本身就是 SVG**，于是样式表就绪前整条顶栏消失/闪烁；
+再叠加"用 setInterval 轮询探测样式是否就绪"，造成整页反复重算样式，滚动时元素若隐若现。
+最后只能整段删除。
+
+### 由此确立的规则
+
+1. **不要用通配选择器（`svg`、`*`、`img` …）配合显隐切换做兜底** —— 它必然误伤全局元素
+   （顶栏徽标、导航图标、页脚印章……）。
+2. **不要为了"极小概率的观感问题"引入全局状态开关**（如 `html.css-ready`）。
+   宁可接受那一下朴素渲染，也不要为了它换来持续性的渲染 bug。
+3. **不要用 `setInterval` 轮询页面状态**；需要等待就用事件（`load` / `DOMContentLoaded` /
+   `link.sheet`），且只做一次性判断。
+4. **不要随意给大范围元素加合成层/裁剪**（`translateZ(0)`、`will-change`、`contain: paint`），
+   它们在滚动时容易造成重绘不同步、元素若隐若现；确需使用必须实测滚动。
+5. 凡改动 `<head>`、全局 CSS、或涉及 `position: fixed/sticky` 的元素，
+   **必须同时验证顶栏与页脚在所有页面上的表现**（至少首页 + 一个子页 + 关于页）。
+6. 改动后**要从构建产物反查规则确实生效**（源文件改了不代表产物里有；
+   历史上已多次出现"替换静默失败但以为成功了"）。

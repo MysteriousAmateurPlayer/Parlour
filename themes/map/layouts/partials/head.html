@@ -80,44 +80,6 @@
        一律先隐藏，页面只呈现可读的文字；样式表就绪后由下面的内联脚本解除。
        DOMContentLoaded 会等待样式表加载完成，因此这个判定是可靠的；
        万一样式表加载失败，兜底会保持生效 —— 至少不会出现"满屏巨大太阳"。 */}}
-  <style id="boot-guard">
-    /* 防 FOUC：完整样式表就绪前，SVG 若没有尺寸约束会按浏览器默认尺寸撑满屏幕。
-       这里只"限制尺寸"而不隐藏 —— 因为顶栏的徽标等也是 SVG，隐藏会导致它们消失。 */
-    :where(html:not(.css-ready)) { background: #14110f; color: #ded7cc; }
-    :where(html:not(.css-ready)) svg { max-width: 100%; max-height: 58vh; height: auto; }
-  </style>
-  <script>
-    /* 解除兜底的判定：以"样式表是否真的可用"为准 —— link.sheet 非空即已解析成功；
-       事件驱动（load / DOMContentLoaded），再加一次一次性延时兜底，不做任何轮询。 */
-    (function () {
-      var done = false;
-      function ready() {
-        if (done) return;
-        done = true;
-        document.documentElement.classList.add('css-ready');
-        var g = document.getElementById('boot-guard');
-        if (g && g.parentNode) g.parentNode.removeChild(g);
-      }
-      function sheetsReady() {
-        var links = document.querySelectorAll('link[rel="stylesheet"]');
-        for (var i = 0; i < links.length; i++) {
-          try { if (links[i].sheet) return true; } catch (e) {}
-        }
-        try {
-          return getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() !== '';
-        } catch (e) { return false; }
-      }
-      function check() { if (sheetsReady()) ready(); }
-      Array.prototype.forEach.call(document.querySelectorAll('link[rel="stylesheet"]'), function (l) {
-        l.addEventListener('load', check);
-        l.addEventListener('error', check);
-      });
-      document.addEventListener('DOMContentLoaded', check);
-      window.addEventListener('load', check);
-      setTimeout(check, 900);      // 一次性兜底（缓存命中时事件可能已过）
-    })();
-  </script>
-
   <link rel="stylesheet" href="{{ $bundle.RelPermalink }}" integrity="{{ $bundle.Data.Integrity }}" crossorigin="anonymous">
 {{- if .Params.math }}
   <link rel="stylesheet" href="{{ "vendor/katex/katex.min.css" | relURL }}">
