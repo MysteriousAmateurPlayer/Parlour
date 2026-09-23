@@ -2566,180 +2566,6 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 .orloj__moon { fill: var(--bg); stroke: var(--ink); stroke-width: 1.1; }
 .orloj__moon-shade { fill: var(--ink); opacity: 0.55; stroke: none; }
 
-/* --------------------------------------------------------------------------
-   ② 关于本站页：天球仪（文艺复兴素描感）
-   ① 线条统一 --ring-line（与站内星轨、花边同色，不再是黑白）
-   ② 四圈刻度环为立体环：主环带（--bg 作面）+ 上下两层边缘，形成厚度
-   ③ 每圈：外层负责环平面缓慢摆动，内层刻度在环面内自转
-   ④ 太阳光芒为弯曲火焰（SVG）  ⑤ 地月系（地球 + 绕转月亮）
-   ⑥ 最外圈固定带浮雕；经纬线等差且一个周期不漏；轴朝向固定、经线经度旋转
-   -------------------------------------------------------------------------- */
-.armillary { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-.arm3d {
-  position: absolute;
-  right: -26%;
-  top: 50%;
-  width: 1800px;
-  height: 1800px;
-  transform: translateY(-50%);
-  opacity: 0.9;
-}
-.arm3d__stage { position: absolute; inset: 0; perspective: 2600px; perspective-origin: 50% 50%; transform-style: preserve-3d; }
-
-/* ---------- ⑥ 天球：轴朝向固定（倾角写死，不做动画） ---------- */
-.arm3d__sphere {
-  position: absolute;
-  inset: 9%;
-  transform: rotateX(66deg);
-  transform-style: preserve-3d;
-}
-/* 纬线：等差 7 条（含两极），水平圆环，按 --lat-r / --lat-z 摆放 */
-.arm3d__lat {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: calc(var(--lat-r) * 2);
-  height: calc(var(--lat-r) * 2);
-  margin: calc(var(--lat-r) * -1) 0 0 calc(var(--lat-r) * -1);
-  border-radius: 50%;
-  box-shadow: 0 0 0 1px var(--ring-line);
-  opacity: 0.4;
-  transform: translateZ(var(--lat-z));
-}
-/* 经线：12 条，竖直大圆，绕极轴（本坐标系的 Y 轴）均匀分布 */
-.arm3d__lon {
-  position: absolute;
-  inset: calc(50% - 740px);        /* 与纬线同一半径基准（占容器约 82%，即范围最大那一版） */
-  border-radius: 50%;
-  box-shadow: 0 0 0 1px var(--ring-line);
-  opacity: 0.36;
-  transform: rotateY(var(--lon));
-}
-/* 经线的经度整体缓慢旋转（绕极轴）—— 轴本身朝向不变 */
-.arm3d__meridians {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  animation: arm-lon-spin 300s linear infinite;
-}
-@keyframes arm-lon-spin { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
-.arm3d__parallels { position: absolute; inset: 0; transform-style: preserve-3d; }
-
-/* 星图：球心平面上的星座与散星，缓慢浮动 */
-.arm3d__skyplate { position: absolute; inset: 6%; animation: arm-sky-float 150s ease-in-out infinite alternate; transform-origin: 50% 50%; }
-.arm3d__skysvg { display: block; width: 100%; height: 100%; }
-.sk__lines line { stroke: var(--ring-line); stroke-width: 1.05; opacity: 0.42; }
-.sk__node { fill: var(--ring-line); opacity: 0.55; }
-.sk__dust { fill: var(--ring-line); }
-.sk__fig--0 { animation: arm-fig-0 46s ease-in-out infinite alternate; }
-.sk__fig--1 { animation: arm-fig-1 58s ease-in-out infinite alternate; }
-.sk__fig--2 { animation: arm-fig-2 52s ease-in-out infinite alternate; }
-.sk__fig--3 { animation: arm-fig-3 64s ease-in-out infinite alternate; }
-@keyframes arm-sky-float { from { transform: rotate(-2.4deg); } to { transform: rotate(2.4deg); } }
-@keyframes arm-fig-0 { from { transform: translate(0, 0); } to { transform: translate(18px, -24px); } }
-@keyframes arm-fig-1 { from { transform: translate(0, 0); } to { transform: translate(-22px, 16px); } }
-@keyframes arm-fig-2 { from { transform: translate(0, 0); } to { transform: translate(14px, 22px); } }
-@keyframes arm-fig-3 { from { transform: translate(0, 0); } to { transform: translate(-16px, -20px); } }
-
-/* ---------- ②③ 四圈立体刻度环 ---------- */
-.arm3d__ringwrap { position: absolute; transform-style: preserve-3d; }
-.arm3d__ringwrap--a { inset: 16%; animation: arm-sway-a 72s ease-in-out infinite alternate; }
-.arm3d__ringwrap--b { inset: 24%; animation: arm-sway-b 88s ease-in-out infinite alternate; }
-.arm3d__ringwrap--c { inset: 32%; animation: arm-sway-c 79s ease-in-out infinite alternate; }
-.arm3d__ringwrap--d { inset: 40%; animation: arm-sway-d 96s ease-in-out infinite alternate; }
-.arm3d__ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 15px solid var(--bg);                      /* 环带的"面"＝背景色，保证遮挡正确 */
-  box-shadow: 0 0 0 1.2px var(--ring-line), inset 0 0 0 1.2px var(--ring-line);
-  transform-style: preserve-3d;
-  opacity: 0.92;
-}
-/* ② 厚度：上下两层边缘（沿环面法线错开），从斜角看即是有厚度的环筒 */
-.arm3d__ring::before,
-.arm3d__ring::after {
-  content: '';
-  position: absolute;
-  inset: -15px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 1.1px var(--ring-line);
-}
-.arm3d__ring::before { transform: translateZ(13px); }
-.arm3d__ring::after { transform: translateZ(-13px); box-shadow: 0 0 0 1.1px color-mix(in srgb, var(--ring-line) 70%, transparent); }
-/* 刻度：环面上每 2° 一根，遮罩裁成环形；③ 在环面内自转 */
-.arm3d__ticks {
-  position: absolute;
-  inset: -15px;
-  border-radius: 50%;
-  background: repeating-conic-gradient(from 0deg, var(--ring-line) 0deg 0.2deg, transparent 0.2deg 2deg);
-  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 30px), #000 calc(100% - 30px), #000 calc(100% - 8px), transparent calc(100% - 8px));
-  mask: radial-gradient(closest-side, transparent calc(100% - 30px), #000 calc(100% - 30px), #000 calc(100% - 8px), transparent calc(100% - 8px));
-  opacity: 0.62;
-  animation: arm-tick-spin 220s linear infinite;
-}
-.arm3d__ringwrap--b .arm3d__ticks { animation-duration: 280s; animation-direction: reverse; }
-.arm3d__ringwrap--c .arm3d__ticks { animation-duration: 190s; }
-.arm3d__ringwrap--d .arm3d__ticks { animation-duration: 320s; animation-direction: reverse; }
-@keyframes arm-tick-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-/* ③ 环平面的缓慢摆动（保持现在的均衡姿态为基准） */
-@keyframes arm-sway-a { from { transform: rotateX(72deg) rotateY(-6deg); } to { transform: rotateX(64deg) rotateY(10deg); } }
-@keyframes arm-sway-b { from { transform: rotateX(54deg) rotateY(26deg); } to { transform: rotateX(62deg) rotateY(14deg); } }
-@keyframes arm-sway-c { from { transform: rotateX(36deg) rotateY(-40deg); } to { transform: rotateX(44deg) rotateY(-28deg); } }
-@keyframes arm-sway-d { from { transform: rotateX(84deg) rotateY(6deg); } to { transform: rotateX(76deg) rotateY(-8deg); } }
-
-/* ---------- ④ 太阳：核心 + 弯曲火焰 ---------- */
-.arm3d__sun { position: absolute; left: 50%; top: 50%; width: 13%; height: 13%; transform: translate(-50%, -50%); }
-.sun__svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.sun__disc { fill: color-mix(in srgb, var(--accent) 26%, var(--bg)); stroke: var(--ring-line); stroke-width: 1.6; }
-.sun__disc-ring { fill: none; stroke: var(--ring-line); stroke-width: 0.7; opacity: 0.6; }
-.sun__flames { animation: arm-flame-turn 320s linear infinite; transform-origin: 100px 100px; }
-.sun__flame { fill: none; stroke: var(--ring-line); stroke-width: 1.9; opacity: 0.85; }
-@keyframes arm-flame-turn { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-/* ---------- ⑤ 地月系：地球 + 绕转的月亮 ---------- */
-.arm3d__earthmoon {
-  position: absolute;
-  left: calc(50% + 13%);
-  top: calc(50% - 9%);
-  width: 5.2%;
-  height: 5.2%;
-}
-.earth { position: absolute; inset: 0; }
-.earth__svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.earth__globe { fill: var(--bg); stroke: var(--ring-line); stroke-width: 4; }
-.earth__meridian, .earth__parallel { fill: none; stroke: var(--ring-line); stroke-width: 2.4; opacity: 0.75; }
-.moonorbit {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 132%;
-  height: 132%;
-  margin: -66% 0 0 -66%;
-  border-radius: 50%;
-  border: 1px dashed color-mix(in srgb, var(--ring-line) 55%, transparent);
-  animation: arm-moon-orbit 34s linear infinite;
-}
-.moon {
-  position: absolute;
-  left: 50%;
-  top: -7%;
-  width: 16%;
-  height: 16%;
-  margin-left: -8%;
-  border-radius: 50%;
-  background: var(--bg);
-  box-shadow: 0 0 0 3.4px var(--ring-line);
-}
-@keyframes arm-moon-orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-/* ---------- ⑥ 最外圈：固定不转，带浮雕 ---------- */
-.arm3d__outer { position: absolute; inset: 2%; }
-.arm3d__outer-svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.outer__wave { fill: none; stroke: var(--ring-line); stroke-width: 1.1; opacity: 0.5; }
-.outer__stars path { fill: var(--ring-line); opacity: 0.62; }
-.outer__beads circle { fill: var(--ring-line); opacity: 0.5; }
-html[data-theme="light"] .arm3d { opacity: 1; }
 
 /* --------------------------------------------------------------------------
    关于本站：这一栏要足够高，天球仪才能大面积铺展开（把下方介绍栏目整体下移）。
@@ -2756,3 +2582,77 @@ html[data-theme="light"] .arm3d { opacity: 1; }
   .page-head.page-head--profile { min-height: clamp(420px, 72vh, 680px); }
 }
 
+/* --------------------------------------------------------------------------
+   ② 关于本站页：天球仪（SVG 版，文艺复兴素描感）
+   单层 SVG + 纯平面动画。无 perspective / preserve-3d / rotateX / rotateY / rotateZ，
+   因此不会产生巨型 3D 合成层，也不会与 sticky 顶栏在滚动时发生合成撕裂。
+   -------------------------------------------------------------------------- */
+.armillary { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.arm3d {
+  position: absolute;
+  right: -26%;
+  top: 50%;
+  width: 1800px;
+  height: 1800px;
+  transform: translateY(-50%);
+  opacity: 0.9;
+}
+.arm3d__svg { display: block; width: 100%; height: 100%; }
+/* 整体：极缓慢的平面自转（模拟天球转动，但不产生 3D 合成层） */
+.arm3d__whole { animation: arm-whole 420s linear infinite; transform-origin: 500px 500px; }
+@keyframes arm-whole { to { transform: rotate(360deg); } }
+
+/* 经纬线：远淡近浓（由生成器拆分好近/远两段） */
+.arm3d__far { opacity: 0.2; stroke-width: 0.8; }
+.arm3d__near { opacity: 0.4; stroke-width: 1; }
+
+/* ④ 四圈刻度环带：面=背景色（evenodd 挖空成环带），边线=--ring-line，外缘刻度 */
+.ringband { transform-origin: 500px 500px; animation: arm-band-spin 220s linear infinite; }
+.ringband--1 { animation-duration: 280s; animation-direction: reverse; }
+.ringband--2 { animation-duration: 190s; }
+.ringband--3 { animation-duration: 320s; animation-direction: reverse; }
+@keyframes arm-band-spin { to { transform: rotate(360deg); } }
+.ringband__fill {
+  fill: var(--bg);
+  fill-rule: evenodd;
+  stroke: var(--ring-line);
+  stroke-width: 1.3;
+  opacity: 0.92;
+}
+.ringband__ticks { fill: none; stroke: var(--ring-line); stroke-width: 0.9; opacity: 0.55; }
+.ringband__ticks--far { opacity: 0.22; }
+
+/* ⑤ 星座与散星 */
+.sk__lines line { stroke: var(--ring-line); stroke-width: 1.05; opacity: 0.4; }
+.sk__node { fill: var(--ring-line); opacity: 0.55; }
+.sk__dust { fill: var(--ring-line); }
+.sk__fig--0 { animation: arm-fig-0 46s ease-in-out infinite alternate; }
+.sk__fig--1 { animation: arm-fig-1 58s ease-in-out infinite alternate; }
+.sk__fig--2 { animation: arm-fig-2 52s ease-in-out infinite alternate; }
+.sk__fig--3 { animation: arm-fig-3 64s ease-in-out infinite alternate; }
+@keyframes arm-fig-0 { from { transform: translate(0, 0); } to { transform: translate(16px, -22px); } }
+@keyframes arm-fig-1 { from { transform: translate(0, 0); } to { transform: translate(-20px, 14px); } }
+@keyframes arm-fig-2 { from { transform: translate(0, 0); } to { transform: translate(12px, 20px); } }
+@keyframes arm-fig-3 { from { transform: translate(0, 0); } to { transform: translate(-14px, -18px); } }
+
+/* ⑤ 地月系：整体绕太阳缓慢平面转动 */
+.earthmoon { transform-origin: 500px 500px; animation: arm-moon 80s linear infinite; }
+@keyframes arm-moon { to { transform: rotate(360deg); } }
+.earth__globe { fill: var(--bg); stroke: var(--ring-line); stroke-width: 3.5; }
+.earth__m, .earth__p { fill: none; stroke: var(--ring-line); stroke-width: 2; opacity: 0.75; }
+.moonorbit { fill: none; stroke: var(--ring-line); stroke-width: 1; stroke-dasharray: 3 5; opacity: 0.5; }
+.moon { fill: var(--bg); stroke: var(--ring-line); stroke-width: 3; }
+
+/* ④ 太阳：圆盘 + 弯曲火焰（平面缓慢旋转） */
+.arm3d__sun { transform-origin: 500px 500px; animation: arm-flame-turn 320s linear infinite; }
+@keyframes arm-flame-turn { to { transform: rotate(360deg); } }
+.sun__disc { fill: color-mix(in srgb, var(--accent) 26%, var(--bg)); stroke: var(--ring-line); stroke-width: 1.6; }
+.sun__disc-ring { fill: none; stroke: var(--ring-line); stroke-width: 0.7; opacity: 0.6; }
+.sun__flame { fill: none; stroke: var(--ring-line); stroke-width: 1.9; opacity: 0.85; }
+
+/* ⑥ 最外圈浮雕 */
+.rim__circle { fill: none; stroke: var(--ring-line); stroke-width: 1.6; opacity: 0.85; }
+.rim__wave { fill: none; stroke: var(--ring-line); stroke-width: 1.1; opacity: 0.5; }
+.rim__stars path { fill: var(--ring-line); opacity: 0.62; }
+.rim__beads circle { fill: var(--ring-line); opacity: 0.5; }
+html[data-theme="light"] .arm3d { opacity: 1; }
