@@ -81,32 +81,17 @@
        DOMContentLoaded 会等待样式表加载完成，因此这个判定是可靠的；
        万一样式表加载失败，兜底会保持生效 —— 至少不会出现"满屏巨大太阳"。 */}}
   <style id="boot-guard">
+    /* 防 FOUC：完整样式表就绪之前，SVG 会按浏览器默认尺寸撑满整屏（表现为"满屏巨大太阳"），
+       先隐藏；样式表一生效，本兜底整块被移除。注意：canvas 类（首页流场、星河）不在此列，
+       避免它们因判定失误而长期消失。 */
     :where(html:not(.css-ready)) { background: #14110f; color: #ded7cc; }
-    /* 无样式时 SVG 会按浏览器默认尺寸撑满整屏（表现为"满屏巨大太阳"），一律先隐藏；
-       完整样式表一生效，本兜底整块被移除，SVG 全部恢复。 */
-    :where(html:not(.css-ready)) svg,
-    :where(html:not(.css-ready)) #globe-stage,
-    :where(html:not(.css-ready)) .sky-field,
-    :where(html:not(.css-ready)) .sky-turn,
-    :where(html:not(.css-ready)) .sky-drift,
-    :where(html:not(.css-ready)) .sky-margins,
-    :where(html:not(.css-ready)) .hero__ring-layer,
-    :where(html:not(.css-ready)) .hero__flow,
-    :where(html:not(.css-ready)) .wave-flow,
-    :where(html:not(.css-ready)) .sparkle-field,
-    :where(html:not(.css-ready)) .solar-disc { display: none; }
+    :where(html:not(.css-ready)) svg { display: none; }
   </style>
   <script>
-    /* 解除兜底的判定：不再只看 DOMContentLoaded（若样式表被拦截/失败，它同样会触发），
-       而是**直接探测站点样式是否真的生效** —— 完整样式表里定义了 :root 的 --bg 变量。
-       探测成功即加 css-ready；同时把兜底样式整块移除，彻底避免任何残留影响。 */
+    /* 解除兜底的判定：以"样式表是否真的可用"为准 —— link.sheet 非空即已解析成功；
+       事件驱动（load / DOMContentLoaded），再加一次一次性延时兜底，不做任何轮询。 */
     (function () {
       var done = false;
-      function ok() {
-        try {
-          return getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() !== '';
-        } catch (e) { return false; }
-      }
       function ready() {
         if (done) return;
         done = true;
@@ -114,15 +99,23 @@
         var g = document.getElementById('boot-guard');
         if (g && g.parentNode) g.parentNode.removeChild(g);
       }
-      function tryReady() { if (ok()) { ready(); return true; } return false; }
-      document.addEventListener('DOMContentLoaded', tryReady);
-      window.addEventListener('load', tryReady);
-      var n = 0;
-      var t = setInterval(function () {
-        n++;
-        if (tryReady() || n > 60) clearInterval(t);   // 最多轮询 6 秒
-      }, 100);
-      tryReady();
+      function sheetsReady() {
+        var links = document.querySelectorAll('link[rel="stylesheet"]');
+        for (var i = 0; i < links.length; i++) {
+          try { if (links[i].sheet) return true; } catch (e) {}
+        }
+        try {
+          return getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() !== '';
+        } catch (e) { return false; }
+      }
+      function check() { if (sheetsReady()) ready(); }
+      Array.prototype.forEach.call(document.querySelectorAll('link[rel="stylesheet"]'), function (l) {
+        l.addEventListener('load', check);
+        l.addEventListener('error', check);
+      });
+      document.addEventListener('DOMContentLoaded', check);
+      window.addEventListener('load', check);
+      setTimeout(check, 900);      // 一次性兜底（缓存命中时事件可能已过）
     })();
   </script>
 

@@ -2588,9 +2588,7 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
   width: 1800px;
   height: 1800px;
   transform: translateY(-50%);
-  opacity: 0.95;
-  -webkit-mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.55) 10%, #000 26%);
-  mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.55) 10%, #000 26%);
+  opacity: 0.9;
 }
 .arm3d__stage { position: absolute; inset: 0; perspective: 2600px; perspective-origin: 50% 50%; transform-style: preserve-3d; }
 
@@ -2617,7 +2615,7 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 /* 经线：12 条，竖直大圆，绕极轴（本坐标系的 Y 轴）均匀分布 */
 .arm3d__lon {
   position: absolute;
-  inset: 0;
+  inset: calc(50% - 452px);        /* 与纬线同一半径基准，避免经纬线大小不一 */
   border-radius: 50%;
   box-shadow: 0 0 0 1px var(--ring-line);
   opacity: 0.36;
@@ -2697,7 +2695,7 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 @keyframes arm-sway-d { from { transform: rotateX(84deg) rotateY(6deg); } to { transform: rotateX(76deg) rotateY(-8deg); } }
 
 /* ---------- ④ 太阳：核心 + 弯曲火焰 ---------- */
-.arm3d__sun { position: absolute; left: 50%; top: 50%; width: 15%; height: 15%; transform: translate(-50%, -50%); }
+.arm3d__sun { position: absolute; left: 50%; top: 50%; width: 13%; height: 13%; transform: translate(-50%, -50%); }
 .sun__svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .sun__disc { fill: color-mix(in srgb, var(--accent) 26%, var(--bg)); stroke: var(--ring-line); stroke-width: 1.6; }
 .sun__disc-ring { fill: none; stroke: var(--ring-line); stroke-width: 0.7; opacity: 0.6; }
