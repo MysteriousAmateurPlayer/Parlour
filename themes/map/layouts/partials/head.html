@@ -81,11 +81,10 @@
        DOMContentLoaded 会等待样式表加载完成，因此这个判定是可靠的；
        万一样式表加载失败，兜底会保持生效 —— 至少不会出现"满屏巨大太阳"。 */}}
   <style id="boot-guard">
-    /* 防 FOUC：完整样式表就绪之前，SVG 会按浏览器默认尺寸撑满整屏（表现为"满屏巨大太阳"），
-       先隐藏；样式表一生效，本兜底整块被移除。注意：canvas 类（首页流场、星河）不在此列，
-       避免它们因判定失误而长期消失。 */
+    /* 防 FOUC：完整样式表就绪前，SVG 若没有尺寸约束会按浏览器默认尺寸撑满屏幕。
+       这里只"限制尺寸"而不隐藏 —— 因为顶栏的徽标等也是 SVG，隐藏会导致它们消失。 */
     :where(html:not(.css-ready)) { background: #14110f; color: #ded7cc; }
-    :where(html:not(.css-ready)) svg { display: none; }
+    :where(html:not(.css-ready)) svg { max-width: 100%; max-height: 58vh; height: auto; }
   </style>
   <script>
     /* 解除兜底的判定：以"样式表是否真的可用"为准 —— link.sheet 非空即已解析成功；
