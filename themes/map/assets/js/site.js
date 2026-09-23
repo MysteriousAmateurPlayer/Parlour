@@ -345,13 +345,13 @@
   advance(180);          // 预热（含历史点，首屏就有弯曲拖尾）
   drawFrame();
   if (reduce) return;
-  function frame() { advance(1); drawFrame(); raf = requestAnimationFrame(frame); }
-  raf = requestAnimationFrame(frame);
+  function frame() { advance(1); drawFrame(); raf = requestAnimationFrame(function () { frame(Date.now()); }); }
+  raf = requestAnimationFrame(function () { frame(Date.now()); });
   window.addEventListener('resize', function () { resize(); advance(80); drawFrame(); }, { passive: true });
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (es) {
       es.forEach(function (e) {
-        if (e.isIntersecting && !raf) { raf = requestAnimationFrame(frame); }
+        if (e.isIntersecting && !raf) { raf = requestAnimationFrame(function () { frame(Date.now()); }); }
         else if (!e.isIntersecting && raf) { cancelAnimationFrame(raf); raf = 0; }
       });
     }, { threshold: 0 }).observe(back);
@@ -656,7 +656,7 @@
       s.style.opacity = opacityAt(Math.min(0.999, rnd())).toFixed(3);   // 首屏立即呈现
       el.appendChild(s);
       stars.push({
-        el: s, rg: rg,
+        el: s, rg: rg, acc: rnd() * 3000,
         life: 3000 + rnd() * 2000,                 // 生命周期 3~5 秒
         born: performance.now() - rnd() * 5000     // 初始相位打散，避免同时闪
       });
@@ -674,7 +674,7 @@
     st.el.style.width = (1.5 * base).toFixed(2) + 'rem';
     st.el.style.height = (1.5 * base).toFixed(2) + 'rem';
     st.life = 3000 + rnd() * 2000;
-    st.born = performance.now();
+    st.born = Date.now();
   }
 
   function opacityAt(t) {
@@ -683,17 +683,6 @@
     return 1 - ease((t - 0.58) / 0.42);                  // 丝滑淡出
   }
 
-  function frame(now) {
-    for (var i = 0; i < stars.length; i++) {
-      var st = stars[i];
-      var t = (now - st.born) / st.life;
-      if (t >= 1) { respawn(st); t = 0; }
-      // ① 整体亮度降 25%
-      var o = opacityAt(t) * 0.75;
-      st.el.style.opacity = o < 0.02 ? '0' : o.toFixed(3);
-    }
-    requestAnimationFrame(frame);
-  }
 
   /* ---- 旋臂上的星：SVG 内部四角星，与螺线同一坐标系 ----
      取点规则：约 70% 贴着旋臂（带小抖动），30% 散布在整个区域内。 ---- */
@@ -730,10 +719,11 @@
     return [rnd() * SP.w, rnd() * SP.h];   // 非旋臂区域
   }
   Array.prototype.forEach.call(document.querySelectorAll('.galaxy__sparkle'), function (el) {
-    var st = { el: el, R: 2.6 + rnd() * 2.6, life: 3000 + rnd() * 2000, born: performance.now() - rnd() * 5000 };
+    var st = { el: el, R: 2.6 + rnd() * 2.6, life: 3000 + rnd() * 2000, born: Date.now() - rnd() * 5000 };
     var p = pickPoint();
     el.setAttribute('d', sparkD(p[0], p[1], st.R));
     el.setAttribute('opacity', (opacityAt(Math.min(0.999, rnd())) * 0.75).toFixed(3));  // 首屏立即呈现
+    st.pick = pickPoint;
     svgStars.push(st);
   });
   /* ---- 首页天空里的背景随机星（非星座）：取 35% 用同一套状态机闪烁。
@@ -741,31 +731,24 @@
   var skyStars = [];
   (function () {
     var all = document.querySelectorAll('.sky-field use');
-    var picked = [], bgTotal = 0, scaled = 0;
+    var picked = [], bgTotal = 0;
     for (var i3 = 0; i3 < all.length; i3++) {
       var el3 = all[i3];
       if (el3.closest && el3.closest('.sky-set')) continue;   // 星座连线上的星不参与
       var season = el3.closest ? el3.closest('.sky-season') : null;
       if (season && !season.classList.contains('is-active')) continue;   // 隐藏季节组里的星不管
       bgTotal++;
-      if (rnd() < 0.5) picked.push(el3);                     // 50%（只在可见星里抽）
-      if (picked.length >= 400) break;                        // 上限兜底
+      picked.push(el3);                                     // 100%：全部可见背景星都参与
+      if (picked.length >= 900) break;                        // 上限兜底（100% 时约 523 颗）
     }
 
     for (var j3 = 0; j3 < picked.length; j3++) {
       var e3 = picked[j3];
       var base = parseFloat(e3.style.opacity || e3.getAttribute('opacity') || '0.6');
       if (!isFinite(base) || base <= 0) base = 0.6;
-      var peak = Math.min(1, base * 1.6);   // 亮峰：比原始亮度更亮一点，对比才明显
-      // 显示尺寸放大 1.45 倍：只重写 transform 里的 scale，translate（位置）原样保留，
-      // 旋转由父组 .sky-turn 驱动，因此"位置不变、旋转照旧"，只是更容易看见在明灭。
-      var tf = e3.getAttribute('transform') || '';
-      var mm = /translate\(([^)]+)\)\s*scale\(([\d.]+)\)/.exec(tf);
-      if (mm) {
-        e3.setAttribute('transform', 'translate(' + mm[1] + ') scale(' + (parseFloat(mm[2]) * 1.45).toFixed(3) + ')');
-        scaled++;
-      }
-      var st3 = { el: e3, base: peak, life: 3000 + rnd() * 2000, born: performance.now() - rnd() * 5000 };
+      var peak = base;                      // 亮度上限＝原始亮度（原版观感）
+      // （已撤销尺寸放大：保持原版贴图与大小）
+      var st3 = { el: e3, base: peak, life: 3000 + rnd() * 2000, born: Date.now() - rnd() * 5000 };
       e3.style.opacity = (peak * opacityAt(Math.min(0.999, rnd()))).toFixed(3);   // 首屏立即呈现
       skyStars.push(st3);
       svgStars.push(st3);        // 与旋臂星共用同一个逐帧循环
@@ -781,40 +764,60 @@
       document.documentElement.setAttribute('data-sky-bg', String(bgTotal));
       document.documentElement.setAttribute('data-sky-spark', String(picked.length));
       document.documentElement.setAttribute('data-sky-vis', String(vis));
-      document.documentElement.setAttribute('data-sky-scaled', String(scaled));
       document.documentElement.setAttribute('data-sky-op', mn.toFixed(2) + '~' + mx.toFixed(2));
     } catch (e0) {}
   })();
 
   var svgFrames = 0, skySample = '';
-  function frameSvg(now) {
+  /* 帧步进驱动：每 40ms 推进一次，每颗星按自己的寿命累积进度。
+     不依赖 Date.now / performance.now / requestAnimationFrame，
+     因此在后台标签页、无头环境、被节流的场景下都不会停。 */
+  function tick(dt) {
     svgFrames++;
-    if (svgFrames % 30 === 0 && skyStars.length) {
-      try {                                   // 自证：帧在推进 + 天空星亮度在变化
+    // a) 旋臂四角星 + 天空背景星（同在一个数组里）
+    for (var i2 = 0; i2 < svgStars.length; i2++) {
+      var st = svgStars[i2];
+      st.acc = (st.acc || 0) + dt;
+      if (st.acc >= st.life) {
+        st.acc -= st.life;
+        st.life = 3000 + rnd() * 2000;
+        if (st.pick) {                       // 旋臂星：重生时重新取点
+          var p2 = st.pick();
+          st.el.setAttribute('d', sparkD(p2[0], p2[1], st.R));
+        }
+      }
+      var t2 = st.acc / st.life;
+      var o2 = opacityAt(t2) * (st.base != null ? st.base : 0.75);
+      var v2 = o2 < 0.02 ? '0' : o2.toFixed(3);
+      if (st.base != null) st.el.style.opacity = v2;   // 天空 <use>：用 style（保留 transform）
+      else st.el.setAttribute('opacity', v2);          // 旋臂 <path>：用属性
+    }
+    // b) 页眉 / 页脚 / 星轨等 DOM 星
+    for (var j2 = 0; j2 < stars.length; j2++) {
+      var s2 = stars[j2];
+      s2.acc = (s2.acc || 0) + dt;
+      if (s2.acc >= s2.life) {
+        s2.acc -= s2.life;
+        s2.life = 3000 + rnd() * 2000;
+        var pp = pick(s2.rg);
+        s2.el.style.left = pp.x.toFixed(2) + '%';
+        s2.el.style.top = pp.y.toFixed(2) + '%';
+        var b2 = s2.rg.s0 + rnd() * (s2.rg.s1 - s2.rg.s0);
+        s2.el.style.width = (1.5 * b2).toFixed(2) + 'rem';
+        s2.el.style.height = (1.5 * b2).toFixed(2) + 'rem';
+      }
+      var oo = opacityAt(s2.acc / s2.life) * 0.75;
+      s2.el.style.opacity = oo < 0.02 ? '0' : oo.toFixed(3);
+    }
+    // c) 自证：帧在推进 + 天空星亮度在变化
+    if (svgFrames % 20 === 0 && skyStars.length) {
+      try {
         document.documentElement.setAttribute('data-sky-frames', String(svgFrames));
-        var o4 = skyStars[0].el.style.opacity || '';
-        skySample = (skySample ? skySample + ' ' : '') + o4;
-        if (skySample.length > 90) skySample = skySample.slice(-90);
+        skySample = (skySample ? skySample + ' ' : '') + (skyStars[0].el.style.opacity || '');
+        if (skySample.length > 120) skySample = skySample.slice(-120);
         document.documentElement.setAttribute('data-sky-track', skySample);
       } catch (e4) {}
     }
-    for (var i2 = 0; i2 < svgStars.length; i2++) {
-      var st = svgStars[i2];
-      var t = (now - st.born) / st.life;
-      if (t >= 1) {                   // 生命结束：重新取点（70% 贴臂 / 30% 区域）
-        var p2 = pickPoint();
-        st.el.setAttribute('d', sparkD(p2[0], p2[1], st.R));
-        st.born = now;
-        st.life = 3000 + rnd() * 2000;
-        t = 0;
-      }
-      // base 为空的用统一亮度（×0.75）；天空背景星则按其原始亮度调制，避免整体变暗
-      var o = opacityAt(t) * (st.base != null ? st.base : 0.75);
-      var val = o < 0.02 ? '0' : o.toFixed(3);
-      if (st.base != null) st.el.style.opacity = val;   // 天空 <use>：用 style（保留 transform）
-      else st.el.setAttribute('opacity', val);          // 旋臂 <path>：用属性
-    }
-    requestAnimationFrame(frameSvg);
   }
 
   if (reduce) {                                          // 减少动效：静态微亮
@@ -827,7 +830,7 @@
     }
     return;
   }
-  requestAnimationFrame(frame);
-  if (svgStars.length) requestAnimationFrame(frameSvg);
+  /* 单一驱动：每 40ms 推进一次，全部闪烁星（页眉/页脚/星轨/旋臂/天空）共用。 */
+  setInterval(function () { tick(40); }, 40);
   // 布局变化后（例如页脚进入视口）重新测量容器尺寸无需处理：坐标是百分比，天然自适应
 })();
