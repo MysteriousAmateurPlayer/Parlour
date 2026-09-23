@@ -75,6 +75,57 @@
 {{- $main := resources.Get "css/main.css" -}}
 {{- $chroma := resources.Get "css/chroma.css" -}}
 {{- $bundle := slice $main $chroma | resources.Concat "css/site.css" | minify | fingerprint "sha512" -}}
+  {{/* 启动兜底（防 FOUC）：完整样式表就绪之前，那些"没有 CSS 就会按浏览器默认尺寸
+       撑满整屏"的装饰（太阳光芒、星轨、地球、天空、旋臂、浑天仪、天文钟、星场、画布）
+       一律先隐藏，页面只呈现可读的文字；样式表就绪后由下面的内联脚本解除。
+       DOMContentLoaded 会等待样式表加载完成，因此这个判定是可靠的；
+       万一样式表加载失败，兜底会保持生效 —— 至少不会出现"满屏巨大太阳"。 */}}
+  <style id="boot-guard">
+    :where(html:not(.css-ready)) { background: #14110f; color: #ded7cc; }
+    /* 无样式时 SVG 会按浏览器默认尺寸撑满整屏（表现为"满屏巨大太阳"），一律先隐藏；
+       完整样式表一生效，本兜底整块被移除，SVG 全部恢复。 */
+    :where(html:not(.css-ready)) svg,
+    :where(html:not(.css-ready)) #globe-stage,
+    :where(html:not(.css-ready)) .sky-field,
+    :where(html:not(.css-ready)) .sky-turn,
+    :where(html:not(.css-ready)) .sky-drift,
+    :where(html:not(.css-ready)) .sky-margins,
+    :where(html:not(.css-ready)) .hero__ring-layer,
+    :where(html:not(.css-ready)) .hero__flow,
+    :where(html:not(.css-ready)) .wave-flow,
+    :where(html:not(.css-ready)) .sparkle-field,
+    :where(html:not(.css-ready)) .solar-disc { display: none; }
+  </style>
+  <script>
+    /* 解除兜底的判定：不再只看 DOMContentLoaded（若样式表被拦截/失败，它同样会触发），
+       而是**直接探测站点样式是否真的生效** —— 完整样式表里定义了 :root 的 --bg 变量。
+       探测成功即加 css-ready；同时把兜底样式整块移除，彻底避免任何残留影响。 */
+    (function () {
+      var done = false;
+      function ok() {
+        try {
+          return getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() !== '';
+        } catch (e) { return false; }
+      }
+      function ready() {
+        if (done) return;
+        done = true;
+        document.documentElement.classList.add('css-ready');
+        var g = document.getElementById('boot-guard');
+        if (g && g.parentNode) g.parentNode.removeChild(g);
+      }
+      function tryReady() { if (ok()) { ready(); return true; } return false; }
+      document.addEventListener('DOMContentLoaded', tryReady);
+      window.addEventListener('load', tryReady);
+      var n = 0;
+      var t = setInterval(function () {
+        n++;
+        if (tryReady() || n > 60) clearInterval(t);   // 最多轮询 6 秒
+      }, 100);
+      tryReady();
+    })();
+  </script>
+
   <link rel="stylesheet" href="{{ $bundle.RelPermalink }}" integrity="{{ $bundle.Data.Integrity }}" crossorigin="anonymous">
 {{- if .Params.math }}
   <link rel="stylesheet" href="{{ "vendor/katex/katex.min.css" | relURL }}">
