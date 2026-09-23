@@ -59,7 +59,7 @@
      每帧把当前角速度缓动逼近目标角速度，于是启动与停止都是丝滑的加减速。 */
   var spinVel = 0;                // 当前角速度
   var spinTarget = 0;             // 目标角速度
-  var SPIN_BASE = 0.05;           // 默认转速（原 0.04 的 1.25 倍）
+  var SPIN_BASE = 0.0625;         // 默认转速（原 0.04 的 1.5625 倍：连续两次 +25%）
   // ?rotate=90 可以直接打开某个角度（方便分享特定视角，也便于自检）
   try {
     var rq = new URLSearchParams(window.location.search).get('rotate');

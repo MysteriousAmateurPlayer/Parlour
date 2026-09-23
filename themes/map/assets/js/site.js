@@ -846,34 +846,35 @@
 })();
 
 /* ==========================================================================
-   ④ 古典时钟：按访问者的本地时间驱动三根指针，并显示数字时间。
-   秒针连续走（每 100ms 更新一次），因此看上去是平滑扫秒。
+   ③ 布拉格天文钟：由访问者本地时间驱动三根指针（无数字时间显示）。
+   · 时针：24 小时一圈（Orloj 的小时环就是 24 小时制）
+   · 太阳针：按太阳黄经（春分≈3/21 为 0°）指示其在黄道上的位置
+   · 月亮针：按朔望月周期 29.53059 天推进
    ========================================================================== */
 (function () {
   var root = document.querySelector('[data-clock]');
   if (!root) return;
   var hh = root.querySelector('[data-hand="hour"]');
-  var mm = root.querySelector('[data-hand="min"]');
-  var ss = root.querySelector('[data-hand="sec"]');
-  var out = root.querySelector('[data-clock-time]');
-  var zone = root.querySelector('[data-clock-zone]');
-  var CX = 470, CY = 258;                    // 与生成器一致的表盘中心
-  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  var sun = root.querySelector('[data-hand="sun"]');
+  var moon = root.querySelector('[data-hand="moon"]');
+  var CX = 440, CY = 306;   // 与生成器一致（布拉格钟盘心）
+  function daysInYear(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 ? 366 : 365; }
   function draw() {
     var d = new Date();
-    var ms = d.getMilliseconds();
-    var s = d.getSeconds() + ms / 1000;
-    var m = d.getMinutes() + s / 60;
-    var h = (d.getHours() % 12) + m / 60;
-    if (ss) ss.setAttribute('transform', 'rotate(' + (s * 6).toFixed(2) + ' ' + CX + ' ' + CY + ')');
-    if (mm) mm.setAttribute('transform', 'rotate(' + (m * 6).toFixed(2) + ' ' + CX + ' ' + CY + ')');
-    if (hh) hh.setAttribute('transform', 'rotate(' + (h * 30).toFixed(2) + ' ' + CX + ' ' + CY + ')');
-    if (out) out.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
-    if (zone) {
-      var off = -d.getTimezoneOffset() / 60;
-      zone.textContent = 'UTC' + (off >= 0 ? '+' : '') + (off % 1 === 0 ? off : off.toFixed(1));
-    }
+    var hours = d.getHours(), mins = d.getMinutes(), secs = d.getSeconds();
+    // ① 时针：24 小时一圈 → 每小时 15°
+    var aH = ((hours + mins / 60 + secs / 3600) / 24) * 360;
+    // ② 太阳针：一年一圈，春分（约 3/21）为 0°
+    var start = new Date(d.getFullYear(), 0, 0);
+    var doy = Math.floor((d - start) / 86400000) + (hours * 3600 + mins * 60 + secs) / 86400;
+    var aS = (((doy - 80) / daysInYear(d.getFullYear())) * 360 + 360) % 360;
+    // ③ 月亮针：朔望月 29.53059 天一圈（历元 2000-01-06 18:14 UTC 新月）
+    var age = ((d.getTime() - Date.UTC(2000, 0, 6, 18, 14)) / 86400000) % 29.53059;
+    var aM = (age / 29.53059) * 360;
+    if (hh) hh.setAttribute('transform', 'rotate(' + aH.toFixed(2) + ' ' + CX + ' ' + CY + ')');
+    if (sun) sun.setAttribute('transform', 'rotate(' + aS.toFixed(2) + ' ' + CX + ' ' + CY + ')');
+    if (moon) moon.setAttribute('transform', 'rotate(' + aM.toFixed(2) + ' ' + CX + ' ' + CY + ')');
   }
   draw();
-  setInterval(draw, 100);
+  setInterval(draw, 1000);
 })();

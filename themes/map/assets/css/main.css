@@ -2507,100 +2507,83 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 }
 @keyframes galaxy-spin-rev { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+
+
 /* --------------------------------------------------------------------------
-   ③ 关于本站页的宏装饰：精密 3D 天球仪（中心为太阳）
-   经线/纬线/黄道/地平/刻度/星点都是真实正交投影，按深度分近远两段浓淡
+   ② 关于本站页的宏装饰：浑天仪（Armillary sphere）
+   六条带刻度的环带：填充＝页面背景色(--bg)，描边＝文字深色(--ink)，
+   并按深度排序绘制 → 遮挡关系正确，同时呈现"只剩镂空线条"的素描质感。
    -------------------------------------------------------------------------- */
 .armillary {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  color: var(--accent);
-  opacity: 0.8;
-  /* 左侧（文字所在）渐隐，右侧天球仪完整 */
-  -webkit-mask-image: linear-gradient(100deg, transparent 0%, rgba(0,0,0,.22) 24%, #000 56%);
-  mask-image: linear-gradient(100deg, transparent 0%, rgba(0,0,0,.22) 24%, #000 56%);
+  opacity: 0.92;
+  /* 只在最左侧轻微渐隐，保证标题可读，同时不破坏素描感 */
+  -webkit-mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.5) 12%, #000 30%);
+  mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.5) 12%, #000 30%);
 }
 .armillary__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-/* 让天球占据右侧：整组向右平移并放大一点 */
-.armillary__svg > g { transform: translate(9%, 2%); }
-.arm__far { stroke-width: 0.65; opacity: 0.28; }
-.arm__near { stroke-width: 1.05; opacity: 0.6; }
-/* 整体缓慢进动 */
-.arm__precess { animation: arm-precess 280s linear infinite; transform-origin: 450px 312px; }
-@keyframes arm-precess { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-/* 太阳：光晕与核心脉动 */
-.arm__core-glow { opacity: 0.5; animation: arm-pulse 11s ease-in-out infinite; }
-.arm__sun-halo { fill: currentColor; opacity: 0.16; animation: arm-pulse 7s ease-in-out infinite; }
-.arm__sun-disc { fill: currentColor; opacity: 0.85; }
-@keyframes arm-pulse {
-  0%, 100% { opacity: 0.35; }
-  50% { opacity: 0.85; }
-}
-/* 行星轨道与行星 */
-.arm__orbit { stroke: currentColor; stroke-width: 0.55; opacity: 0.24; }
-.arm__planet { fill: currentColor; opacity: 0.8; }
-/* 夜色下与正文墨色混合，保证看得清 */
-html[data-theme="dark"] .armillary {
-  color: color-mix(in srgb, var(--accent) 50%, var(--ink) 50%);
+/* 环带：底面用背景色（因此能遮住后面的环），边线用文字深色 */
+.arm__band {
+  fill: var(--bg);
+  stroke: var(--ink);
+  stroke-width: 1.05;
+  stroke-linejoin: round;
   opacity: 0.95;
 }
-html[data-theme="dark"] .arm__near { opacity: 0.7; }
-html[data-theme="dark"] .arm__far { opacity: 0.34; }
+.arm__ticks { fill: none; stroke: var(--ink); stroke-width: 1.05; opacity: 0.68; }
+/* 中央太阳：同样背景色底 + 深色描边，保持两色素描 */
+.arm__sun-disc { fill: var(--bg); stroke: var(--ink); stroke-width: 1.5; }
+.arm__rays { fill: none; stroke: var(--ink); stroke-width: 0.95; opacity: 0.72; }
+/* 极缓慢自转（若隐若现的动感） */
+.arm__spin { animation: arm-spin 420s linear infinite; transform-origin: 410px 296px; }
+@keyframes arm-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* --------------------------------------------------------------------------
-   ④ 随性笔记页的宏装饰：巨大的古典时钟（显示访问者本地时间）
+   ③ 随性笔记页的宏装饰：布拉格天文钟（Prague Orloj）款式的天文盘
+   外圈 24 小时数字环、昼夜三段弧、偏心黄道环（十二星座）、中心地球，
+   三根指针：时针（24 小时一圈）/ 太阳黄道针 / 月亮针。无数字时间显示。
+   配色沿用站点两色：面用背景色(--bg)，线用文字深色(--ink)。
    -------------------------------------------------------------------------- */
-.clockwork {
+.orloj {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  color: var(--accent);
-  opacity: 0.85;
-  -webkit-mask-image: linear-gradient(100deg, transparent 0%, rgba(0,0,0,.22) 24%, #000 56%);
-  mask-image: linear-gradient(100deg, transparent 0%, rgba(0,0,0,.22) 24%, #000 56%);
+  opacity: 0.94;
+  -webkit-mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.5) 12%, #000 30%);
+  mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.5) 12%, #000 30%);
 }
-.clockwork__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.clockwork__dial { transform: translate(0, 0); }
-.clock__ring { fill: none; stroke: currentColor; stroke-width: 0.8; opacity: 0.5; }
-.clock__ring--outer { stroke-width: 1.6; opacity: 0.72; }
-.clock__ring--inner { stroke-width: 0.6; opacity: 0.35; }
-.clock__ring--hub { stroke-width: 0.9; opacity: 0.5; }
-.clock__tick { stroke: currentColor; stroke-width: 0.9; opacity: 0.5; }
-.clock__tick--major { stroke-width: 2.1; opacity: 0.8; }
-.clock__star { fill: currentColor; opacity: 0.55; }
-.clock__numeral {
-  fill: currentColor;
+.orloj__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* 盘面与环带：面＝背景色，线＝文字深色 */
+.orloj__plate { fill: var(--bg); stroke: var(--ink); stroke-width: 1.2; opacity: 0.96; }
+.orloj__ring { fill: var(--bg); stroke: var(--ink); stroke-width: 1.1; }
+.orloj__ring--thin { stroke-width: 0.7; opacity: 0.7; }
+/* 昼夜三段：同色系深浅（不引入艳色） */
+.orloj__zone { stroke: none; }
+.orloj__zone--mid { fill: color-mix(in srgb, var(--bg) 86%, var(--ink)); }
+.orloj__zone--day { fill: color-mix(in srgb, var(--bg) 64%, var(--ink)); }
+.orloj__zone--night { fill: color-mix(in srgb, var(--bg) 97%, var(--ink)); }
+.orloj__tick { stroke: var(--ink); stroke-width: 0.85; opacity: 0.4; stroke-linecap: round; }
+.orloj__tick--major { stroke-width: 2.1; opacity: 0.8; stroke-linecap: round; }
+.orloj__numeral {
+  fill: var(--ink);
   opacity: 0.82;
   font-family: Georgia, "Times New Roman", "Songti SC", serif;
-  font-size: 30px;
-  letter-spacing: 0.02em;
+  font-size: 21px;
 }
-.clock__hand line { stroke: currentColor; opacity: 0.9; }
-.clock__hand--sec line, .clock__hand--sec circle { stroke: currentColor; fill: currentColor; opacity: 0.75; }
-.clock__cap { fill: currentColor; opacity: 0.9; }
-/* 数字时间 */
-.clockwork__readout {
-  position: absolute;
-  left: 50%;
-  top: 76%;          /* 表盘正下方，避免压到任何文字 */
-  transform: translateX(-50%);
-  margin: 0;
-  text-align: center;
-  color: color-mix(in srgb, var(--accent) 70%, var(--ink));
-  font-variant-numeric: tabular-nums;
-}
-.clockwork__time {
-  display: block;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1.1rem, 2.4vw, 1.9rem);
-  letter-spacing: 0.12em;
-}
-.clockwork__zone { display: block; margin-top: 0.3rem; font-size: 0.72rem; letter-spacing: 0.22em; opacity: 0.6; }
-html[data-theme="dark"] .clockwork {
-  color: color-mix(in srgb, var(--accent) 50%, var(--ink) 50%);
-  opacity: 0.95;
-}
-html[data-theme="dark"] .clock__ring, html[data-theme="dark"] .clock__tick { opacity: 0.6; }
+.orloj__zodiac { fill: var(--ink); opacity: 0.8; font-size: 18px; }
+.orloj__ecliptic { fill: none; stroke: var(--ink); stroke-width: 0.9; opacity: 0.5; }
+.orloj__ecliptic--inner { stroke-width: 0.6; opacity: 0.32; }
+.orloj__earth { fill: var(--bg); stroke: var(--ink); stroke-width: 1.2; }
+.orloj__earth-in { fill: none; stroke: var(--ink); stroke-width: 0.6; opacity: 0.5; }
+/* 指针 */
+.orloj__hand line { stroke: var(--ink); opacity: 0.9; }
+.orloj__hand--sun line, .orloj__hand--moon line { opacity: 0.7; }
+.orloj__hand-tip { fill: var(--ink); opacity: 0.9; }
+.orloj__sun { fill: var(--bg); stroke: var(--ink); stroke-width: 1.1; }
+.orloj__ray { stroke: var(--ink); stroke-width: 0.8; opacity: 0.75; }
+.orloj__moon { fill: var(--bg); stroke: var(--ink); stroke-width: 1.1; }
+.orloj__moon-shade { fill: var(--ink); opacity: 0.55; stroke: none; }
