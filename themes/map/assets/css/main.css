@@ -2746,3 +2746,18 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 .outer__stars path { fill: var(--ring-line); opacity: 0.62; }
 .outer__beads circle { fill: var(--ring-line); opacity: 0.5; }
 html[data-theme="light"] .arm3d { opacity: 1; }
+
+/* --------------------------------------------------------------------------
+   关于本站：这一栏要足够高，天球仪才能大面积铺展开（把下方介绍栏目整体下移）。
+   用双类选择器提高特异性，确保不被 .page-head 的 padding 规则压过去。
+   高度取视口的大部分：小屏 620px 起，大屏最多 1100px。
+   -------------------------------------------------------------------------- */
+.page-head.page-head--profile {
+  min-height: clamp(620px, 88vh, 1100px);
+  display: flex;
+  align-items: center;
+  padding-block: clamp(3rem, 8vh, 6rem);
+}
+@media (max-width: 720px) {
+  .page-head.page-head--profile { min-height: clamp(420px, 72vh, 680px); }
+}
