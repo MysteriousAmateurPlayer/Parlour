@@ -2509,37 +2509,6 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 
 
 
-/* --------------------------------------------------------------------------
-   ② 关于本站页的宏装饰：浑天仪（Armillary sphere）
-   六条带刻度的环带：填充＝页面背景色(--bg)，描边＝文字深色(--ink)，
-   并按深度排序绘制 → 遮挡关系正确，同时呈现"只剩镂空线条"的素描质感。
-   -------------------------------------------------------------------------- */
-.armillary {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.92;
-  /* 只在最左侧轻微渐隐，保证标题可读，同时不破坏素描感 */
-  -webkit-mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.5) 12%, #000 30%);
-  mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.5) 12%, #000 30%);
-}
-.armillary__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-/* 环带：底面用背景色（因此能遮住后面的环），边线用文字深色 */
-.arm__band {
-  fill: var(--bg);
-  stroke: var(--ink);
-  stroke-width: 1.05;
-  stroke-linejoin: round;
-  opacity: 0.95;
-}
-.arm__ticks { fill: none; stroke: var(--ink); stroke-width: 1.05; opacity: 0.68; }
-/* 中央太阳：同样背景色底 + 深色描边，保持两色素描 */
-.arm__sun-disc { fill: var(--bg); stroke: var(--ink); stroke-width: 1.5; }
-.arm__rays { fill: none; stroke: var(--ink); stroke-width: 0.95; opacity: 0.72; }
-/* 极缓慢自转（若隐若现的动感） */
-.arm__spin { animation: arm-spin 420s linear infinite; transform-origin: 410px 296px; }
-@keyframes arm-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* --------------------------------------------------------------------------
    ③ 随性笔记页的宏装饰：布拉格天文钟（Prague Orloj）款式的天文盘
@@ -2553,10 +2522,18 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
   z-index: 0;
   pointer-events: none;
   opacity: 0.94;
+  overflow: hidden;
   -webkit-mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.5) 12%, #000 30%);
   mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.5) 12%, #000 30%);
 }
-.orloj__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.orloj__svg {
+  position: absolute;
+  right: -4%;
+  top: 50%;
+  width: auto;
+  height: 148%;              /* 比页头高 → 只露约 2/3 */
+  transform: translateY(-50%);
+}
 /* 盘面与环带：面＝背景色，线＝文字深色 */
 .orloj__plate { fill: var(--bg); stroke: var(--ink); stroke-width: 1.2; opacity: 0.96; }
 .orloj__ring { fill: var(--bg); stroke: var(--ink); stroke-width: 1.1; }
@@ -2574,7 +2551,14 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
   font-family: Georgia, "Times New Roman", "Songti SC", serif;
   font-size: 21px;
 }
-.orloj__zodiac { fill: var(--ink); opacity: 0.8; font-size: 18px; }
+.orloj__zodiac { fill: var(--ink); stroke: none; opacity: 0.72; }
+.orloj__roman {
+  fill: var(--ink);
+  opacity: 0.9;
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: 30px;
+  letter-spacing: 0.04em;
+}
 .orloj__ecliptic { fill: none; stroke: var(--ink); stroke-width: 0.9; opacity: 0.5; }
 .orloj__ecliptic--inner { stroke-width: 0.6; opacity: 0.32; }
 .orloj__earth { fill: var(--bg); stroke: var(--ink); stroke-width: 1.2; }
@@ -2587,3 +2571,130 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 .orloj__ray { stroke: var(--ink); stroke-width: 0.8; opacity: 0.75; }
 .orloj__moon { fill: var(--bg); stroke: var(--ink); stroke-width: 1.1; }
 .orloj__moon-shade { fill: var(--ink); opacity: 0.55; stroke: none; }
+
+/* --------------------------------------------------------------------------
+   ② 关于本站页：CSS 3D 浑天仪
+   每条环都是"环带"：面用背景色(--bg)，内外边线用文字深色(--ink)；
+   刻度用 repeating-conic-gradient 画在环带上；各环以不同相位摆放并持续 3D 旋转。
+   整体靠右并放大，页头里只露出约 2/3。
+   -------------------------------------------------------------------------- */
+.armillary { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.arm3d {
+  position: absolute;
+  right: 2%;
+  top: 48%;
+  width: 460px;                                  /* 直径约页头的 1.4 倍 → 只露约 2/3 */
+  height: 460px;
+  max-width: 62vw;
+  max-height: 62vw;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.95;
+  -webkit-mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.55) 14%, #000 32%);
+  mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.55) 14%, #000 32%);
+}
+.arm3d__stage { position: absolute; inset: 0; perspective: 1000px; perspective-origin: 50% 46%; }
+.arm3d__globe {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 62%;
+  height: 62%;
+  transform: translate(-50%, -50%) rotateX(54deg);
+  transform-style: preserve-3d;
+}
+/* 每一条环：环带本体 */
+.arm3d__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /* 环带面＝背景色；内外各一条深色边线 */
+  border: 9px solid var(--bg);
+  box-shadow: 0 0 0 1.05px var(--ink), inset 0 0 0 1.05px var(--ink);
+  transform-style: preserve-3d;
+}
+/* 刻度：环带上的细密短划线（同色深色） */
+.arm3d__ticks {
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg,
+    var(--ink) 0deg 0.34deg, transparent 0.34deg 3deg);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 15px), #000 calc(100% - 15px), #000 calc(100% - 4px), transparent calc(100% - 4px));
+  mask: radial-gradient(closest-side, transparent calc(100% - 15px), #000 calc(100% - 15px), #000 calc(100% - 4px), transparent calc(100% - 4px));
+  opacity: 0.7;
+}
+/* 各环的立体摆放与自转（不同速度与方向 → 3D 转动感） */
+.arm3d__ring--0 { transform: rotateY(0deg);   animation: arm-rz 96s linear infinite; }
+.arm3d__ring--1 { transform: rotateY(22.5deg); animation: arm-rz 132s linear infinite reverse; }
+.arm3d__ring--2 { transform: rotateY(45deg);   animation: arm-rz 108s linear infinite; }
+.arm3d__ring--3 { transform: rotateY(67.5deg); animation: arm-rz 150s linear infinite reverse; }
+.arm3d__ring--4 { transform: rotateY(90deg);   animation: arm-rz 120s linear infinite; }
+.arm3d__ring--5 { transform: rotateY(112.5deg); animation: arm-rz 168s linear infinite reverse; }
+.arm3d__ring--6 { transform: rotateY(135deg);  animation: arm-rz 144s linear infinite; }
+.arm3d__ring--7 { transform: rotateY(157.5deg); animation: arm-rz 180s linear infinite reverse; }
+.arm3d__ring--horizon {
+  transform: rotateX(84deg) scale(1.14);
+  border-width: 12px;
+  animation: arm-rz 210s linear infinite reverse;
+}
+@keyframes arm-rz { from { rotate: 0deg; } to { rotate: 360deg; } }
+/* 赤道环（粗环带，横向） */
+.arm3d__equator {
+  position: absolute;
+  inset: -7%;
+  border-radius: 50%;
+  border: 12px solid var(--bg);
+  box-shadow: 0 0 0 1.2px var(--ink), inset 0 0 0 1.2px var(--ink);
+  transform: rotateX(90deg);
+  animation: arm-rz 240s linear infinite;
+}
+/* 中心太阳/地球：背景色面 + 深色边 */
+.arm3d__core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 13%;
+  height: 13%;
+  transform: translate(-50%, -50%) rotateX(-64deg);
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: 0 0 0 1.2px var(--ink), inset 0 0 0 6px color-mix(in srgb, var(--bg) 80%, var(--ink));
+  animation: arm-core 9s ease-in-out infinite;
+}
+@keyframes arm-core {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+/* 极轴 */
+.arm3d__axe {
+  position: absolute;
+  left: 50%;
+  top: -12%;
+  width: 1.2px;
+  height: 124%;
+  transform: translateX(-50%) rotateX(-64deg);
+  background: linear-gradient(to bottom, transparent, var(--ink) 12%, var(--ink) 88%, transparent);
+  opacity: 0.5;
+}
+/* 底座：立柱 + 底盘 */
+.arm3d__stand { position: absolute; left: 50%; bottom: -2%; transform: translateX(-50%); }
+.arm3d__stem {
+  display: block;
+  width: 1.4px;
+  height: 54px;
+  background: linear-gradient(to bottom, var(--ink), color-mix(in srgb, var(--ink) 55%, transparent));
+  opacity: 0.65;
+}
+.arm3d__base {
+  display: block;
+  width: 96px;
+  height: 16px;
+  margin: -1px 0 0 -48px;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: 0 0 0 1.1px var(--ink), inset 0 0 0 5px color-mix(in srgb, var(--bg) 82%, var(--ink));
+  opacity: 0.9;
+}
+/* 浅色主题下稍微加深，保持素描质感清晰 */
+html[data-theme="light"] .arm3d { opacity: 1; }
