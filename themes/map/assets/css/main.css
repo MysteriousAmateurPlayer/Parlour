@@ -260,12 +260,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
   transition: border-color 0.3s var(--ease), background-color 0.3s var(--ease), backdrop-filter 0.3s var(--ease);
 }
 
-@supports (backdrop-filter: blur(10px)) {
-  .site-header {
-    background: color-mix(in srgb, var(--bg) 78%, transparent);
-    backdrop-filter: blur(14px) saturate(150%);
-  }
-}
 
 .site-header.is-scrolled { border-bottom-color: var(--line); }
 
