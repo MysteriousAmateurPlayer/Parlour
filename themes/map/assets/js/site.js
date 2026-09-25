@@ -878,3 +878,229 @@
   draw();
   setInterval(draw, 1000);
 })();
+
+/* ==========================================================================
+   天球仪（关于本站页）：canvas 软件渲染的 3D 空心圆柱环 + 立体太阳。
+   每帧：把三个环的法向量绕竖直轴旋转（真三维旋转）→ 重算透视投影 →
+   背面剔除 → 所有可见面/线/刻度统一按深度排序 → 绘制。
+   用 var(--bg) 填充面 → 遮挡正确；用 var(--ring-line) 描边 → 素描感。
+   全部是 canvas 2D 软件绘制，不涉及 CSS 3D transform，因此不会产生合成层、
+   也不会导致固定顶栏闪烁。
+   ========================================================================== */
+(function () {
+  var cv = document.querySelector('.arm3d-canvas');
+  if (!cv || !cv.getContext) return;
+  var ctx = cv.getContext('2d');
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+
+  var W = 1000, H = 1000, CX = 500, CY = 500;
+  var R = 370, TILT = 24 * Math.PI / 180, FOCAL = 2.6 * R, SUN_R = 46;
+  var rings = [
+    { r: 283, w: 10, h: 16, lon: 96, lat: 18 },
+    { r: 233, w: 10, h: 16, lon: 88, lat: -26 },
+    { r: 183, w: 10, h: 16, lon: 58, lat: 6 }
+  ];
+  var COL_BG = '#16171a', COL_LINE = '#cfc7ba', COL_TICK = '#cfc7ba';
+  function cssVar(name, fallback) {
+    var v = '';
+    try { v = getComputedStyle(document.documentElement).getPropertyValue(name).trim(); } catch (e) {}
+    return v || fallback;
+  }
+  function readColors() {
+    COL_BG = cssVar('--bg', '#16171a');
+    COL_LINE = cssVar('--ring-line', '#cfc7ba');
+    COL_TICK = COL_LINE;
+  }
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function proj(x, y, z) {
+    var s = FOCAL / (FOCAL + z);
+    return { x: CX + x * s, y: CY - y * s, z: z };
+  }
+  function tilts(v) {
+    var y2 = v.y * Math.cos(TILT) - v.z * Math.sin(TILT);
+    var z2 = v.y * Math.sin(TILT) + v.z * Math.cos(TILT);
+    return { x: v.x, y: y2, z: z2 };
+  }
+  function rotY(v, a) {
+    var c = Math.cos(a), s = Math.sin(a);
+    return { x: v.x * c + v.z * s, y: v.y, z: -v.x * s + v.z * c };
+  }
+  function norm(v) { var l = Math.hypot(v.x, v.y, v.z) || 1; return { x: v.x / l, y: v.y / l, z: v.z / l }; }
+  function neg(v) { return { x: -v.x, y: -v.y, z: -v.z }; }
+
+  /* 单环：返回可见元素列表（带深度） */
+  function ringItems(rg, phase) {
+    var la = rg.lon * Math.PI / 180, ph = rg.lat * Math.PI / 180;
+    var n = norm({ x: Math.cos(ph) * Math.cos(la), y: Math.sin(ph), z: Math.cos(ph) * Math.sin(la) });
+    n = rotY(n, phase);                              // 真三维旋转：法向绕竖直轴转
+    var t1 = norm(rotY({ x: -Math.sin(la), y: 0, z: Math.cos(la) }, phase));
+    var t2 = { x: n.y * t1.z - n.z * t1.y, y: n.z * t1.x - n.x * t1.z, z: n.x * t1.y - n.y * t1.x };
+    var Ri = rg.r - rg.w, Ro = rg.r + rg.w, h = rg.h;
+    function W(th, rho, zl) {
+      var rd = th * Math.PI / 180;
+      var u = { x: t1.x * Math.cos(rd) + t2.x * Math.sin(rd), y: t1.y * Math.cos(rd) + t2.y * Math.sin(rd), z: t1.z * Math.cos(rd) + t2.z * Math.sin(rd) };
+      var X = rho * u.x + zl * n.x, Y = rho * u.y + zl * n.y, Z = rho * u.z + zl * n.z;
+      return tilts({ x: X, y: Y, z: Z });
+    }
+    function uT(th) {
+      var rd = th * Math.PI / 180;
+      return tilts({ x: t1.x * Math.cos(rd) + t2.x * Math.sin(rd), y: t1.y * Math.cos(rd) + t2.y * Math.sin(rd), z: t1.z * Math.cos(rd) + t2.z * Math.sin(rd) });
+    }
+    function pt(th, rho, zl) { var w = W(th, rho, zl); return proj(w.x, w.y, w.z); }
+    function facing(cw, N) {
+      var vx = -cw.x, vy = -cw.y, vz = -FOCAL - cw.z;
+      return N.x * vx + N.y * vy + N.z * vz > 0;
+    }
+    var nT = tilts(n);
+    var topFacing = nT.z < 0;
+    var items = [];
+    // 顶/底面（12° 分片）
+    [[h / 2, nT], [-h / 2, neg(nT)]].forEach(function (pair) {
+      var zl = pair[0], N = pair[1];
+      for (var th = 0; th < 360; th += 12) {
+        var mw = W(th + 6, (Ro + Ri) / 2, zl);
+        if (!facing(mw, N)) continue;
+        var outer = [], inner = [];
+        for (var a = th; a <= th + 12; a += 1.5) { outer.push(pt(a, Ro, zl)); inner.push(pt(a, Ri, zl)); }
+        var d = outer.concat(inner.slice().reverse());
+        var z = 0; for (var k = 0; k < d.length; k++) z += d[k].z; z /= d.length;
+        items.push({ z: z, kind: 'face', pts: d, side: false });
+      }
+    });
+    // 外/内侧面（12° 分片）
+    for (var th2 = 0; th2 < 360; th2 += 12) {
+      [[Ro, 1], [Ri, -1]].forEach(function (pair) {
+        var rho = pair[0], sgn = pair[1];
+        var N = sgn > 0 ? uT(th2 + 6) : neg(uT(th2 + 6));
+        var mw = W(th2 + 6, rho, 0);
+        if (!facing(mw, N)) return;
+        var top = [], bot = [];
+        for (var a = th2; a <= th2 + 12; a += 1.5) { top.push(pt(a, rho, h / 2)); bot.push(pt(a, rho, -h / 2)); }
+        var d = top.concat(bot.slice().reverse());
+        var z = 0; for (var k2 = 0; k2 < d.length; k2++) z += d[k2].z; z /= d.length;
+        items.push({ z: z, kind: 'face', pts: d, side: true });
+      });
+    }
+    // 圆线（6° 段）
+    [[Ro, h / 2, nT], [Ri, h / 2, nT], [Ro, -h / 2, neg(nT)], [Ri, -h / 2, neg(nT)]].forEach(function (p) {
+      var rho = p[0], zl = p[1], N = p[2];
+      for (var th3 = 0; th3 < 360; th3 += 6) {
+        var mw = W(th3 + 3, rho, zl);
+        if (!facing(mw, N)) continue;
+        var a2 = pt(th3, rho, zl), b2 = pt(th3 + 6, rho, zl);
+        items.push({ z: (a2.z + b2.z) / 2, kind: 'line', a: a2, b: b2 });
+      }
+    });
+    // 刻度（6°，画在可见环面）
+    var zT = topFacing ? h / 2 : -h / 2, nTick = topFacing ? nT : neg(nT);
+    for (var th4 = 0; th4 < 360; th4 += 6) {
+      var mw2 = W(th4, (Ro + Ri) / 2, zT);
+      if (!facing(mw2, nTick)) continue;
+      var a3 = pt(th4, Ri, zT), b3 = pt(th4, Ro, zT);
+      items.push({ z: (a3.z + b3.z) / 2, kind: 'tick', a: a3, b: b3 });
+    }
+    return items;
+  }
+
+  /* 立体太阳 */
+  function drawSun() {
+    ctx.save();
+    var g = ctx.createRadialGradient(CX, CY, SUN_R * 0.2, CX, CY, SUN_R);
+    g.addColorStop(0, 'rgba(180,120,60,0.28)');
+    g.addColorStop(0.75, 'rgba(180,120,60,0.10)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(CX, CY, SUN_R * 2.2, 0, Math.PI * 2); ctx.fill();
+    // 光芒（弯曲火焰简化为放射短弧）
+    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 1.4; ctx.globalAlpha = 0.7;
+    for (var i = 0; i < 16; i++) {
+      var a = i * Math.PI / 8;
+      var r0 = SUN_R + 4, r1 = SUN_R + (i % 2 ? 22 : 34);
+      ctx.beginPath();
+      ctx.moveTo(CX + r0 * Math.cos(a), CY + r0 * Math.sin(a));
+      ctx.lineTo(CX + r1 * Math.cos(a), CY + r1 * Math.sin(a));
+      ctx.stroke();
+    }
+    // 球体
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(CX, CY, SUN_R, 0, Math.PI * 2);
+    ctx.fillStyle = COL_BG; ctx.fill();
+    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 1.6; ctx.stroke();
+    // 球面网格（经线/纬线）
+    ctx.lineWidth = 0.7; ctx.globalAlpha = 0.45;
+    for (var lon = 0; lon < 180; lon += 30) {
+      ctx.beginPath();
+      var first = true;
+      for (var lat = -90; lat <= 90; lat += 5) {
+        var la2 = lon * Math.PI / 180, ph2 = lat * Math.PI / 180;
+        var p = proj(SUN_R * Math.cos(ph2) * Math.cos(la2), SUN_R * Math.sin(ph2), SUN_R * Math.cos(ph2) * Math.sin(la2));
+        if (p.z > 0) { first = true; continue; }
+        if (first) { ctx.moveTo(p.x, p.y); first = false; } else ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke();
+    }
+    for (var lat2 = -60; lat2 <= 60; lat2 += 30) {
+      var ph3 = lat2 * Math.PI / 180, rho = SUN_R * Math.cos(ph3), zc = SUN_R * Math.sin(ph3);
+      if (zc > 0) continue;
+      ctx.beginPath();
+      for (var a2 = 0; a2 <= 360; a2 += 6) {
+        var rr = a2 * Math.PI / 180, q = proj(rho * Math.cos(rr), rho * Math.sin(rr), zc);
+        if (a2 === 0) ctx.moveTo(q.x, q.y); else ctx.lineTo(q.x, q.y);
+      }
+      ctx.closePath(); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  function draw(items) {
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      if (it.kind === 'face') {
+        ctx.beginPath();
+        for (var k = 0; k < it.pts.length; k++) {
+          if (k === 0) ctx.moveTo(it.pts[k].x, it.pts[k].y); else ctx.lineTo(it.pts[k].x, it.pts[k].y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = COL_BG; ctx.fill();
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.side ? 0.95 : 1.15; ctx.stroke();
+      } else {
+        ctx.strokeStyle = COL_LINE;
+        ctx.lineWidth = it.kind === 'tick' ? 0.8 : 1.15;
+        ctx.globalAlpha = it.kind === 'tick' ? 0.6 : 0.95;
+        ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+
+  var phase = 0;
+  function render() {
+    var rect = cv.getBoundingClientRect();
+    if (!rect.width) return;
+    cv.width = Math.round(rect.width * dpr);
+    cv.height = Math.round(rect.height * dpr);
+    var sc = dpr * rect.width / W;
+    var sy = dpr * rect.height / H;
+    ctx.setTransform(sc, 0, 0, sy, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    readColors();
+    drawSun();
+    var items = [];
+    rings.forEach(function (rg) { items = items.concat(ringItems(rg, phase)); });
+    items.sort(function (p, q) { return q.z - p.z; });
+    draw(items);
+  }
+  function loop() {
+    phase += 0.00055;                       // 三维旋转（绕竖直轴）
+    if (phase > Math.PI * 2) phase -= Math.PI * 2;
+    render();
+    requestAnimationFrame(loop);
+  }
+  render();
+  if (reduce) return;                        // 减少动效：静态一帧
+  requestAnimationFrame(loop);
+  window.addEventListener('resize', render, { passive: true });
+  new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();

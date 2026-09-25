@@ -2679,3 +2679,15 @@ html[data-theme="light"] .arm3d { opacity: 1; }
 /* 边线：只描边、不填充 → 不会遮挡任何东西，只可能被面遮挡 */
 .ringband__line { fill: none; stroke: var(--ring-line); stroke-width: 1.15; opacity: 0.95; }
 .ringband__tick { fill: none; stroke: var(--ring-line); stroke-width: 0.85; opacity: 0.6; }
+
+/* 天球仪：canvas 软件渲染（3D 旋转 + 正确遮挡，无 CSS 3D 合成层） */
+.armillary { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.arm3d-canvas {
+  position: absolute;
+  right: -22%;
+  top: 50%;
+  width: 1500px;
+  height: 1500px;
+  transform: translateY(-50%);
+  opacity: 0.95;
+}
