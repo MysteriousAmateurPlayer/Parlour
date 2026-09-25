@@ -2620,29 +2620,19 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 .ringband--2 { animation-duration: 190s; }
 .ringband--3 { animation-duration: 320s; animation-direction: reverse; }
 @keyframes arm-band-spin { to { transform: rotate(360deg); } }
-.ringband__side {
-  fill: var(--bg);
-  fill-rule: evenodd;
+.ringband__circles {
+  fill: none;
   stroke: var(--ring-line);
-  stroke-width: 1.25;
-  opacity: 0.94;
+  stroke-width: 1.15;
+  opacity: 0.9;
 }
-.ringband__side--in { opacity: 0.76; stroke-width: 1; }
-.ringband__top {
-  fill: var(--bg);
-  fill-rule: evenodd;
-  stroke: var(--ring-line);
-  stroke-width: 0.85;
-  opacity: 0.86;
-}
-.ringband__rim {
+.ringband__gen {
   fill: none;
   stroke: var(--ring-line);
   stroke-width: 1.15;
   opacity: 0.9;
 }
 .ringband__ticks { fill: none; stroke: var(--ring-line); stroke-width: 0.9; opacity: 0.6; }
-.ringband__ticks--far { opacity: 0.2; }
 
 /* ⑤ 星座与散星 */
 .sk__lines line { stroke: var(--ring-line); stroke-width: 1.05; opacity: 0.4; }
