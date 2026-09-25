@@ -1014,13 +1014,39 @@
     });
     // ① 刻度（两级：主 6° 粗、细 3° 更细），画在可见环面
     var zT = topFacing ? h / 2 : -h / 2, nTick = topFacing ? nT : neg(nT);
-    for (var th4 = 0; th4 < 360; th4 += 3) {
+    for (var th4 = 0; th4 < 360; th4 += 6) {
       var mw2 = W(th4, (Ro + Ri) / 2, zT);
       if (!facing(mw2, nTick)) continue;
-      var a3 = pt(th4, Ri, zT), b3 = pt(th4, Ro, zT);
-      items.push({ z: (a3.z + b3.z) / 2, kind: (th4 % 6 === 0) ? 'tick' : 'tick-fine', a: a3, b: b3 });
+      var major = (th4 % 30 === 0);
+      var a3 = pt(th4, Ri, zT);
+      var b3 = pt(th4, major ? Ro : Ri + (Ro - Ri) * 0.52, zT);   // 次级短：只延伸约一半
+      items.push({ z: (a3.z + b3.z) / 2, kind: major ? 'tick' : 'tick-fine', a: a3, b: b3 });
     }
     return items;
+  }
+
+  /* 地月系：地球（带经纬线）+ 绕转的月亮 + 轨道，整体在最内环的 0.75 半径之内 */
+  function drawEarthMoon(ph) {
+    var ex = CX + 80, ey = CY - 44, ER = 16;      // 地球中心与半径（距中心≈91，不压太阳球体，整体<137=0.75×183）
+    var mx = ex + 24 * Math.cos(ph * 2.6), my = ey + 24 * Math.sin(ph * 2.6);
+    // 月球轨道
+    ctx.save();
+    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.6; ctx.globalAlpha = 0.4;
+    ctx.beginPath(); ctx.arc(ex, ey, 24, 0, Math.PI * 2); ctx.stroke();
+    // 地球：球面 + 经纬线
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(ex, ey, ER, 0, Math.PI * 2);
+    ctx.fillStyle = COL_BG; ctx.fill();
+    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 1.3; ctx.stroke();
+    ctx.globalAlpha = 0.5; ctx.lineWidth = 0.6;
+    ctx.beginPath(); ctx.ellipse(ex, ey, ER, ER * 0.32, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(ex, ey, ER * 0.5, ER, 0, 0, Math.PI * 2); ctx.stroke();
+    // 月亮
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(mx, my, 6, 0, Math.PI * 2);
+    ctx.fillStyle = COL_BG; ctx.fill();
+    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 1.1; ctx.stroke();
+    ctx.restore();
   }
 
   /* 立体太阳 */
@@ -1087,8 +1113,8 @@
         ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.side ? 0.95 : 1.15; ctx.stroke();
       } else {
         ctx.strokeStyle = COL_LINE;
-        ctx.lineWidth = it.kind === 'tick' ? 0.8 : (it.kind === 'tick-fine' ? 0.45 : 1.15);
-        ctx.globalAlpha = it.kind === 'tick' ? 0.6 : (it.kind === 'tick-fine' ? 0.38 : 0.95);
+        ctx.lineWidth = it.kind === 'tick' ? 0.9 : (it.kind === 'tick-fine' ? 0.6 : 1.15);
+        ctx.globalAlpha = it.kind === 'tick' ? 0.62 : (it.kind === 'tick-fine' ? 0.55 : 0.95);
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
       }
@@ -1106,6 +1132,7 @@
     ctx.clearRect(0, 0, W, H);
     readColors();
     drawSun();
+    drawEarthMoon(rings[0].prec);
     var items = [];
     rings.forEach(function (rg) { items = items.concat(ringItems(rg, rg.self, rg.prec)); });
     items.sort(function (p, q) { return q.z - p.z; });
@@ -1113,8 +1140,8 @@
   }
   function loop() {
     rings.forEach(function (rg) {
-      rg.self += rg.dir * 0.0032;           // 自转（绕法向，快一点，方向 ± 交替）
-      rg.prec += rg.dir * 0.00032;          // 进动（绕平行环面的轴，很缓慢，方向 ± 交替）
+      rg.self += rg.dir * 0.0016;           // ⑥ 自转减慢
+      rg.prec += rg.dir * 0.0009;           // ⑦ 进动加快（绕平行环面的轴）
       if (rg.self > Math.PI * 2) rg.self -= Math.PI * 2;
       if (rg.prec > Math.PI * 2) rg.prec -= Math.PI * 2;
     });
