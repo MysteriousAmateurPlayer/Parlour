@@ -896,9 +896,9 @@
   var W = 1000, H = 1000, CX = 500, CY = 500;
   var R = 370, TILT = 24 * Math.PI / 180, FOCAL = 2.6 * R, SUN_R = 46;
   var rings = [
-    { r: 283, w: 10, h: 16, lon: 96, lat: 18 },
-    { r: 233, w: 10, h: 16, lon: 88, lat: -26 },
-    { r: 183, w: 10, h: 16, lon: 58, lat: 6 }
+    { r: 283, w: 10, h: 16, lon: 96, lat: 18, dir: 1, self: 0, prec: 0 },
+    { r: 233, w: 10, h: 16, lon: 88, lat: -26, dir: -1, self: 0, prec: 0 },
+    { r: 183, w: 10, h: 16, lon: 58, lat: 6, dir: 1, self: 0, prec: 0 }
   ];
   var COL_BG = '#16171a', COL_LINE = '#cfc7ba', COL_TICK = '#cfc7ba';
   function cssVar(name, fallback) {
@@ -928,14 +928,34 @@
   }
   function norm(v) { var l = Math.hypot(v.x, v.y, v.z) || 1; return { x: v.x / l, y: v.y / l, z: v.z / l }; }
   function neg(v) { return { x: -v.x, y: -v.y, z: -v.z }; }
+  function cross(a, b) { return { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x }; }
+  function rotAxis(v, axis, a) {
+    var c = Math.cos(a), s = Math.sin(a), d = 1 - c;
+    var x = axis.x, y = axis.y, z = axis.z;
+    return {
+      x: (d * x * x + c) * v.x + (d * x * y - s * z) * v.y + (d * x * z + s * y) * v.z,
+      y: (d * y * x + s * z) * v.x + (d * y * y + c) * v.y + (d * y * z - s * x) * v.z,
+      z: (d * z * x - s * y) * v.x + (d * z * y + s * x) * v.y + (d * z * z + c) * v.z
+    };
+  }
 
-  /* 单环：返回可见元素列表（带深度） */
-  function ringItems(rg, phase) {
+  /* 单环：返回可见元素列表（带深度）。
+     姿态 = 初始朝向 →（进动）绕一根"平行于环面"的轴缓慢旋转 →（自转）绕法向 n 旋转。 */
+  function ringItems(rg, self, prec) {
     var la = rg.lon * Math.PI / 180, ph = rg.lat * Math.PI / 180;
-    var n = norm({ x: Math.cos(ph) * Math.cos(la), y: Math.sin(ph), z: Math.cos(ph) * Math.sin(la) });
-    n = rotY(n, phase);                              // 真三维旋转：法向绕竖直轴转
-    var t1 = norm(rotY({ x: -Math.sin(la), y: 0, z: Math.cos(la) }, phase));
-    var t2 = { x: n.y * t1.z - n.z * t1.y, y: n.z * t1.x - n.x * t1.z, z: n.x * t1.y - n.y * t1.x };
+    var n0 = norm({ x: Math.cos(ph) * Math.cos(la), y: Math.sin(ph), z: Math.cos(ph) * Math.sin(la) });
+    var t10 = norm({ x: -Math.sin(la), y: 0, z: Math.cos(la) });
+    var t20 = cross(n0, t10);
+    // ③ 进动轴：垂直于 n0 且水平（即平行于环面）→ 环面缓慢"翻倾"
+    var axis = norm(cross(n0, { x: 0, y: 1, z: 0 }));
+    if (Math.hypot(axis.x, axis.y, axis.z) < 0.001) axis = { x: 1, y: 0, z: 0 };
+    // 进动：整个环坐标系绕 axis 转 prec
+    var n = rotAxis(n0, axis, prec);
+    var t1 = rotAxis(t10, axis, prec);
+    var t2 = rotAxis(t20, axis, prec);
+    // 自转：绕 n 转 self
+    t1 = rotAxis(t1, n, self);
+    t2 = rotAxis(t2, n, self);
     var Ri = rg.r - rg.w, Ro = rg.r + rg.w, h = rg.h;
     function W(th, rho, zl) {
       var rd = th * Math.PI / 180;
@@ -992,13 +1012,13 @@
         items.push({ z: (a2.z + b2.z) / 2, kind: 'line', a: a2, b: b2 });
       }
     });
-    // 刻度（6°，画在可见环面）
+    // ① 刻度（两级：主 6° 粗、细 3° 更细），画在可见环面
     var zT = topFacing ? h / 2 : -h / 2, nTick = topFacing ? nT : neg(nT);
-    for (var th4 = 0; th4 < 360; th4 += 6) {
+    for (var th4 = 0; th4 < 360; th4 += 3) {
       var mw2 = W(th4, (Ro + Ri) / 2, zT);
       if (!facing(mw2, nTick)) continue;
       var a3 = pt(th4, Ri, zT), b3 = pt(th4, Ro, zT);
-      items.push({ z: (a3.z + b3.z) / 2, kind: 'tick', a: a3, b: b3 });
+      items.push({ z: (a3.z + b3.z) / 2, kind: (th4 % 6 === 0) ? 'tick' : 'tick-fine', a: a3, b: b3 });
     }
     return items;
   }
@@ -1067,15 +1087,14 @@
         ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.side ? 0.95 : 1.15; ctx.stroke();
       } else {
         ctx.strokeStyle = COL_LINE;
-        ctx.lineWidth = it.kind === 'tick' ? 0.8 : 1.15;
-        ctx.globalAlpha = it.kind === 'tick' ? 0.6 : 0.95;
+        ctx.lineWidth = it.kind === 'tick' ? 0.8 : (it.kind === 'tick-fine' ? 0.45 : 1.15);
+        ctx.globalAlpha = it.kind === 'tick' ? 0.6 : (it.kind === 'tick-fine' ? 0.38 : 0.95);
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
       }
     }
   }
 
-  var phase = 0;
   function render() {
     var rect = cv.getBoundingClientRect();
     if (!rect.width) return;
@@ -1088,13 +1107,17 @@
     readColors();
     drawSun();
     var items = [];
-    rings.forEach(function (rg) { items = items.concat(ringItems(rg, phase)); });
+    rings.forEach(function (rg) { items = items.concat(ringItems(rg, rg.self, rg.prec)); });
     items.sort(function (p, q) { return q.z - p.z; });
     draw(items);
   }
   function loop() {
-    phase += 0.00055;                       // 三维旋转（绕竖直轴）
-    if (phase > Math.PI * 2) phase -= Math.PI * 2;
+    rings.forEach(function (rg) {
+      rg.self += rg.dir * 0.0032;           // 自转（绕法向，快一点，方向 ± 交替）
+      rg.prec += rg.dir * 0.00032;          // 进动（绕平行环面的轴，很缓慢，方向 ± 交替）
+      if (rg.self > Math.PI * 2) rg.self -= Math.PI * 2;
+      if (rg.prec > Math.PI * 2) rg.prec -= Math.PI * 2;
+    });
     render();
     requestAnimationFrame(loop);
   }
