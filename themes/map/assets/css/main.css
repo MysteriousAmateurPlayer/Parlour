@@ -2615,11 +2615,9 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 @keyframes arm-lon-rotate { to { transform: rotate(360deg); } }
 
 /* ④ 四圈刻度环带：面=背景色（evenodd 挖空成环带），边线=--ring-line，外缘刻度 */
-.ringband { transform-origin: 500px 500px; animation: arm-band-spin 220s linear infinite; }
 .ringband--1 { animation-duration: 280s; animation-direction: reverse; }
 .ringband--2 { animation-duration: 190s; }
 .ringband--3 { animation-duration: 320s; animation-direction: reverse; }
-@keyframes arm-band-spin { to { transform: rotate(360deg); } }
 
 
 /* ⑤ 星座与散星 */
