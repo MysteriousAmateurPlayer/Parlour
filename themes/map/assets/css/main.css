@@ -2668,3 +2668,15 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 .rim__stars path { fill: var(--ring-line); opacity: 0.62; }
 .rim__beads circle { fill: var(--ring-line); opacity: 0.5; }
 html[data-theme="light"] .arm3d { opacity: 1; }
+
+/* --------------------------------------------------------------------------
+   ③ 立体太阳：3D 球面网格（只画朝向观众的半球）+ 光照填充
+   -------------------------------------------------------------------------- */
+.sun3d__ball {
+  fill: color-mix(in srgb, var(--accent) 18%, var(--bg));
+  stroke: var(--ring-line);
+  stroke-width: 1.4;
+}
+.sun3d__grid { fill: none; stroke: var(--ring-line); stroke-width: 0.8; opacity: 0.42; }
+.sun3d__rim { fill: none; stroke: var(--ring-line); stroke-width: 1.5; opacity: 0.9; }
+.sun3d__flames { animation: arm-flame-turn 320s linear infinite; transform-origin: 500px 500px; }
