@@ -2620,19 +2620,7 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
 .ringband--2 { animation-duration: 190s; }
 .ringband--3 { animation-duration: 320s; animation-direction: reverse; }
 @keyframes arm-band-spin { to { transform: rotate(360deg); } }
-.ringband__circles {
-  fill: none;
-  stroke: var(--ring-line);
-  stroke-width: 1.15;
-  opacity: 0.9;
-}
-.ringband__gen {
-  fill: none;
-  stroke: var(--ring-line);
-  stroke-width: 1.15;
-  opacity: 0.9;
-}
-.ringband__ticks { fill: none; stroke: var(--ring-line); stroke-width: 0.9; opacity: 0.6; }
+
 
 /* ⑤ 星座与散星 */
 .sk__lines line { stroke: var(--ring-line); stroke-width: 1.05; opacity: 0.4; }
@@ -2680,3 +2668,16 @@ html[data-theme="light"] .arm3d { opacity: 1; }
 .sun3d__grid { fill: none; stroke: var(--ring-line); stroke-width: 0.8; opacity: 0.42; }
 .sun3d__rim { fill: none; stroke: var(--ring-line); stroke-width: 1.5; opacity: 0.9; }
 .sun3d__flames { animation: arm-flame-turn 320s linear infinite; transform-origin: 500px 500px; }
+
+/* 环的实体面：用站点背景色填充 —— 近处的面自然遮住远处的面与线（正确遮挡），
+   而视觉上只看到线条，形成要的素描感。 */
+.ringband__face {
+  fill: var(--bg);
+  stroke: var(--ring-line);
+  stroke-width: 1.15;
+  opacity: 1;
+}
+.ringband__face--side { stroke-width: 0.95; }
+/* 边线：只描边、不填充 → 不会遮挡任何东西，只可能被面遮挡 */
+.ringband__line { fill: none; stroke: var(--ring-line); stroke-width: 1.15; opacity: 0.95; }
+.ringband__tick { fill: none; stroke: var(--ring-line); stroke-width: 0.85; opacity: 0.6; }
