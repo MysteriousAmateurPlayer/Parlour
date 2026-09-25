@@ -894,13 +894,27 @@
   var dpr = Math.min(2, window.devicePixelRatio || 1);
 
   var W = 1000, H = 1000, CX = 500, CY = 500;
-  var R = 370, TILT = 24 * Math.PI / 180, FOCAL = 2.6 * R, SUN_R = 46;
+  var R = 370, TILT = 24 * Math.PI / 180, FOCAL = 2.6 * R;
+  var SUN_R = 46, EARTH_R = 15, MOON_R = 6;
+  var EARTH_ORBIT = 74, MOON_ORBIT = 18;
+  var ORBIT_INC = 16 * Math.PI / 180;
   var rings = [
-    { r: 283, w: 10, h: 16, lon: 96, lat: 18, dir: 1, self: 0, prec: 0 },
-    { r: 233, w: 10, h: 16, lon: 88, lat: -26, dir: -1, self: 0, prec: 0 },
-    { r: 183, w: 10, h: 16, lon: 58, lat: 6, dir: 1, self: 0, prec: 0 }
+    { r: 354, w: 10, h: 16, lon: 96, lat: 18, dir: 1, self: 0, prec: 0 },
+    { r: 291, w: 10, h: 16, lon: 88, lat: -26, dir: -1, self: 0, prec: 0 },
+    { r: 229, w: 10, h: 16, lon: 58, lat: 6, dir: 1, self: 0, prec: 0 }
   ];
   var COL_BG = '#16171a', COL_LINE = '#cfc7ba', COL_TICK = '#cfc7ba';
+  var COL_LAND = 'rgba(214,166,82,0.55)', COL_SUN = 'rgba(230,180,90,0.4)';
+  // 简化大陆轮廓（经纬度多边形），地球自转时经度整体平移
+  var CONTINENTS = [
+    [{ lon: -17, lat: 35 }, { lon: 10, lat: 37 }, { lon: 30, lat: 32 }, { lon: 40, lat: 15 }, { lon: 50, lat: 12 }, { lon: 43, lat: -5 }, { lon: 35, lat: -20 }, { lon: 28, lat: -33 }, { lon: 18, lat: -35 }, { lon: 12, lat: -18 }, { lon: 5, lat: -5 }, { lon: -8, lat: 4 }, { lon: -15, lat: 12 }],
+    [{ lon: -9, lat: 36 }, { lon: -9, lat: 44 }, { lon: 0, lat: 45 }, { lon: 12, lat: 46 }, { lon: 22, lat: 50 }, { lon: 35, lat: 55 }, { lon: 60, lat: 56 }, { lon: 85, lat: 53 }, { lon: 105, lat: 56 }, { lon: 125, lat: 56 }, { lon: 140, lat: 50 }, { lon: 150, lat: 55 }, { lon: 170, lat: 48 }, { lon: 180, lat: 45 }, { lon: 170, lat: 30 }, { lon: 150, lat: 22 }, { lon: 135, lat: 18 }, { lon: 118, lat: 12 }, { lon: 108, lat: 8 }, { lon: 98, lat: 7 }, { lon: 90, lat: 10 }, { lon: 78, lat: 12 }, { lon: 68, lat: 15 }, { lon: 58, lat: 20 }, { lon: 48, lat: 26 }, { lon: 38, lat: 29 }, { lon: 28, lat: 30 }, { lon: 18, lat: 24 }, { lon: 8, lat: 20 }, { lon: -2, lat: 14 }],
+    [{ lon: -130, lat: 55 }, { lon: -122, lat: 60 }, { lon: -108, lat: 63 }, { lon: -92, lat: 62 }, { lon: -75, lat: 60 }, { lon: -62, lat: 55 }, { lon: -54, lat: 50 }, { lon: -55, lat: 44 }, { lon: -62, lat: 40 }, { lon: -72, lat: 38 }, { lon: -78, lat: 34 }, { lon: -84, lat: 30 }, { lon: -94, lat: 26 }, { lon: -105, lat: 28 }, { lon: -115, lat: 32 }, { lon: -124, lat: 38 }, { lon: -130, lat: 48 }],
+    [{ lon: -80, lat: 10 }, { lon: -70, lat: 12 }, { lon: -60, lat: 8 }, { lon: -50, lat: 4 }, { lon: -42, lat: -2 }, { lon: -36, lat: -10 }, { lon: -36, lat: -20 }, { lon: -42, lat: -26 }, { lon: -50, lat: -32 }, { lon: -58, lat: -38 }, { lon: -65, lat: -43 }, { lon: -70, lat: -44 }, { lon: -74, lat: -36 }, { lon: -76, lat: -26 }, { lon: -78, lat: -16 }, { lon: -80, lat: -2 }],
+    [{ lon: 113, lat: -22 }, { lon: 122, lat: -14 }, { lon: 130, lat: -12 }, { lon: 138, lat: -15 }, { lon: 145, lat: -18 }, { lon: 150, lat: -22 }, { lon: 153, lat: -28 }, { lon: 148, lat: -35 }, { lon: 140, lat: -38 }, { lon: 130, lat: -35 }, { lon: 122, lat: -30 }, { lon: 115, lat: -26 }],
+    [{ lon: -45, lat: 60 }, { lon: -32, lat: 68 }, { lon: -22, lat: 75 }, { lon: -30, lat: 82 }, { lon: -45, lat: 83 }, { lon: -58, lat: 78 }, { lon: -58, lat: 70 }, { lon: -50, lat: 64 }],
+    [{ lon: 95, lat: 5 }, { lon: 105, lat: 0 }, { lon: 115, lat: -5 }, { lon: 125, lat: -8 }, { lon: 135, lat: -4 }, { lon: 140, lat: -1 }, { lon: 130, lat: 6 }, { lon: 118, lat: 5 }, { lon: 108, lat: 8 }, { lon: 98, lat: 8 }]
+  ];
   function cssVar(name, fallback) {
     var v = '';
     try { v = getComputedStyle(document.documentElement).getPropertyValue(name).trim(); } catch (e) {}
@@ -910,6 +924,9 @@
     COL_BG = cssVar('--bg', '#16171a');
     COL_LINE = cssVar('--ring-line', '#cfc7ba');
     COL_TICK = COL_LINE;
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    COL_LAND = dark ? 'rgba(214,166,82,0.55)' : 'rgba(186,86,56,0.5)';
+    COL_SUN = dark ? 'rgba(230,180,90,0.4)' : 'rgba(196,110,70,0.32)';
   }
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1012,92 +1029,141 @@
         items.push({ z: (a2.z + b2.z) / 2, kind: 'line', a: a2, b: b2 });
       }
     });
-    // ① 刻度（两级：主 6° 粗、细 3° 更细），画在可见环面
+    // ① 刻度（主 30° 粗长、次级 6° 细短），画在面向相机的环端面上。
+    //    深度减 0.35 的偏置，确保刻度始终排在端面 face 之后绘制（否则与 face 深度相同，
+    //    排序不稳定，会被 face 的底色随机覆盖 → 刻度时隐时现/断线）。
     var zT = topFacing ? h / 2 : -h / 2, nTick = topFacing ? nT : neg(nT);
     for (var th4 = 0; th4 < 360; th4 += 6) {
       var mw2 = W(th4, (Ro + Ri) / 2, zT);
       if (!facing(mw2, nTick)) continue;
       var major = (th4 % 30 === 0);
       var a3 = pt(th4, Ri, zT);
-      var b3 = pt(th4, major ? Ro : Ri + (Ro - Ri) * 0.52, zT);   // 次级短：只延伸约一半
-      items.push({ z: (a3.z + b3.z) / 2, kind: major ? 'tick' : 'tick-fine', a: a3, b: b3 });
+      var b3 = pt(th4, major ? Ro : Ri + (Ro - Ri) * 0.42, zT);   // 次级更短：只延伸约 42%
+      items.push({ z: (a3.z + b3.z) / 2 - 0.35, kind: major ? 'tick' : 'tick-fine', a: a3, b: b3 });
     }
     return items;
   }
 
-  /* 地月系：地球（带经纬线）+ 绕转的月亮 + 轨道，整体在最内环的 0.75 半径之内 */
-  function drawEarthMoon(ph) {
-    var ex = CX + 80, ey = CY - 44, ER = 16;      // 地球中心与半径（距中心≈91，不压太阳球体，整体<137=0.75×183）
-    var mx = ex + 24 * Math.cos(ph * 2.6), my = ey + 24 * Math.sin(ph * 2.6);
-    // 月球轨道
-    ctx.save();
-    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.6; ctx.globalAlpha = 0.4;
-    ctx.beginPath(); ctx.arc(ex, ey, 24, 0, Math.PI * 2); ctx.stroke();
-    // 地球：球面 + 经纬线
-    ctx.globalAlpha = 1;
-    ctx.beginPath(); ctx.arc(ex, ey, ER, 0, Math.PI * 2);
-    ctx.fillStyle = COL_BG; ctx.fill();
-    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 1.3; ctx.stroke();
-    ctx.globalAlpha = 0.5; ctx.lineWidth = 0.6;
-    ctx.beginPath(); ctx.ellipse(ex, ey, ER, ER * 0.32, 0, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(ex, ey, ER * 0.5, ER, 0, 0, Math.PI * 2); ctx.stroke();
-    // 月亮
-    ctx.globalAlpha = 1;
-    ctx.beginPath(); ctx.arc(mx, my, 6, 0, Math.PI * 2);
-    ctx.fillStyle = COL_BG; ctx.fill();
-    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 1.1; ctx.stroke();
-    ctx.restore();
+  /* ---------- 3D 太阳系：太阳居球心；地球绕日公转 + 自转（大陆纹理）；月亮绕地公转 ---------- */
+  function spherePoint(center, r, lonRad, latDeg) {
+    var ph = latDeg * Math.PI / 180;
+    return { x: center.x + r * Math.cos(ph) * Math.cos(lonRad), y: center.y + r * Math.sin(ph), z: center.z + r * Math.cos(ph) * Math.sin(lonRad) };
   }
-
-  /* 立体太阳 */
-  function drawSun() {
-    ctx.save();
-    var g = ctx.createRadialGradient(CX, CY, SUN_R * 0.2, CX, CY, SUN_R);
-    g.addColorStop(0, 'rgba(180,120,60,0.28)');
-    g.addColorStop(0.75, 'rgba(180,120,60,0.10)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(CX, CY, SUN_R * 2.2, 0, Math.PI * 2); ctx.fill();
-    // 光芒（弯曲火焰简化为放射短弧）
-    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 1.4; ctx.globalAlpha = 0.7;
-    for (var i = 0; i < 16; i++) {
-      var a = i * Math.PI / 8;
-      var r0 = SUN_R + 4, r1 = SUN_R + (i % 2 ? 22 : 34);
-      ctx.beginPath();
-      ctx.moveTo(CX + r0 * Math.cos(a), CY + r0 * Math.sin(a));
-      ctx.lineTo(CX + r1 * Math.cos(a), CY + r1 * Math.sin(a));
-      ctx.stroke();
-    }
-    // 球体
-    ctx.globalAlpha = 1;
-    ctx.beginPath(); ctx.arc(CX, CY, SUN_R, 0, Math.PI * 2);
-    ctx.fillStyle = COL_BG; ctx.fill();
-    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 1.6; ctx.stroke();
-    // 球面网格（经线/纬线）
-    ctx.lineWidth = 0.7; ctx.globalAlpha = 0.45;
-    for (var lon = 0; lon < 180; lon += 30) {
-      ctx.beginPath();
-      var first = true;
-      for (var lat = -90; lat <= 90; lat += 5) {
-        var la2 = lon * Math.PI / 180, ph2 = lat * Math.PI / 180;
-        var p = proj(SUN_R * Math.cos(ph2) * Math.cos(la2), SUN_R * Math.sin(ph2), SUN_R * Math.cos(ph2) * Math.sin(la2));
-        if (p.z > 0) { first = true; continue; }
-        if (first) { ctx.moveTo(p.x, p.y); first = false; } else ctx.lineTo(p.x, p.y);
+  // 多边形裁剪到前半球（tilted z <= 0）
+  function clipZ(poly) {
+    var out = [];
+    for (var i = 0; i < poly.length; i++) {
+      var a = poly[i], b = poly[(i + 1) % poly.length];
+      var ain = a.z <= 0, bin = b.z <= 0;
+      if (ain) out.push(a);
+      if (ain !== bin) {
+        var t = a.z / (a.z - b.z);
+        out.push({ x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y), z: 0 });
       }
-      ctx.stroke();
     }
-    for (var lat2 = -60; lat2 <= 60; lat2 += 30) {
-      var ph3 = lat2 * Math.PI / 180, rho = SUN_R * Math.cos(ph3), zc = SUN_R * Math.sin(ph3);
-      if (zc > 0) continue;
-      ctx.beginPath();
+    return out;
+  }
+  // 球体：填充圆（球心深度）+ 前半球经纬网格线，返回 items
+  function sphereItems(center, r, rotLon, lw) {
+    var items = [];
+    var tc = tilts(center);
+    var pc = proj(tc.x, tc.y, tc.z);
+    var rs = r * (FOCAL / (FOCAL + tc.z));
+    items.push({ z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: rs, lw: lw });
+    // 经线
+    for (var lon = 0; lon < 360; lon += 30) {
+      var pts = [];
+      for (var lat = -90; lat <= 90; lat += 6) {
+        var t = tilts(spherePoint(center, r, lon * Math.PI / 180 + rotLon, lat));
+        if (t.z > 0) continue;
+        pts.push(t);
+      }
+      for (var k = 0; k < pts.length - 1; k++) {
+        items.push({ z: (pts[k].z + pts[k + 1].z) / 2, kind: 'line', a: proj(pts[k].x, pts[k].y, pts[k].z), b: proj(pts[k + 1].x, pts[k + 1].y, pts[k + 1].z) });
+      }
+    }
+    // 纬线
+    for (var lat2 = -75; lat2 <= 75; lat2 += 30) {
+      var ph2 = lat2 * Math.PI / 180, rho2 = r * Math.cos(ph2), yc = center.y + r * Math.sin(ph2);
+      var pts2 = [];
       for (var a2 = 0; a2 <= 360; a2 += 6) {
-        var rr = a2 * Math.PI / 180, q = proj(rho * Math.cos(rr), rho * Math.sin(rr), zc);
-        if (a2 === 0) ctx.moveTo(q.x, q.y); else ctx.lineTo(q.x, q.y);
+        var rr = a2 * Math.PI / 180;
+        var t2 = tilts({ x: center.x + rho2 * Math.cos(rr + rotLon), y: yc, z: center.z + rho2 * Math.sin(rr + rotLon) });
+        if (t2.z > 0) continue;
+        pts2.push(t2);
       }
-      ctx.closePath(); ctx.stroke();
+      for (var k2 = 0; k2 < pts2.length - 1; k2++) {
+        items.push({ z: (pts2[k2].z + pts2[k2 + 1].z) / 2, kind: 'line', a: proj(pts2[k2].x, pts2[k2].y, pts2[k2].z), b: proj(pts2[k2 + 1].x, pts2[k2 + 1].y, pts2[k2 + 1].z) });
+      }
     }
-    ctx.globalAlpha = 1;
-    ctx.restore();
+    return items;
+  }
+  // 大陆：球面多边形 → 裁剪前半球 → 投影填充
+  function continentItems(center, r, rotLon, poly) {
+    var poly3d = [];
+    for (var i = 0; i < poly.length; i++) {
+      var p0 = poly[i], p1 = poly[(i + 1) % poly.length];
+      var dLon = p1.lon - p0.lon, dLat = p1.lat - p0.lat;
+      var steps = Math.max(2, Math.ceil(Math.hypot(dLon, dLat) / 7));
+      for (var s = 0; s < steps; s++) {
+        poly3d.push(tilts(spherePoint(center, r, (p0.lon + dLon * s / steps) * Math.PI / 180 + rotLon, p0.lat + dLat * s / steps)));
+      }
+    }
+    var clipped = clipZ(poly3d);
+    if (clipped.length < 3) return [];
+    var sp = [], z = 0;
+    for (var k = 0; k < clipped.length; k++) { z += clipped[k].z; sp.push(proj(clipped[k].x, clipped[k].y, clipped[k].z)); }
+    z /= clipped.length;
+    return [{ z: z, kind: 'continent', pts: sp }];
+  }
+  // 整个太阳系 → items（t 为累计时间）
+  function solarItems(t) {
+    var items = [];
+    // 太阳光晕（最远，先画）
+    items.push({ z: 0.01, kind: 'glow', x: CX, y: CY, r: SUN_R * 2.2 });
+    // 太阳球体（球心原点）
+    items = items.concat(sphereItems({ x: 0, y: 0, z: 0 }, SUN_R, t * 0.1, 1.6));
+    // 太阳光芒（前半球放射线）
+    for (var i = 0; i < 16; i++) {
+      var yy = 1 - (i + 0.5) * 2 / 16, rr0 = Math.sqrt(1 - yy * yy), phi0 = i * 2.39996323;
+      var dx = rr0 * Math.cos(phi0), dy = yy, dz = rr0 * Math.sin(phi0);
+      var r0 = SUN_R + 4, r1 = SUN_R + (i % 2 ? 22 : 34);
+      var ta = tilts({ x: dx * r0, y: dy * r0, z: dz * r0 });
+      var tb = tilts({ x: dx * r1, y: dy * r1, z: dz * r1 });
+      if (ta.z > 0 && tb.z > 0) continue;
+      items.push({ z: (ta.z + tb.z) / 2, kind: 'ray', a: proj(ta.x, ta.y, ta.z), b: proj(tb.x, tb.y, tb.z) });
+    }
+    // 地球公转位置（轨道面绕 x 轴倾斜 ORBIT_INC）
+    var ea = t * 0.22;
+    var earth = { x: EARTH_ORBIT * Math.cos(ea), y: -EARTH_ORBIT * Math.sin(ea) * Math.sin(ORBIT_INC), z: EARTH_ORBIT * Math.sin(ea) * Math.cos(ORBIT_INC) };
+    // 地球公转轨道（3D 圆）
+    var orbPts = [];
+    for (var oi = 0; oi <= 360; oi += 6) {
+      var oa = oi * Math.PI / 180;
+      orbPts.push(tilts({ x: EARTH_ORBIT * Math.cos(oa), y: -EARTH_ORBIT * Math.sin(oa) * Math.sin(ORBIT_INC), z: EARTH_ORBIT * Math.sin(oa) * Math.cos(ORBIT_INC) }));
+    }
+    for (var ok = 0; ok < orbPts.length - 1; ok++) {
+      if (orbPts[ok].z > 0 && orbPts[ok + 1].z > 0) continue;
+      items.push({ z: (orbPts[ok].z + orbPts[ok + 1].z) / 2, kind: 'orbit', a: proj(orbPts[ok].x, orbPts[ok].y, orbPts[ok].z), b: proj(orbPts[ok + 1].x, orbPts[ok + 1].y, orbPts[ok + 1].z) });
+    }
+    // 地球（自转 + 大陆）
+    var earthSelf = t * 0.55;
+    items = items.concat(sphereItems(earth, EARTH_R, earthSelf, 1.1));
+    for (var c = 0; c < CONTINENTS.length; c++) {
+      items = items.concat(continentItems(earth, EARTH_R, earthSelf, CONTINENTS[c]));
+    }
+    // 月亮绕地球（在轨道面内）
+    var ma = t * 1.3;
+    var radial = norm(earth);
+    var Norb = { x: 0, y: Math.cos(ORBIT_INC), z: Math.sin(ORBIT_INC) };
+    var e2 = norm(cross(Norb, radial));
+    var moon = {
+      x: earth.x + MOON_ORBIT * (radial.x * Math.cos(ma) + e2.x * Math.sin(ma)),
+      y: earth.y + MOON_ORBIT * (radial.y * Math.cos(ma) + e2.y * Math.sin(ma)),
+      z: earth.z + MOON_ORBIT * (radial.z * Math.cos(ma) + e2.z * Math.sin(ma))
+    };
+    items = items.concat(sphereItems(moon, MOON_R, t * 0.4, 1.0));
+    return items;
   }
 
   function draw(items) {
@@ -1111,6 +1177,32 @@
         ctx.closePath();
         ctx.fillStyle = COL_BG; ctx.fill();
         ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.side ? 0.95 : 1.15; ctx.stroke();
+      } else if (it.kind === 'disc') {
+        ctx.beginPath();
+        ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2);
+        ctx.fillStyle = COL_BG; ctx.fill();
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.lw || 1.3; ctx.stroke();
+      } else if (it.kind === 'glow') {
+        var g = ctx.createRadialGradient(it.x, it.y, it.r * 0.2, it.x, it.y, it.r);
+        g.addColorStop(0, COL_SUN);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2); ctx.fill();
+      } else if (it.kind === 'continent') {
+        ctx.beginPath();
+        for (var k2 = 0; k2 < it.pts.length; k2++) {
+          if (k2 === 0) ctx.moveTo(it.pts[k2].x, it.pts[k2].y); else ctx.lineTo(it.pts[k2].x, it.pts[k2].y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = COL_LAND; ctx.fill();
+      } else if (it.kind === 'ray') {
+        ctx.strokeStyle = COL_SUN; ctx.lineWidth = 1.2; ctx.globalAlpha = 0.8;
+        ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
+        ctx.globalAlpha = 1;
+      } else if (it.kind === 'orbit') {
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.55; ctx.globalAlpha = 0.4;
+        ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
+        ctx.globalAlpha = 1;
       } else {
         ctx.strokeStyle = COL_LINE;
         ctx.lineWidth = it.kind === 'tick' ? 0.9 : (it.kind === 'tick-fine' ? 0.6 : 1.15);
@@ -1121,6 +1213,7 @@
     }
   }
 
+  var T = 0;                                   // 太阳系动画累计时间（秒）
   function render() {
     var rect = cv.getBoundingClientRect();
     if (!rect.width) return;
@@ -1131,20 +1224,21 @@
     ctx.setTransform(sc, 0, 0, sy, 0, 0);
     ctx.clearRect(0, 0, W, H);
     readColors();
-    drawSun();
-    drawEarthMoon(rings[0].prec);
     var items = [];
     rings.forEach(function (rg) { items = items.concat(ringItems(rg, rg.self, rg.prec)); });
+    items = items.concat(solarItems(T));
     items.sort(function (p, q) { return q.z - p.z; });
     draw(items);
   }
   function loop() {
     rings.forEach(function (rg) {
-      rg.self += rg.dir * 0.0016;           // ⑥ 自转减慢
-      rg.prec += rg.dir * 0.0009;           // ⑦ 进动加快（绕平行环面的轴）
+      rg.self += rg.dir * 0.0016;
+      rg.prec += rg.dir * 0.0009;
       if (rg.self > Math.PI * 2) rg.self -= Math.PI * 2;
       if (rg.prec > Math.PI * 2) rg.prec -= Math.PI * 2;
     });
+    T += 0.016;
+    if (T > 10000) T = 0;
     render();
     requestAnimationFrame(loop);
   }
