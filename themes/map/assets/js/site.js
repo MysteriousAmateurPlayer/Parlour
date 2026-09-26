@@ -905,6 +905,7 @@
   ];
   var COL_BG = '#16171a', COL_LINE = '#cfc7ba', COL_TICK = '#cfc7ba';
   var COL_LAND = 'rgba(214,166,82,0.55)', COL_SUN = 'rgba(230,180,90,0.4)';
+  var COL_LIT = 'rgba(228,192,132,0.98)', COL_SHADE = 'rgba(18,19,23,0.98)';
   // 简化大陆轮廓（经纬度多边形），地球自转时经度整体平移
   var CONTINENTS = [
     [{ lon: -17, lat: 35 }, { lon: 10, lat: 37 }, { lon: 30, lat: 32 }, { lon: 40, lat: 15 }, { lon: 50, lat: 12 }, { lon: 43, lat: -5 }, { lon: 35, lat: -20 }, { lon: 28, lat: -33 }, { lon: 18, lat: -35 }, { lon: 12, lat: -18 }, { lon: 5, lat: -5 }, { lon: -8, lat: 4 }, { lon: -15, lat: 12 }],
@@ -925,8 +926,10 @@
     COL_LINE = cssVar('--ring-line', '#cfc7ba');
     COL_TICK = COL_LINE;
     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    COL_LAND = dark ? 'rgba(214,166,82,0.55)' : 'rgba(186,86,56,0.5)';
+    COL_LAND = dark ? 'rgba(214,166,82,0.6)' : 'rgba(186,86,56,0.55)';
     COL_SUN = dark ? 'rgba(230,180,90,0.4)' : 'rgba(196,110,70,0.32)';
+    COL_LIT = dark ? 'rgba(228,192,132,0.98)' : 'rgba(226,146,100,0.95)';
+    COL_SHADE = dark ? 'rgba(18,19,23,0.98)' : 'rgba(206,199,186,0.95)';
   }
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1063,22 +1066,25 @@
     }
     return out;
   }
-  // 球体 disc：只画填充圆 + 轮廓（无经纬网格），返回单个 item
-  function discItem(center, r, lw) {
+  // 球体 disc：填充圆 + 轮廓。isSun=true 用径向渐变（光源本身）；
+  // 否则用线性光照渐变：朝向 lightFrom（太阳屏幕位置）的半球亮、背向暗。
+  function discItem(center, r, lw, lightFrom, isSun) {
     var tc = tilts(center);
     var pc = proj(tc.x, tc.y, tc.z);
-    return { z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: r * (FOCAL / (FOCAL + tc.z)), lw: lw };
+    return { z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: r * (FOCAL / (FOCAL + tc.z)), lw: lw, lx: lightFrom ? lightFrom.x : null, ly: lightFrom ? lightFrom.y : null, sun: !!isSun };
   }
-  // 太阳光芒：2D 火焰贴图（多层光晕 + 贝塞尔火焰瓣），画在球面外一圈；
-  // 深度与太阳球心同层 → 与环/地球的 3D 遮挡关系正确，不会垫底或置顶。
-  function drawSunflare(cx, cy, r, t) {
+  // 太阳光晕：背景发光（画在太阳 disc 之后），不遮挡任何天体
+  function drawGlow(cx, cy, r) {
     var g = ctx.createRadialGradient(cx, cy, r * 0.35, cx, cy, r * 2.4);
-    g.addColorStop(0, 'rgba(255,226,166,0.55)');
-    g.addColorStop(0.35, 'rgba(238,182,92,0.26)');
-    g.addColorStop(0.7, 'rgba(216,148,66,0.12)');
+    g.addColorStop(0, 'rgba(255,226,166,0.5)');
+    g.addColorStop(0.35, 'rgba(238,182,92,0.24)');
+    g.addColorStop(0.7, 'rgba(216,148,66,0.1)');
     g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.arc(cx, cy, r * 2.4, 0, Math.PI * 2); ctx.fill();
+  }
+  // 太阳火焰瓣：背景（画在光晕之上、太阳 disc 之后），从太阳圆面边缘伸出
+  function drawFlame(cx, cy, r, t) {
     for (var i = 0; i < 12; i++) {
       var a0 = i * Math.PI / 6 + t * 0.12;
       var tip = r + (i % 2 ? 24 : 38);
@@ -1088,7 +1094,7 @@
       ctx.quadraticCurveTo(cx + Math.cos(a0) * tip, cy + Math.sin(a0) * tip, cx + Math.cos(a0 + sp) * (r - 2), cy + Math.sin(a0 + sp) * (r - 2));
       ctx.closePath();
       ctx.fillStyle = COL_SUN;
-      ctx.globalAlpha = 0.6;
+      ctx.globalAlpha = 0.55;
       ctx.fill();
       ctx.globalAlpha = 1;
     }
@@ -1114,9 +1120,12 @@
   // 整个太阳系 → items（t 为累计时间）
   function solarItems(t) {
     var items = [];
-    // 太阳：光滑球体（无网格）+ 2D 火焰光芒（深度与球心同层）
-    items.push(discItem({ x: 0, y: 0, z: 0 }, SUN_R, 1.6));
-    items.push({ z: -0.1, kind: 'sunflare', x: CX, y: CY, r: SUN_R, t: t });
+    // 太阳光晕 + 火焰：背景发光，z 远大于地球轨道最大深度（约 73），
+    // 保证永远先画、永远被地球/月亮盖住（发光只照亮背景，不遮挡天体）。
+    items.push({ z: 90, kind: 'glow', x: CX, y: CY, r: SUN_R });
+    items.push({ z: 89, kind: 'flame', x: CX, y: CY, r: SUN_R, t: t });
+    // 太阳球体：光源（径向渐变），球心原点
+    items.push(discItem({ x: 0, y: 0, z: 0 }, SUN_R, 1.6, null, true));
     // 地球公转位置（轨道面绕 x 轴倾斜 ORBIT_INC）
     var ea = t * 0.22;
     var earth = { x: EARTH_ORBIT * Math.cos(ea), y: -EARTH_ORBIT * Math.sin(ea) * Math.sin(ORBIT_INC), z: EARTH_ORBIT * Math.sin(ea) * Math.cos(ORBIT_INC) };
@@ -1130,9 +1139,9 @@
       var back = orbPts[ok].z > 0 && orbPts[ok + 1].z > 0;
       items.push({ z: (orbPts[ok].z + orbPts[ok + 1].z) / 2, kind: 'orbit', a: proj(orbPts[ok].x, orbPts[ok].y, orbPts[ok].z), b: proj(orbPts[ok + 1].x, orbPts[ok + 1].y, orbPts[ok + 1].z), back: back });
     }
-    // 地球：光滑球体 + 大陆板块（自转）
+    // 地球：光照渐变球体（朝向太阳亮、背向暗）+ 大陆板块（自转）
     var earthSelf = t * 0.55;
-    items.push(discItem(earth, EARTH_R, 1.1));
+    items.push(discItem(earth, EARTH_R, 1.1, { x: CX, y: CY }, false));
     for (var c = 0; c < CONTINENTS.length; c++) {
       items = items.concat(continentItems(earth, EARTH_R, earthSelf, CONTINENTS[c]));
     }
@@ -1146,7 +1155,7 @@
       y: earth.y + MOON_ORBIT * (radial.y * Math.cos(ma) + e2.y * Math.sin(ma)),
       z: earth.z + MOON_ORBIT * (radial.z * Math.cos(ma) + e2.z * Math.sin(ma))
     };
-    items.push(discItem(moon, MOON_R, 1.0));
+    items.push(discItem(moon, MOON_R, 1.0, { x: CX, y: CY }, false));
     var mtc = tilts(moon);
     var mpc = proj(mtc.x, mtc.y, mtc.z);
     items.push({ z: mtc.z - 0.1, kind: 'mare', x: mpc.x, y: mpc.y, r: MOON_R * (FOCAL / (FOCAL + mtc.z)), t: t });
@@ -1167,10 +1176,29 @@
       } else if (it.kind === 'disc') {
         ctx.beginPath();
         ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2);
-        ctx.fillStyle = COL_BG; ctx.fill();
+        if (it.sun) {
+          var sg = ctx.createRadialGradient(it.x, it.y, it.r * 0.15, it.x, it.y, it.r);
+          sg.addColorStop(0, COL_LIT);
+          sg.addColorStop(1, COL_BG);
+          ctx.fillStyle = sg;
+        } else if (it.lx !== null && it.lx !== undefined) {
+          var dx = it.lx - it.x, dy = it.ly - it.y;
+          var dlen = Math.hypot(dx, dy) || 1;
+          dx /= dlen; dy /= dlen;
+          var lg = ctx.createLinearGradient(it.x + dx * it.r, it.y + dy * it.r, it.x - dx * it.r, it.y - dy * it.r);
+          lg.addColorStop(0, COL_LIT);
+          lg.addColorStop(0.55, COL_BG);
+          lg.addColorStop(1, COL_SHADE);
+          ctx.fillStyle = lg;
+        } else {
+          ctx.fillStyle = COL_BG;
+        }
+        ctx.fill();
         ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.lw || 1.3; ctx.stroke();
-      } else if (it.kind === 'sunflare') {
-        drawSunflare(it.x, it.y, it.r, it.t);
+      } else if (it.kind === 'glow') {
+        drawGlow(it.x, it.y, it.r);
+      } else if (it.kind === 'flame') {
+        drawFlame(it.x, it.y, it.r, it.t);
       } else if (it.kind === 'continent') {
         ctx.beginPath();
         for (var k2 = 0; k2 < it.pts.length; k2++) {
