@@ -896,7 +896,7 @@
   var W = 1000, H = 1000, CX = 500, CY = 500;
   var R = 370, TILT = 24 * Math.PI / 180, FOCAL = 2.6 * R;
   var SUN_R = 46, EARTH_R = 15, MOON_R = 6;
-  var EARTH_ORBIT = 74, MOON_ORBIT = 18;
+  var EARTH_ORBIT = 120, MOON_ORBIT = 22;
   var ORBIT_INC = 16 * Math.PI / 180;
   var rings = [
     { r: 354, w: 10, h: 16, lon: 96, lat: 18, dir: 1, self: 0, prec: 0 },
@@ -1021,27 +1021,28 @@
         items.push({ z: z, kind: 'face', pts: d, side: true });
       });
     }
-    // 圆线（6° 段）
+    // 圆线（6° 段）：环顶/底面的内外圆轮廓线。深度减 0.3 偏置，
+    // 确保轮廓线始终画在面片之上（否则与面片深度相同，排序不稳定会被底色覆盖 → 闪现）。
     [[Ro, h / 2, nT], [Ri, h / 2, nT], [Ro, -h / 2, neg(nT)], [Ri, -h / 2, neg(nT)]].forEach(function (p) {
       var rho = p[0], zl = p[1], N = p[2];
       for (var th3 = 0; th3 < 360; th3 += 6) {
         var mw = W(th3 + 3, rho, zl);
         if (!facing(mw, N)) continue;
         var a2 = pt(th3, rho, zl), b2 = pt(th3 + 6, rho, zl);
-        items.push({ z: (a2.z + b2.z) / 2, kind: 'line', a: a2, b: b2 });
+        items.push({ z: (a2.z + b2.z) / 2 - 0.3, kind: 'line', a: a2, b: b2 });
       }
     });
-    // ① 刻度：刻在环「外侧面」上（沿圆周每 6° 一根，刻度为沿轴向的短线），
-    //    外侧面始终有朝相机的一段 → 刻度恒定可见；主 30° 跨全厚、次级 6° 约一半。
-    //    深度减 0.35 偏置，确保刻度画在外侧面 face 之上（不会被 face 底色覆盖）。
+    // ① 刻度：刻在外侧面（rho=Ro）上，沿圆周方向的短弧（不是沿轴向的竖线），
+    //    这样无论环转到什么姿态，外侧面朝外的半圈刻度都始终可见、不会投影成点；
+    //    主 30° 长弧、次级 6° 短弧。深度减 0.35 偏置，确保画在面片之上。
     for (var th4 = 0; th4 < 360; th4 += 6) {
       var uN4 = uT(th4);
       var mw2 = W(th4, Ro, 0);
       if (!facing(mw2, uN4)) continue;
       var major = (th4 % 30 === 0);
-      var half = major ? h / 2 : h / 2 * 0.55;
-      var a3 = pt(th4, Ro, -half);
-      var b3 = pt(th4, Ro, half);
+      var dTh = major ? 3 : 1.2;   // 刻度弧长（度）
+      var a3 = pt(th4 - dTh / 2, Ro, 0);
+      var b3 = pt(th4 + dTh / 2, Ro, 0);
       items.push({ z: (a3.z + b3.z) / 2 - 0.35, kind: major ? 'tick' : 'tick-fine', a: a3, b: b3 });
     }
     return items;
@@ -1230,9 +1231,9 @@
         }
         ctx.restore();
       } else if (it.kind === 'orbit') {
-        ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.55;
-        if (it.back) { ctx.setLineDash([3, 3]); ctx.globalAlpha = 0.22; }
-        else ctx.globalAlpha = 0.45;
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.6;
+        if (it.back) { ctx.setLineDash([4, 4]); ctx.globalAlpha = 0.32; }
+        else ctx.globalAlpha = 0.55;
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.setLineDash([]); ctx.globalAlpha = 1;
       } else {
