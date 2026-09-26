@@ -1049,7 +1049,7 @@
         if (!facing(mw2, N)) continue;
         var major = (th4 % 30 === 0);
         var a3 = pt(th4, Ri, zl);
-        var b3 = pt(th4, major ? Ro : Ri + (Ro - Ri) * 0.45, zl);
+        var b3 = pt(th4, major ? Ro : Ri + (Ro - Ri) * 0.6, zl);   // 次级延伸约 60%
         var fz = faceMin[key + ':' + th4];
         if (fz === undefined) fz = (a3.z + b3.z) / 2;
         items.push({ z: fz - 0.5, kind: major ? 'tick' : 'tick-fine', a: a3, b: b3 });
@@ -1084,18 +1084,40 @@
     var pc = proj(tc.x, tc.y, tc.z);
     return { z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: r * (FOCAL / (FOCAL + tc.z)), lw: lw, lx: lightFrom ? lightFrom.x : null, ly: lightFrom ? lightFrom.y : null, sun: !!isSun };
   }
-  // 太阳火焰瓣：背景（画在太阳 disc 之后），从太阳圆面边缘伸出
+  // 太阳火焰：两层写实火焰——内层短而亮的白金焰舌、外层长而暗的橙红焰舌，
+  // 带轻微摆动；画在太阳 disc 之后（背景），从太阳圆面边缘伸出。
   function drawFlame(cx, cy, r, t) {
-    for (var i = 0; i < 12; i++) {
-      var a0 = i * Math.PI / 6 + t * 0.12;
-      var tip = r + (i % 2 ? 24 : 38);
-      var sp = 0.20;
+    // 内层焰舌（短、亮白金，18 根交错）
+    for (var i = 0; i < 18; i++) {
+      var a0 = i * Math.PI / 9 + t * 0.09 + Math.sin(t * 0.6 + i * 1.7) * 0.05;
+      var tip = r + 6 + (i % 3) * 7;
+      var sp = 0.12;
       ctx.beginPath();
-      ctx.moveTo(cx + Math.cos(a0 - sp) * (r - 2), cy + Math.sin(a0 - sp) * (r - 2));
-      ctx.quadraticCurveTo(cx + Math.cos(a0) * tip, cy + Math.sin(a0) * tip, cx + Math.cos(a0 + sp) * (r - 2), cy + Math.sin(a0 + sp) * (r - 2));
+      ctx.moveTo(cx + Math.cos(a0 - sp) * (r - 1), cy + Math.sin(a0 - sp) * (r - 1));
+      ctx.bezierCurveTo(
+        cx + Math.cos(a0 - sp * 0.45) * (r + tip * 0.55), cy + Math.sin(a0 - sp * 0.45) * (r + tip * 0.55),
+        cx + Math.cos(a0) * (r + tip), cy + Math.sin(a0) * (r + tip),
+        cx + Math.cos(a0 + sp) * (r - 1), cy + Math.sin(a0 + sp) * (r - 1)
+      );
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255,244,210,0.75)';
+      ctx.fill();
+    }
+    // 外层焰舌（长、橙红，14 根交错）
+    for (var j = 0; j < 14; j++) {
+      var b0 = j * Math.PI / 7 + t * 0.05 + Math.sin(t * 0.4 + j * 2.1) * 0.07;
+      var tip2 = r + 20 + (j % 2) * 16;
+      var sp2 = 0.17;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(b0 - sp2) * (r - 2), cy + Math.sin(b0 - sp2) * (r - 2));
+      ctx.bezierCurveTo(
+        cx + Math.cos(b0 - sp2 * 0.5) * (r + tip2 * 0.6), cy + Math.sin(b0 - sp2 * 0.5) * (r + tip2 * 0.6),
+        cx + Math.cos(b0) * (r + tip2), cy + Math.sin(b0) * (r + tip2),
+        cx + Math.cos(b0 + sp2) * (r - 2), cy + Math.sin(b0 + sp2) * (r - 2)
+      );
       ctx.closePath();
       ctx.fillStyle = COL_SUN;
-      ctx.globalAlpha = 0.55;
+      ctx.globalAlpha = 0.6;
       ctx.fill();
       ctx.globalAlpha = 1;
     }
@@ -1227,8 +1249,8 @@
         ctx.globalAlpha = 1;
       } else {
         ctx.strokeStyle = COL_LINE;
-        ctx.lineWidth = it.kind === 'tick' ? 0.9 : (it.kind === 'tick-fine' ? 0.6 : 1.15);
-        ctx.globalAlpha = it.kind === 'tick' ? 0.62 : (it.kind === 'tick-fine' ? 0.55 : 0.95);
+        ctx.lineWidth = it.kind === 'tick' ? 0.95 : (it.kind === 'tick-fine' ? 0.7 : 1.15);
+        ctx.globalAlpha = it.kind === 'tick' ? 0.65 : (it.kind === 'tick-fine' ? 0.72 : 0.95);
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
       }
