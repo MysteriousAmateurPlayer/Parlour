@@ -1085,37 +1085,47 @@
     return { z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: r * (FOCAL / (FOCAL + tc.z)), lw: lw, lx: lightFrom ? lightFrom.x : null, ly: lightFrom ? lightFrom.y : null, sun: !!isSun };
   }
   // 球体 + 经纬线网格（只画前半球 z<=0），返回 items；网格均匀对称，自转时不闪烁跳变。
+  // 球体 + 经纬线网格：地轴正朝上（屏幕竖直）的平视视角。
+  // 球面点用屏幕空间坐标（dx 水平、dy 竖直向上、dz 深度），背面(dz>0)逐段剔除。
   function sphereGridItems(center, r, rotLon) {
     var items = [];
     var tc = tilts(center);
-    var cz = tc.z;   // 球心 tilted z：只画比球心更靠近相机的半球，球心 z 变化时经纬线不再消失
     var pc = proj(tc.x, tc.y, tc.z);
-    items.push({ z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: r * (FOCAL / (FOCAL + tc.z)), lw: 0.85 });
-    // 经线：逐段判断，任一端点落到背面（z > 球心z）就不画该段，避免背面线跑出来
+    var rs = r * (FOCAL / (FOCAL + tc.z));
+    var s = rs / r;   // 投影缩放
+    items.push({ z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: rs, lw: 0.85 });
+    var rotDeg = rotLon * 180 / Math.PI;
+    // 经线（地轴竖直：从北极到南极的弧）
     for (var lon = 0; lon < 360; lon += 30) {
+      var la = (lon + rotDeg) * Math.PI / 180;
       var pts = [];
       for (var lat = -90; lat <= 90; lat += 6) {
-        var la = lon * Math.PI / 180 + rotLon, ph = lat * Math.PI / 180;
-        var wp = { x: center.x + r * Math.cos(ph) * Math.cos(la), y: center.y + r * Math.sin(ph), z: center.z + r * Math.cos(ph) * Math.sin(la) };
-        pts.push(tilts(wp));
+        var ph = lat * Math.PI / 180;
+        var dx = r * Math.cos(ph) * Math.cos(la);
+        var dy = r * Math.sin(ph);
+        var dz = r * Math.cos(ph) * Math.sin(la);
+        pts.push({ x: pc.x + dx * s, y: pc.y - dy * s, z: tc.z + dz, back: dz > 0 });
       }
       for (var k = 0; k < pts.length - 1; k++) {
-        if (pts[k].z > cz || pts[k + 1].z > cz) continue;
-        items.push({ z: (pts[k].z + pts[k + 1].z) / 2, kind: 'line', lw: 0.4, a: proj(pts[k].x, pts[k].y, pts[k].z), b: proj(pts[k + 1].x, pts[k + 1].y, pts[k + 1].z) });
+        if (pts[k].back || pts[k + 1].back) continue;
+        items.push({ z: (pts[k].z + pts[k + 1].z) / 2, kind: 'line', lw: 0.4, a: { x: pts[k].x, y: pts[k].y }, b: { x: pts[k + 1].x, y: pts[k + 1].y } });
       }
     }
-    // 纬线：同样逐段判断
+    // 纬线（水平圆，投影成水平线段）
     for (var lat2 = -75; lat2 <= 75; lat2 += 30) {
-      var ph2 = lat2 * Math.PI / 180, rho2 = r * Math.cos(ph2), yc = center.y + r * Math.sin(ph2);
+      var ph2 = lat2 * Math.PI / 180;
+      var dy2 = r * Math.sin(ph2);
+      var rho2 = r * Math.cos(ph2);
       var pts2 = [];
       for (var a2 = 0; a2 <= 360; a2 += 6) {
-        var rr = a2 * Math.PI / 180;
-        var wp2 = { x: center.x + rho2 * Math.cos(rr + rotLon), y: yc, z: center.z + rho2 * Math.sin(rr + rotLon) };
-        pts2.push(tilts(wp2));
+        var rr = (a2 + rotDeg) * Math.PI / 180;
+        var dx2 = rho2 * Math.cos(rr);
+        var dz2 = rho2 * Math.sin(rr);
+        pts2.push({ x: pc.x + dx2 * s, y: pc.y - dy2 * s, z: tc.z + dz2, back: dz2 > 0 });
       }
       for (var k2 = 0; k2 < pts2.length - 1; k2++) {
-        if (pts2[k2].z > cz || pts2[k2 + 1].z > cz) continue;
-        items.push({ z: (pts2[k2].z + pts2[k2 + 1].z) / 2, kind: 'line', lw: 0.4, a: proj(pts2[k2].x, pts2[k2].y, pts2[k2].z), b: proj(pts2[k2 + 1].x, pts2[k2 + 1].y, pts2[k2 + 1].z) });
+        if (pts2[k2].back || pts2[k2 + 1].back) continue;
+        items.push({ z: (pts2[k2].z + pts2[k2 + 1].z) / 2, kind: 'line', lw: 0.4, a: { x: pts2[k2].x, y: pts2[k2].y }, b: { x: pts2[k2 + 1].x, y: pts2[k2 + 1].y } });
       }
     }
     return items;
@@ -1179,7 +1189,7 @@
     // 太阳球体：光源（径向渐变），球心原点
     items.push(discItem({ x: 0, y: 0, z: 0 }, SUN_R, 1.2, null, true));
     // 地球公转位置（轨道面绕 x 轴倾斜 ORBIT_INC）
-    var ea = t * 0.22;
+    var ea = t * 0.3;   // 地球公转（轨道运动）
     var earth = { x: EARTH_ORBIT * Math.cos(ea), y: -EARTH_ORBIT * Math.sin(ea) * Math.sin(ORBIT_INC), z: EARTH_ORBIT * Math.sin(ea) * Math.cos(ORBIT_INC) };
     // 地球公转轨道（3D 圆，完整：前半实线、后半虚线）
     var orbPts = [];
@@ -1239,7 +1249,7 @@
         drawFlame(it.x, it.y, it.r, it.t);
       } else if (it.kind === 'orbit') {
         ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.45;
-        ctx.globalAlpha = it.back ? 0.35 : 0.55;   // 前后都是实线，背面略淡表示深度
+        ctx.globalAlpha = 0.5;   // 轨道前后深浅粗细一致
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
       } else {
