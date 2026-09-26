@@ -1261,7 +1261,7 @@
 
   // 镂空经纬线球（3D、缓慢自转、只显示经纬线、透明度 35%）：12 条经线 + 10 条纬线
   function sphereWireframe(t) {
-    var R = 435;   // 球半径 = 外圈环内径
+    var R = 425;   // 球半径略小于外圈环内径 435，完全处于环内部
     var items = [];
     var rotDeg = t * 0.06 * 180 / Math.PI;   // 缓慢自转
     // 12 条经线（每 30°）
@@ -1274,9 +1274,9 @@
         pts.push(tilts(wp));
       }
       for (var k = 0; k < pts.length - 1; k++) {
-        if (pts[k].z > 0 || pts[k + 1].z > 0) continue;   // 背面（球心在原点）逐段剔除
-        var zz = (pts[k].z + pts[k + 1].z) / 2 + 300;     // 整体放到背景层
-        items.push({ z: zz, kind: 'wire', a: proj(pts[k].x, pts[k].y, pts[k].z), b: proj(pts[k + 1].x, pts[k + 1].y, pts[k + 1].z) });
+        // 正交投影（无透视放大），渲染整个球（前后都画，靠深度排序表现前后）
+        var zz = (pts[k].z + pts[k + 1].z) / 2 + 300;
+        items.push({ z: zz, kind: 'wire', a: { x: CX + pts[k].x, y: CY - pts[k].y }, b: { x: CX + pts[k + 1].x, y: CY - pts[k + 1].y } });
       }
     }
     // 10 条纬线
@@ -1292,9 +1292,8 @@
         pts2.push(tilts(wp2));
       }
       for (var k2 = 0; k2 < pts2.length - 1; k2++) {
-        if (pts2[k2].z > 0 || pts2[k2 + 1].z > 0) continue;
         var zz2 = (pts2[k2].z + pts2[k2 + 1].z) / 2 + 300;
-        items.push({ z: zz2, kind: 'wire', a: proj(pts2[k2].x, pts2[k2].y, pts2[k2].z), b: proj(pts2[k2 + 1].x, pts2[k2 + 1].y, pts2[k2 + 1].z) });
+        items.push({ z: zz2, kind: 'wire', a: { x: CX + pts2[k2].x, y: CY - pts2[k2].y }, b: { x: CX + pts2[k2 + 1].x, y: CY - pts2[k2 + 1].y } });
       }
     }
     return items;
@@ -1334,7 +1333,7 @@
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
       } else if (it.kind === 'wire') {
-        ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.42;   // 粗 3 倍（其他线 0.14）
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.7;   // 明显粗于其他线（其他线约 0.25）
         ctx.globalAlpha = 0.35;   // 35% 不透明度
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
