@@ -1093,7 +1093,7 @@
     var pc = proj(tc.x, tc.y, tc.z);
     var rs = r * (FOCAL / (FOCAL + tc.z));
     var s = rs / r;   // 投影缩放
-    items.push({ z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: rs, lw: 0.85 });
+    items.push({ z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: rs, lw: 0.51 });
     var rotDeg = rotLon * 180 / Math.PI;
     // 经线（地轴竖直：从北极到南极的弧）
     for (var lon = 0; lon < 360; lon += 30) {
@@ -1108,7 +1108,7 @@
       }
       for (var k = 0; k < pts.length - 1; k++) {
         if (pts[k].back || pts[k + 1].back) continue;
-        items.push({ z: (pts[k].z + pts[k + 1].z) / 2, kind: 'line', lw: 0.4, a: { x: pts[k].x, y: pts[k].y }, b: { x: pts[k + 1].x, y: pts[k + 1].y } });
+        items.push({ z: (pts[k].z + pts[k + 1].z) / 2, kind: 'line', lw: 0.24, a: { x: pts[k].x, y: pts[k].y }, b: { x: pts[k + 1].x, y: pts[k + 1].y } });
       }
     }
     // 纬线（水平圆，投影成水平线段）
@@ -1125,7 +1125,7 @@
       }
       for (var k2 = 0; k2 < pts2.length - 1; k2++) {
         if (pts2[k2].back || pts2[k2 + 1].back) continue;
-        items.push({ z: (pts2[k2].z + pts2[k2 + 1].z) / 2, kind: 'line', lw: 0.4, a: { x: pts2[k2].x, y: pts2[k2].y }, b: { x: pts2[k2 + 1].x, y: pts2[k2 + 1].y } });
+        items.push({ z: (pts2[k2].z + pts2[k2 + 1].z) / 2, kind: 'line', lw: 0.24, a: { x: pts2[k2].x, y: pts2[k2].y }, b: { x: pts2[k2 + 1].x, y: pts2[k2 + 1].y } });
       }
     }
     return items;
@@ -1187,7 +1187,7 @@
     // 保证永远先画、永远被地球/月亮盖住（发光只照亮背景，不遮挡天体）。
     items.push({ z: 89, kind: 'flame', x: CX, y: CY, r: SUN_R, t: t });
     // 太阳球体：光源（径向渐变），球心原点
-    items.push(discItem({ x: 0, y: 0, z: 0 }, SUN_R, 1.2, null, true));
+    items.push(discItem({ x: 0, y: 0, z: 0 }, SUN_R, 0.72, null, true));
     // 地球公转：轨道面绕 x 轴倾斜 ORBIT_INC，再绕 y 轴缓慢进动（3D 运动），中心恒为太阳
     var ea = t * 0.3;
     var prec = t * 0.12;
@@ -1218,42 +1218,43 @@
       z: earth.z + MOON_ORBIT * (radial.z * Math.cos(ma) + e2.z * Math.sin(ma))
     };
     // 月亮：纯球体（无表面）
-    items.push(discItem(moon, MOON_R, 0.75));
+    items.push(discItem(moon, MOON_R, 0.45));
     return items;
   }
 
-  // 最外圈固定环（正对镜头、不旋转）：环面显示古典花边（锯齿纹 + 圆点），画在背景层
+  // 最外圈固定环（正对镜头、不旋转）：双层沟边 + 内部流线花边，画在背景层
   function drawOuterRing() {
-    var Ri = 395, Ro = 450, cx = CX, cy = CY;
+    var Ri = 435, Ro = 495, cx = CX, cy = CY;
     ctx.beginPath();
     ctx.arc(cx, cy, Ro, 0, Math.PI * 2);
     ctx.arc(cx, cy, Ri, 0, Math.PI * 2, true);
     ctx.fillStyle = COL_BG;
     ctx.fill();
-    ctx.beginPath(); ctx.arc(cx, cy, Ro, 0, Math.PI * 2);
-    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 1.0; ctx.stroke();
-    ctx.beginPath(); ctx.arc(cx, cy, Ri, 0, Math.PI * 2);
-    ctx.lineWidth = 0.7; ctx.stroke();
-    // 锯齿花边（外圆→内圆→外圆，连续）
-    var N = 72, Rm = (Ri + Ro) / 2;
-    ctx.lineWidth = 0.5; ctx.globalAlpha = 0.75;
-    for (var i = 0; i < N; i++) {
-      var a0 = i * 2 * Math.PI / N;
-      var a1 = (i + 0.5) * 2 * Math.PI / N;
-      var a2 = (i + 1) * 2 * Math.PI / N;
+    // 双层沟边：外圆、外沟内线、内沟内线、内圆（4 条同心圆）
+    var edges = [Ro, Ro - 10, Ri + 10, Ri];
+    for (var e = 0; e < edges.length; e++) {
       ctx.beginPath();
-      ctx.moveTo(cx + Math.cos(a0) * Ro, cy + Math.sin(a0) * Ro);
-      ctx.lineTo(cx + Math.cos(a1) * Ri, cy + Math.sin(a1) * Ri);
-      ctx.lineTo(cx + Math.cos(a2) * Ro, cy + Math.sin(a2) * Ro);
+      ctx.arc(cx, cy, edges[e], 0, Math.PI * 2);
+      ctx.strokeStyle = COL_LINE;
+      ctx.lineWidth = (e === 0 || e === 3) ? 0.6 : 0.36;
       ctx.stroke();
     }
-    // 圆点（环带中心，每个锯齿之间）
-    ctx.fillStyle = COL_LINE;
-    for (var j = 0; j < N; j++) {
-      var am = (j + 0.5) * 2 * Math.PI / N;
+    // 内部流线花边：三条交错波浪线（柔和流线，沿圆周连续）
+    var Rm = (Ri + Ro) / 2;
+    ctx.globalAlpha = 0.75;
+    ctx.lineWidth = 0.36;
+    for (var w = 0; w < 3; w++) {
+      var baseR = Rm + (w - 1) * 10;
+      var phase = w * 2 * Math.PI / 3;
       ctx.beginPath();
-      ctx.arc(cx + Math.cos(am) * Rm, cy + Math.sin(am) * Rm, 2.2, 0, Math.PI * 2);
-      ctx.fill();
+      for (var i = 0; i <= 360; i++) {
+        var a = i * Math.PI / 180;
+        var wave = Math.sin(a * 24 + phase) * 6;
+        var r = baseR + wave;
+        if (i === 0) ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+        else ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      }
+      ctx.stroke();
     }
     ctx.globalAlpha = 1;
   }
@@ -1268,7 +1269,7 @@
         }
         ctx.closePath();
         ctx.fillStyle = COL_BG; ctx.fill();
-        ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.side ? 0.7 : 0.85; ctx.stroke();
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.side ? 0.42 : 0.51; ctx.stroke();
       } else if (it.kind === 'disc') {
         ctx.beginPath();
         ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2);
@@ -1283,17 +1284,17 @@
           ctx.fillStyle = COL_BG;
         }
         ctx.fill();
-        ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.lw || 1.0; ctx.stroke();
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.lw || 0.6; ctx.stroke();
       } else if (it.kind === 'flame') {
         drawFlame(it.x, it.y, it.r, it.t);
       } else if (it.kind === 'orbit') {
-        ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.45;
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.27;
         ctx.globalAlpha = 0.5;   // 轨道前后深浅粗细一致
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
       } else {
         ctx.strokeStyle = COL_LINE;
-        ctx.lineWidth = it.lw || (it.kind === 'tick' ? 0.7 : (it.kind === 'tick-fine' ? 0.5 : 0.85));
+        ctx.lineWidth = it.lw || (it.kind === 'tick' ? 0.42 : (it.kind === 'tick-fine' ? 0.3 : 0.51));
         ctx.globalAlpha = it.kind === 'tick' ? 0.65 : (it.kind === 'tick-fine' ? 0.72 : 0.9);
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
