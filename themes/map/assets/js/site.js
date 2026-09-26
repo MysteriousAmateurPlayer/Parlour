@@ -1275,7 +1275,7 @@
       }
       for (var k = 0; k < pts.length - 1; k++) {
         // 正交投影（无透视放大），渲染整个球（前后都画，靠深度排序表现前后）
-        var zz = (pts[k].z + pts[k + 1].z) / 2 + 300;
+        var zz = (pts[k].z + pts[k + 1].z) / 2;   // 用真实深度：球笼正面在最前、背面在最后
         items.push({ z: zz, kind: 'wire', a: { x: CX + pts[k].x, y: CY - pts[k].y }, b: { x: CX + pts[k + 1].x, y: CY - pts[k + 1].y } });
       }
     }
@@ -1292,7 +1292,7 @@
         pts2.push(tilts(wp2));
       }
       for (var k2 = 0; k2 < pts2.length - 1; k2++) {
-        var zz2 = (pts2[k2].z + pts2[k2 + 1].z) / 2 + 300;
+        var zz2 = (pts2[k2].z + pts2[k2 + 1].z) / 2;
         items.push({ z: zz2, kind: 'wire', a: { x: CX + pts2[k2].x, y: CY - pts2[k2].y }, b: { x: CX + pts2[k2 + 1].x, y: CY - pts2[k2 + 1].y } });
       }
     }
@@ -1333,13 +1333,13 @@
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
       } else if (it.kind === 'wire') {
-        ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.7;   // 明显粗于其他线（其他线约 0.25）
-        ctx.globalAlpha = 0.35;   // 35% 不透明度
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = 3.5;   // 粗细增大 5 倍
+        ctx.globalAlpha = 0.5;   // 透明度降低 25%（更不透明）
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
       } else {
         ctx.strokeStyle = COL_LINE;
-        ctx.lineWidth = it.lw || (it.kind === 'tick' ? 0.25 : (it.kind === 'tick-fine' ? 0.18 : 0.31));
+        ctx.lineWidth = it.lw || (it.kind === 'tick' ? 0.25 : (it.kind === 'tick-fine' ? 0.22 : 0.31));
         ctx.globalAlpha = it.kind === 'tick' ? 0.65 : (it.kind === 'tick-fine' ? 0.72 : 0.9);
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
