@@ -1088,8 +1088,9 @@
   function sphereGridItems(center, r, rotLon) {
     var items = [];
     var tc = tilts(center);
+    var cz = tc.z;   // 球心 tilted z：只画比球心更靠近相机的半球，球心 z 变化时经纬线不再消失
     var pc = proj(tc.x, tc.y, tc.z);
-    items.push({ z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: r * (FOCAL / (FOCAL + tc.z)), lw: 1.1 });
+    items.push({ z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: r * (FOCAL / (FOCAL + tc.z)), lw: 0.85 });
     // 经线
     for (var lon = 0; lon < 360; lon += 30) {
       var pts = [];
@@ -1097,11 +1098,11 @@
         var la = lon * Math.PI / 180 + rotLon, ph = lat * Math.PI / 180;
         var wp = { x: center.x + r * Math.cos(ph) * Math.cos(la), y: center.y + r * Math.sin(ph), z: center.z + r * Math.cos(ph) * Math.sin(la) };
         var t = tilts(wp);
-        if (t.z > 0) continue;
+        if (t.z > cz) continue;
         pts.push(t);
       }
       for (var k = 0; k < pts.length - 1; k++) {
-        items.push({ z: (pts[k].z + pts[k + 1].z) / 2, kind: 'line', lw: 0.5, a: proj(pts[k].x, pts[k].y, pts[k].z), b: proj(pts[k + 1].x, pts[k + 1].y, pts[k + 1].z) });
+        items.push({ z: (pts[k].z + pts[k + 1].z) / 2, kind: 'line', lw: 0.4, a: proj(pts[k].x, pts[k].y, pts[k].z), b: proj(pts[k + 1].x, pts[k + 1].y, pts[k + 1].z) });
       }
     }
     // 纬线
@@ -1112,11 +1113,11 @@
         var rr = a2 * Math.PI / 180;
         var wp2 = { x: center.x + rho2 * Math.cos(rr + rotLon), y: yc, z: center.z + rho2 * Math.sin(rr + rotLon) };
         var t2 = tilts(wp2);
-        if (t2.z > 0) continue;
+        if (t2.z > cz) continue;
         pts2.push(t2);
       }
       for (var k2 = 0; k2 < pts2.length - 1; k2++) {
-        items.push({ z: (pts2[k2].z + pts2[k2 + 1].z) / 2, kind: 'line', lw: 0.5, a: proj(pts2[k2].x, pts2[k2].y, pts2[k2].z), b: proj(pts2[k2 + 1].x, pts2[k2 + 1].y, pts2[k2 + 1].z) });
+        items.push({ z: (pts2[k2].z + pts2[k2 + 1].z) / 2, kind: 'line', lw: 0.4, a: proj(pts2[k2].x, pts2[k2].y, pts2[k2].z), b: proj(pts2[k2 + 1].x, pts2[k2 + 1].y, pts2[k2 + 1].z) });
       }
     }
     return items;
@@ -1128,7 +1129,7 @@
     // 内层：24 瓣短白金焰舌（每 15° 一瓣，完美旋转对称）
     for (var i = 0; i < 24; i++) {
       var a0 = i * Math.PI / 12;
-      var tip = r + 5 * pulse;
+      var tip = r + 8 * pulse;
       var sp = Math.PI / 26;
       ctx.beginPath();
       ctx.moveTo(cx + Math.cos(a0 - sp) * (r - 1), cy + Math.sin(a0 - sp) * (r - 1));
@@ -1140,7 +1141,7 @@
     // 外层：12 瓣橙红焰舌（每 30° 一瓣，交错在每两瓣之间）
     for (var j = 0; j < 12; j++) {
       var a1 = (j + 0.5) * Math.PI / 6;
-      var tip2 = r + 11 * pulse;
+      var tip2 = r + 17 * pulse;
       var sp2 = Math.PI / 16;
       ctx.beginPath();
       ctx.moveTo(cx + Math.cos(a1 - sp2) * (r - 1), cy + Math.sin(a1 - sp2) * (r - 1));
@@ -1177,7 +1178,7 @@
     // 保证永远先画、永远被地球/月亮盖住（发光只照亮背景，不遮挡天体）。
     items.push({ z: 89, kind: 'flame', x: CX, y: CY, r: SUN_R, t: t });
     // 太阳球体：光源（径向渐变），球心原点
-    items.push(discItem({ x: 0, y: 0, z: 0 }, SUN_R, 1.6, null, true));
+    items.push(discItem({ x: 0, y: 0, z: 0 }, SUN_R, 1.2, null, true));
     // 地球公转位置（轨道面绕 x 轴倾斜 ORBIT_INC）
     var ea = t * 0.22;
     var earth = { x: EARTH_ORBIT * Math.cos(ea), y: -EARTH_ORBIT * Math.sin(ea) * Math.sin(ORBIT_INC), z: EARTH_ORBIT * Math.sin(ea) * Math.cos(ORBIT_INC) };
@@ -1189,7 +1190,7 @@
     }
     for (var ok = 0; ok < orbPts.length - 1; ok++) {
       var back = orbPts[ok].z > 0 && orbPts[ok + 1].z > 0;
-      items.push({ z: (orbPts[ok].z + orbPts[ok + 1].z) / 2 + 0.4, kind: 'orbit', a: proj(orbPts[ok].x, orbPts[ok].y, orbPts[ok].z), b: proj(orbPts[ok + 1].x, orbPts[ok + 1].y, orbPts[ok + 1].z), back: back });
+      items.push({ z: (orbPts[ok].z + orbPts[ok + 1].z) / 2 + 1.0, kind: 'orbit', a: proj(orbPts[ok].x, orbPts[ok].y, orbPts[ok].z), b: proj(orbPts[ok + 1].x, orbPts[ok + 1].y, orbPts[ok + 1].z), back: back });
     }
     // 地球：球体 + 经纬线网格（自转，网格对称稳定、不闪烁）
     var earthSelf = t * 0.55;
@@ -1205,7 +1206,7 @@
       z: earth.z + MOON_ORBIT * (radial.z * Math.cos(ma) + e2.z * Math.sin(ma))
     };
     // 月亮：纯球体（无表面）
-    items.push(discItem(moon, MOON_R, 1.0));
+    items.push(discItem(moon, MOON_R, 0.75));
     return items;
   }
 
@@ -1219,7 +1220,7 @@
         }
         ctx.closePath();
         ctx.fillStyle = COL_BG; ctx.fill();
-        ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.side ? 0.95 : 1.15; ctx.stroke();
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.side ? 0.7 : 0.85; ctx.stroke();
       } else if (it.kind === 'disc') {
         ctx.beginPath();
         ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2);
@@ -1234,17 +1235,17 @@
           ctx.fillStyle = COL_BG;
         }
         ctx.fill();
-        ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.lw || 1.3; ctx.stroke();
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.lw || 1.0; ctx.stroke();
       } else if (it.kind === 'flame') {
         drawFlame(it.x, it.y, it.r, it.t);
       } else if (it.kind === 'orbit') {
-        ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.6;
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.45;
         ctx.globalAlpha = it.back ? 0.35 : 0.55;   // 前后都是实线，背面略淡表示深度
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
       } else {
         ctx.strokeStyle = COL_LINE;
-        ctx.lineWidth = it.lw || (it.kind === 'tick' ? 0.95 : (it.kind === 'tick-fine' ? 0.7 : 1.15));
+        ctx.lineWidth = it.lw || (it.kind === 'tick' ? 0.7 : (it.kind === 'tick-fine' ? 0.5 : 0.85));
         ctx.globalAlpha = it.kind === 'tick' ? 0.65 : (it.kind === 'tick-fine' ? 0.72 : 0.9);
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
