@@ -1021,20 +1021,24 @@
         items.push({ z: z, kind: 'face', pts: d, side: true });
       });
     }
-    // 圆线（6° 段）：环顶/底面的内外圆轮廓线。深度减 0.3 偏置，
-    // 确保轮廓线始终画在面片之上（否则与面片深度相同，排序不稳定会被底色覆盖 → 闪现）。
+    // 计算本环所有面片的最小深度：轮廓线与刻度都要"浮"到面片之上，
+    // 否则顶/底面片朝向相机时（正视）会把外侧面上的刻度、圆线盖住 → 看不见。
+    var minFaceZ = Infinity;
+    for (var fi = 0; fi < items.length; fi++) {
+      if (items[fi].kind === 'face' && items[fi].z < minFaceZ) minFaceZ = items[fi].z;
+    }
+    if (minFaceZ === Infinity) minFaceZ = 0;
+    // 圆线（6° 段）：环顶/底面的内外圆轮廓线，深度提到面片之上，不再闪现
     [[Ro, h / 2, nT], [Ri, h / 2, nT], [Ro, -h / 2, neg(nT)], [Ri, -h / 2, neg(nT)]].forEach(function (p) {
       var rho = p[0], zl = p[1], N = p[2];
       for (var th3 = 0; th3 < 360; th3 += 6) {
         var mw = W(th3 + 3, rho, zl);
         if (!facing(mw, N)) continue;
         var a2 = pt(th3, rho, zl), b2 = pt(th3 + 6, rho, zl);
-        items.push({ z: (a2.z + b2.z) / 2 - 0.3, kind: 'line', a: a2, b: b2 });
+        items.push({ z: minFaceZ - 0.3, kind: 'line', a: a2, b: b2 });
       }
     });
-    // ① 刻度：刻在外侧面（rho=Ro）上，沿圆周方向的短弧（不是沿轴向的竖线），
-    //    这样无论环转到什么姿态，外侧面朝外的半圈刻度都始终可见、不会投影成点；
-    //    主 30° 长弧、次级 6° 短弧。深度减 0.35 偏置，确保画在面片之上。
+    // ① 刻度：外侧面沿圆周短弧，深度提到本环所有面片之上，恒定可见（图层不再遮挡）
     for (var th4 = 0; th4 < 360; th4 += 6) {
       var uN4 = uT(th4);
       var mw2 = W(th4, Ro, 0);
@@ -1043,7 +1047,7 @@
       var dTh = major ? 3 : 1.2;   // 刻度弧长（度）
       var a3 = pt(th4 - dTh / 2, Ro, 0);
       var b3 = pt(th4 + dTh / 2, Ro, 0);
-      items.push({ z: (a3.z + b3.z) / 2 - 0.35, kind: major ? 'tick' : 'tick-fine', a: a3, b: b3 });
+      items.push({ z: minFaceZ - 0.5, kind: major ? 'tick' : 'tick-fine', a: a3, b: b3 });
     }
     return items;
   }
@@ -1074,17 +1078,7 @@
     var pc = proj(tc.x, tc.y, tc.z);
     return { z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: r * (FOCAL / (FOCAL + tc.z)), lw: lw, lx: lightFrom ? lightFrom.x : null, ly: lightFrom ? lightFrom.y : null, sun: !!isSun };
   }
-  // 太阳光晕：背景发光（画在太阳 disc 之后），不遮挡任何天体
-  function drawGlow(cx, cy, r) {
-    var g = ctx.createRadialGradient(cx, cy, r * 0.35, cx, cy, r * 2.4);
-    g.addColorStop(0, 'rgba(255,226,166,0.5)');
-    g.addColorStop(0.35, 'rgba(238,182,92,0.24)');
-    g.addColorStop(0.7, 'rgba(216,148,66,0.1)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(cx, cy, r * 2.4, 0, Math.PI * 2); ctx.fill();
-  }
-  // 太阳火焰瓣：背景（画在光晕之上、太阳 disc 之后），从太阳圆面边缘伸出
+  // 太阳火焰瓣：背景（画在太阳 disc 之后），从太阳圆面边缘伸出
   function drawFlame(cx, cy, r, t) {
     for (var i = 0; i < 12; i++) {
       var a0 = i * Math.PI / 6 + t * 0.12;
@@ -1121,9 +1115,8 @@
   // 整个太阳系 → items（t 为累计时间）
   function solarItems(t) {
     var items = [];
-    // 太阳光晕 + 火焰：背景发光，z 远大于地球轨道最大深度（约 73），
+    // 太阳火焰：背景发光，z 远大于地球轨道最大深度（约 73），
     // 保证永远先画、永远被地球/月亮盖住（发光只照亮背景，不遮挡天体）。
-    items.push({ z: 90, kind: 'glow', x: CX, y: CY, r: SUN_R });
     items.push({ z: 89, kind: 'flame', x: CX, y: CY, r: SUN_R, t: t });
     // 太阳球体：光源（径向渐变），球心原点
     items.push(discItem({ x: 0, y: 0, z: 0 }, SUN_R, 1.6, null, true));
@@ -1196,8 +1189,6 @@
         }
         ctx.fill();
         ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.lw || 1.3; ctx.stroke();
-      } else if (it.kind === 'glow') {
-        drawGlow(it.x, it.y, it.r);
       } else if (it.kind === 'flame') {
         drawFlame(it.x, it.y, it.r, it.t);
       } else if (it.kind === 'continent') {
@@ -1232,10 +1223,9 @@
         ctx.restore();
       } else if (it.kind === 'orbit') {
         ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.6;
-        if (it.back) { ctx.setLineDash([4, 4]); ctx.globalAlpha = 0.32; }
-        else ctx.globalAlpha = 0.55;
+        ctx.globalAlpha = it.back ? 0.35 : 0.55;   // 前后都是实线，背面略淡表示深度
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
-        ctx.setLineDash([]); ctx.globalAlpha = 1;
+        ctx.globalAlpha = 1;
       } else {
         ctx.strokeStyle = COL_LINE;
         ctx.lineWidth = it.kind === 'tick' ? 0.9 : (it.kind === 'tick-fine' ? 0.6 : 1.15);
