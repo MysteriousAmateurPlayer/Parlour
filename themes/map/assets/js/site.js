@@ -1259,7 +1259,67 @@
     ctx.globalAlpha = 1;
   }
 
-  // 镂空经纬线球（3D、缓慢自转、只显示经纬线、透明度 35%）：12 条经线 + 10 条纬线
+  // 星空与星座（固定随机位置，随球缓慢旋转 + 轻微径向浮动）
+  var stars = [], constellations = [];
+  (function initStars() {
+    for (var i = 0; i < 150; i++) {
+      var lon = Math.random() * 360;
+      var lat = Math.asin(Math.random() * 2 - 1) * 180 / Math.PI;
+      var r = 425 * (0.3 + Math.random() * 0.55);
+      stars.push({ lon: lon, lat: lat, r: r, size: 0.4 + Math.random() * 1.1, bright: 0.25 + Math.random() * 0.65, phase: Math.random() * Math.PI * 2 });
+    }
+    for (var c = 0; c < 7; c++) {
+      var cl = Math.random() * 360;
+      var cb = Math.asin(Math.random() * 2 - 1) * 180 / Math.PI;
+      var cr = 425 * (0.35 + Math.random() * 0.5);
+      var n = 4 + Math.floor(Math.random() * 3);
+      var cs = [];
+      for (var s = 0; s < n; s++) {
+        cs.push({ lon: cl + (Math.random() - 0.5) * 45, lat: cb + (Math.random() - 0.5) * 35, r: cr * (0.95 + Math.random() * 0.1) });
+      }
+      constellations.push(cs);
+    }
+  })();
+  function starProject(st, rotDeg) {
+    var la = (st.lon + rotDeg) * Math.PI / 180, ph = st.lat * Math.PI / 180;
+    var x = st.r * Math.cos(ph) * Math.cos(la), y = st.r * Math.sin(ph), z = st.r * Math.cos(ph) * Math.sin(la);
+    var tp = tilts({ x: x, y: y, z: z });
+    return { x: CX + tp.x, y: CY - tp.y, z: tp.z };
+  }
+  function drawStars(t) {
+    var rotDeg = t * 0.06 * 180 / Math.PI;
+    ctx.fillStyle = COL_LINE;
+    for (var i = 0; i < stars.length; i++) {
+      var st = stars[i];
+      var rr = st.r * (1 + 0.03 * Math.sin(t * 0.5 + st.phase));
+      var p = starProject({ lon: st.lon, lat: st.lat, r: rr }, rotDeg);
+      ctx.globalAlpha = st.bright * 0.7;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, st.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    for (var c = 0; c < constellations.length; c++) {
+      var cs = constellations[c];
+      ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.3; ctx.globalAlpha = 0.4;
+      ctx.beginPath();
+      for (var s = 0; s < cs.length; s++) {
+        var p = starProject(cs[s], rotDeg);
+        if (s === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 0.8; ctx.fillStyle = COL_LINE;
+      for (var s2 = 0; s2 < cs.length; s2++) {
+        var p2 = starProject(cs[s2], rotDeg);
+        ctx.beginPath();
+        ctx.arc(p2.x, p2.y, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // 镂空经纬线球（3D、缓慢自转、只显示经纬线）：12 条经线 + 10 条纬线
   function sphereWireframe(t) {
     var R = 425;   // 球半径略小于外圈环内径 435，完全处于环内部
     var items = [];
@@ -1334,7 +1394,7 @@
         ctx.globalAlpha = 1;
       } else if (it.kind === 'wire') {
         ctx.strokeStyle = COL_LINE; ctx.lineWidth = 3.5;   // 粗细增大 5 倍
-        ctx.globalAlpha = 0.5;   // 透明度降低 25%（更不透明）
+        ctx.globalAlpha = 0.125;   // 不透明度变为原来的 25%
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
       } else {
@@ -1359,6 +1419,7 @@
     ctx.clearRect(0, 0, W, H);
     readColors();
     drawOuterRing();   // 最外圈花边环（背景层，正对镜头、固定不动）
+    drawStars(T);      // 星空与星座（背景层，球笼内浮动）
     var items = [];
     items = items.concat(sphereWireframe(T));   // 镂空经纬线球（背景层）
     rings.forEach(function (rg) { items = items.concat(ringItems(rg, rg.self, rg.prec)); });
