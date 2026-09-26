@@ -1269,16 +1269,24 @@
       var r = 425 * (0.3 + Math.random() * 0.55);
       stars.push({ lon: lon, lat: lat, r: r, size: 0.4 + Math.random() * 1.1, bright: 0.25 + Math.random() * 0.65, phase: Math.random() * Math.PI * 2 });
     }
-    for (var c = 0; c < 12; c++) {
-      var cl = Math.random() * 360;
-      var cb = Math.asin(Math.random() * 2 - 1) * 180 / Math.PI;
-      var cr = 425 * (0.35 + Math.random() * 0.5);
-      var n = 4 + Math.floor(Math.random() * 3);
+    // 固定星座（真实星座简化图案，非随机）
+    var CONSDATA = [
+      { cl: 150, cb: 55, r: 340, s: [[0,0],[10,2],[18,4],[26,6],[40,8],[52,10],[58,12]], e: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[3,0]] },
+      { cl: 20, cb: 62, r: 300, s: [[-10,5],[-5,0],[0,8],[5,0],[10,5]], e: [[0,1],[1,2],[2,3],[3,4]] },
+      { cl: 80, cb: 0, r: 360, s: [[-15,12],[-10,14],[0,0],[5,0],[10,0],[8,-14],[-8,-14]], e: [[0,1],[1,2],[2,4],[4,6],[6,5],[5,3],[3,0]] },
+      { cl: 300, cb: 40, r: 320, s: [[0,12],[-8,0],[0,0],[8,0],[0,-16]], e: [[0,2],[1,2],[3,2],[2,4]] },
+      { cl: 280, cb: 38, r: 300, s: [[0,14],[-6,5],[6,5],[-3,0],[3,0]], e: [[0,1],[0,2],[1,3],[2,4],[3,4]] },
+      { cl: 250, cb: -30, r: 340, s: [[0,0],[-12,8],[-8,18],[-2,24],[8,18],[14,6]], e: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]] },
+      { cl: 160, cb: 15, r: 320, s: [[0,0],[-10,6],[-18,12],[-8,10],[2,14],[14,8],[4,0]], e: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0]] },
+      { cl: 340, cb: 20, r: 340, s: [[-14,10],[14,10],[14,-10],[-14,-10]], e: [[0,1],[1,2],[2,3],[3,0]] }
+    ];
+    for (var c = 0; c < CONSDATA.length; c++) {
+      var cd = CONSDATA[c];
       var cs = [];
-      for (var s = 0; s < n; s++) {
-        cs.push({ lon: cl + (Math.random() - 0.5) * 45, lat: cb + (Math.random() - 0.5) * 35, r: cr * (0.95 + Math.random() * 0.1) });
+      for (var si = 0; si < cd.s.length; si++) {
+        cs.push({ lon: cd.cl + cd.s[si][0], lat: cd.cb + cd.s[si][1], r: cd.r });
       }
-      constellations.push({ stars: cs, driftLon: (Math.random() - 0.5) * 0.03, driftLat: (Math.random() - 0.5) * 0.02 });
+      constellations.push({ stars: cs, edges: cd.e, driftLon: (Math.random() - 0.5) * 0.015, driftLat: (Math.random() - 0.5) * 0.01 });
     }
   })();
   function starProject(st, rotDeg) {
@@ -1305,18 +1313,22 @@
       var cs = cg.stars;
       var dLon = cg.driftLon * t;   // 星座缓慢漂移
       var dLat = cg.driftLat * t;
+      var pps = [];
+      for (var s = 0; s < cs.length; s++) {
+        pps.push(starProject({ lon: cs[s].lon + dLon, lat: cs[s].lat + dLat, r: cs[s].r }, rotDeg));
+      }
       ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.3; ctx.globalAlpha = 0.4;
       ctx.beginPath();
-      for (var s = 0; s < cs.length; s++) {
-        var p = starProject({ lon: cs[s].lon + dLon, lat: cs[s].lat + dLat, r: cs[s].r }, rotDeg);
-        if (s === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+      for (var e = 0; e < cg.edges.length; e++) {
+        var ea = pps[cg.edges[e][0]], eb = pps[cg.edges[e][1]];
+        ctx.moveTo(ea.x, ea.y);
+        ctx.lineTo(eb.x, eb.y);
       }
       ctx.stroke();
       ctx.globalAlpha = 0.8; ctx.fillStyle = COL_LINE;
-      for (var s2 = 0; s2 < cs.length; s2++) {
-        var p2 = starProject({ lon: cs[s2].lon + dLon, lat: cs[s2].lat + dLat, r: cs[s2].r }, rotDeg);
+      for (var s2 = 0; s2 < pps.length; s2++) {
         ctx.beginPath();
-        ctx.arc(p2.x, p2.y, 1.1, 0, Math.PI * 2);
+        ctx.arc(pps[s2].x, pps[s2].y, 1.1, 0, Math.PI * 2);
         ctx.fill();
       }
     }
@@ -1325,7 +1337,7 @@
 
   // 镂空经纬线球（3D、缓慢自转、只显示经纬线）：12 条经线 + 10 条纬线
   function sphereWireframe(t) {
-    var R = 425;   // 球半径略小于外圈环内径 435，完全处于环内部
+    var R = 420;   // 球半径略小于外圈环内径 435，完全处于环内部
     var items = [];
     var rotDeg = t * 0.06 * 180 / Math.PI;   // 缓慢自转
     // 12 条经线（每 30°）
@@ -1338,9 +1350,9 @@
         pts.push(tilts(wp));
       }
       for (var k = 0; k < pts.length - 1; k++) {
-        // 正交投影（无透视放大），渲染整个球（前后都画，靠深度排序表现前后）
+        // 透视投影（与可动环一致，保证图层关系正确）
         var zz = (pts[k].z + pts[k + 1].z) / 2 + 2;   // 真实深度 + 2 偏置，避免与可动环面片同深度时排序冲突
-        items.push({ z: zz, kind: 'wire', a: { x: CX + pts[k].x, y: CY - pts[k].y }, b: { x: CX + pts[k + 1].x, y: CY - pts[k + 1].y } });
+        items.push({ z: zz, kind: 'wire', a: proj(pts[k].x, pts[k].y, pts[k].z), b: proj(pts[k + 1].x, pts[k + 1].y, pts[k + 1].z) });
       }
     }
     // 10 条纬线
@@ -1357,7 +1369,7 @@
       }
       for (var k2 = 0; k2 < pts2.length - 1; k2++) {
         var zz2 = (pts2[k2].z + pts2[k2 + 1].z) / 2 + 2;
-        items.push({ z: zz2, kind: 'wire', a: { x: CX + pts2[k2].x, y: CY - pts2[k2].y }, b: { x: CX + pts2[k2 + 1].x, y: CY - pts2[k2 + 1].y } });
+        items.push({ z: zz2, kind: 'wire', a: proj(pts2[k2].x, pts2[k2].y, pts2[k2].z), b: proj(pts2[k2 + 1].x, pts2[k2 + 1].y, pts2[k2 + 1].z) });
       }
     }
     return items;
