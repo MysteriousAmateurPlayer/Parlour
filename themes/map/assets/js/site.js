@@ -1012,15 +1012,15 @@
         faceMin[key + ':' + th] = zmin;
       }
     });
-    // 外/内侧面（6° 分片，更细，边缘更圆滑、不再有"被切一块"的棱角）
-    for (var th2 = 0; th2 < 360; th2 += 6) {
+    // 外/内侧面（3° 分片、1° 采样，更细，边缘更圆滑、不再有"被切一块"的棱角）
+    for (var th2 = 0; th2 < 360; th2 += 3) {
       [[Ro, 1], [Ri, -1]].forEach(function (pair) {
         var rho = pair[0], sgn = pair[1];
-        var N = sgn > 0 ? uT(th2 + 3) : neg(uT(th2 + 3));
-        var mw = W(th2 + 3, rho, 0);
+        var N = sgn > 0 ? uT(th2 + 1.5) : neg(uT(th2 + 1.5));
+        var mw = W(th2 + 1.5, rho, 0);
         if (!facing(mw, N)) return;
         var top = [], bot = [];
-        for (var a = th2; a <= th2 + 6; a += 1.5) { top.push(pt(a, rho, h / 2)); bot.push(pt(a, rho, -h / 2)); }
+        for (var a = th2; a <= th2 + 3; a += 1) { top.push(pt(a, rho, h / 2)); bot.push(pt(a, rho, -h / 2)); }
         var d = top.concat(bot.slice().reverse());
         var z = 0; for (var k2 = 0; k2 < d.length; k2++) z += d[k2].z; z /= d.length;
         items.push({ z: z, kind: 'face', pts: d, side: true });
@@ -1266,19 +1266,19 @@
     for (var i = 0; i < 150; i++) {
       var lon = Math.random() * 360;
       var lat = Math.asin(Math.random() * 2 - 1) * 180 / Math.PI;
-      var r = 425 * (0.3 + Math.random() * 0.55);
+      var r = 425 * (0.05 + Math.random() * 0.9);   // 分布范围扩大，覆盖整个球
       stars.push({ lon: lon, lat: lat, r: r, size: 0.4 + Math.random() * 1.1, bright: 0.25 + Math.random() * 0.65, phase: Math.random() * Math.PI * 2 });
     }
     // 固定星座（真实星座简化图案，非随机）
     var CONSDATA = [
-      { cl: 150, cb: 55, r: 340, s: [[0,0],[10,2],[18,4],[26,6],[40,8],[52,10],[58,12]], e: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[3,0]] },
-      { cl: 20, cb: 62, r: 300, s: [[-10,5],[-5,0],[0,8],[5,0],[10,5]], e: [[0,1],[1,2],[2,3],[3,4]] },
-      { cl: 80, cb: 0, r: 360, s: [[-15,12],[-10,14],[0,0],[5,0],[10,0],[8,-14],[-8,-14]], e: [[0,1],[1,2],[2,4],[4,6],[6,5],[5,3],[3,0]] },
-      { cl: 300, cb: 40, r: 320, s: [[0,12],[-8,0],[0,0],[8,0],[0,-16]], e: [[0,2],[1,2],[3,2],[2,4]] },
-      { cl: 280, cb: 38, r: 300, s: [[0,14],[-6,5],[6,5],[-3,0],[3,0]], e: [[0,1],[0,2],[1,3],[2,4],[3,4]] },
-      { cl: 250, cb: -30, r: 340, s: [[0,0],[-12,8],[-8,18],[-2,24],[8,18],[14,6]], e: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]] },
-      { cl: 160, cb: 15, r: 320, s: [[0,0],[-10,6],[-18,12],[-8,10],[2,14],[14,8],[4,0]], e: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0]] },
-      { cl: 340, cb: 20, r: 340, s: [[-14,10],[14,10],[14,-10],[-14,-10]], e: [[0,1],[1,2],[2,3],[3,0]] }
+      { cl: 150, cb: 55, r: 180, s: [[0,0],[10,2],[18,4],[26,6],[40,8],[52,10],[58,12]], e: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[3,0]] },
+      { cl: 20, cb: 62, r: 350, s: [[-10,5],[-5,0],[0,8],[5,0],[10,5]], e: [[0,1],[1,2],[2,3],[3,4]] },
+      { cl: 80, cb: 0, r: 120, s: [[-15,12],[-10,14],[0,0],[5,0],[10,0],[8,-14],[-8,-14]], e: [[0,1],[1,2],[2,4],[4,6],[6,5],[5,3],[3,0]] },
+      { cl: 300, cb: 40, r: 300, s: [[0,12],[-8,0],[0,0],[8,0],[0,-16]], e: [[0,2],[1,2],[3,2],[2,4]] },
+      { cl: 280, cb: 38, r: 260, s: [[0,14],[-6,5],[6,5],[-3,0],[3,0]], e: [[0,1],[0,2],[1,3],[2,4],[3,4]] },
+      { cl: 250, cb: -30, r: 390, s: [[0,0],[-12,8],[-8,18],[-2,24],[8,18],[14,6]], e: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]] },
+      { cl: 160, cb: 15, r: 200, s: [[0,0],[-10,6],[-18,12],[-8,10],[2,14],[14,8],[4,0]], e: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0]] },
+      { cl: 340, cb: 20, r: 330, s: [[-14,10],[14,10],[14,-10],[-14,-10]], e: [[0,1],[1,2],[2,3],[3,0]] }
     ];
     for (var c = 0; c < CONSDATA.length; c++) {
       var cd = CONSDATA[c];
@@ -1331,6 +1331,45 @@
         ctx.arc(pps[s2].x, pps[s2].y, 1.1, 0, Math.PI * 2);
         ctx.fill();
       }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // 数学符号浮动（生命周期：淡入 → 保持 → 淡出，之后重生）
+  var SYMBOLS = ['+', '−', '×', '÷', '=', 'π', '√', '∫', 'Σ', '∞', 'α', 'β', 'θ', 'Δ', '±', '∝', '≈', '≠', '≤', '≥', '∀', '∃', '→'];
+  var symbols = [];
+  function newSymbol(age) {
+    return {
+      lon: Math.random() * 360,
+      lat: Math.asin(Math.random() * 2 - 1) * 180 / Math.PI,
+      r: 425 * (0.15 + Math.random() * 0.75),
+      ch: SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+      size: 10 + Math.random() * 14,
+      born: age,
+      fadeIn: 0.8 + Math.random() * 0.8,
+      hold: 1.6 + Math.random() * 2,
+      fadeOut: 0.8 + Math.random() * 0.8
+    };
+  }
+  for (var si = 0; si < 12; si++) symbols.push(newSymbol(Math.random() * 8));
+  function drawSymbols(t) {
+    var rotDeg = t * 0.06 * 180 / Math.PI;
+    for (var i = 0; i < symbols.length; i++) {
+      var sm = symbols[i];
+      var age = t - sm.born;
+      var total = sm.fadeIn + sm.hold + sm.fadeOut;
+      if (age > total) { symbols[i] = newSymbol(t); continue; }
+      var alpha;
+      if (age < sm.fadeIn) alpha = age / sm.fadeIn;
+      else if (age < sm.fadeIn + sm.hold) alpha = 1;
+      else alpha = 1 - (age - sm.fadeIn - sm.hold) / sm.fadeOut;
+      var p = starProject(sm, rotDeg);
+      ctx.globalAlpha = alpha * 0.55;
+      ctx.fillStyle = COL_LINE;
+      ctx.font = sm.size + 'px "Georgia", serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(sm.ch, p.x, p.y);
     }
     ctx.globalAlpha = 1;
   }
@@ -1436,6 +1475,7 @@
     readColors();
     drawOuterRing(T);  // 最外圈花边环（背景层，花边沿自身平面缓慢自转）
     drawStars(T);      // 星空与星座（背景层，球笼内浮动）
+    drawSymbols(T);    // 数学符号（背景层，淡入-保持-淡出浮动）
     var items = [];
     items = items.concat(sphereWireframe(T));   // 镂空经纬线球（背景层）
     rings.forEach(function (rg) { items = items.concat(ringItems(rg, rg.self, rg.prec)); });
