@@ -1091,32 +1091,30 @@
     var cz = tc.z;   // 球心 tilted z：只画比球心更靠近相机的半球，球心 z 变化时经纬线不再消失
     var pc = proj(tc.x, tc.y, tc.z);
     items.push({ z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: r * (FOCAL / (FOCAL + tc.z)), lw: 0.85 });
-    // 经线
+    // 经线：逐段判断，任一端点落到背面（z > 球心z）就不画该段，避免背面线跑出来
     for (var lon = 0; lon < 360; lon += 30) {
       var pts = [];
       for (var lat = -90; lat <= 90; lat += 6) {
         var la = lon * Math.PI / 180 + rotLon, ph = lat * Math.PI / 180;
         var wp = { x: center.x + r * Math.cos(ph) * Math.cos(la), y: center.y + r * Math.sin(ph), z: center.z + r * Math.cos(ph) * Math.sin(la) };
-        var t = tilts(wp);
-        if (t.z > cz) continue;
-        pts.push(t);
+        pts.push(tilts(wp));
       }
       for (var k = 0; k < pts.length - 1; k++) {
+        if (pts[k].z > cz || pts[k + 1].z > cz) continue;
         items.push({ z: (pts[k].z + pts[k + 1].z) / 2, kind: 'line', lw: 0.4, a: proj(pts[k].x, pts[k].y, pts[k].z), b: proj(pts[k + 1].x, pts[k + 1].y, pts[k + 1].z) });
       }
     }
-    // 纬线
+    // 纬线：同样逐段判断
     for (var lat2 = -75; lat2 <= 75; lat2 += 30) {
       var ph2 = lat2 * Math.PI / 180, rho2 = r * Math.cos(ph2), yc = center.y + r * Math.sin(ph2);
       var pts2 = [];
       for (var a2 = 0; a2 <= 360; a2 += 6) {
         var rr = a2 * Math.PI / 180;
         var wp2 = { x: center.x + rho2 * Math.cos(rr + rotLon), y: yc, z: center.z + rho2 * Math.sin(rr + rotLon) };
-        var t2 = tilts(wp2);
-        if (t2.z > cz) continue;
-        pts2.push(t2);
+        pts2.push(tilts(wp2));
       }
       for (var k2 = 0; k2 < pts2.length - 1; k2++) {
+        if (pts2[k2].z > cz || pts2[k2 + 1].z > cz) continue;
         items.push({ z: (pts2[k2].z + pts2[k2 + 1].z) / 2, kind: 'line', lw: 0.4, a: proj(pts2[k2].x, pts2[k2].y, pts2[k2].z), b: proj(pts2[k2 + 1].x, pts2[k2 + 1].y, pts2[k2 + 1].z) });
       }
     }
@@ -1126,9 +1124,10 @@
   // （交错在每两瓣之间），紧贴太阳球体，带轻微"呼吸"脉动。
   function drawFlame(cx, cy, r, t) {
     var pulse = 1 + 0.05 * Math.sin(t * 1.6);
+    var rot = t * 0.1;   // 整体缓慢旋转
     // 内层：24 瓣短白金焰舌（每 15° 一瓣，完美旋转对称）
     for (var i = 0; i < 24; i++) {
-      var a0 = i * Math.PI / 12;
+      var a0 = i * Math.PI / 12 + rot;
       var tip = r + 8 * pulse;
       var sp = Math.PI / 26;
       ctx.beginPath();
@@ -1140,7 +1139,7 @@
     }
     // 外层：12 瓣橙红焰舌（每 30° 一瓣，交错在每两瓣之间）
     for (var j = 0; j < 12; j++) {
-      var a1 = (j + 0.5) * Math.PI / 6;
+      var a1 = (j + 0.5) * Math.PI / 6 + rot;
       var tip2 = r + 17 * pulse;
       var sp2 = Math.PI / 16;
       ctx.beginPath();
@@ -1190,7 +1189,7 @@
     }
     for (var ok = 0; ok < orbPts.length - 1; ok++) {
       var back = orbPts[ok].z > 0 && orbPts[ok + 1].z > 0;
-      items.push({ z: (orbPts[ok].z + orbPts[ok + 1].z) / 2 + 1.0, kind: 'orbit', a: proj(orbPts[ok].x, orbPts[ok].y, orbPts[ok].z), b: proj(orbPts[ok + 1].x, orbPts[ok + 1].y, orbPts[ok + 1].z), back: back });
+      items.push({ z: (orbPts[ok].z + orbPts[ok + 1].z) / 2 + 6.0, kind: 'orbit', a: proj(orbPts[ok].x, orbPts[ok].y, orbPts[ok].z), b: proj(orbPts[ok + 1].x, orbPts[ok + 1].y, orbPts[ok + 1].z), back: back });
     }
     // 地球：球体 + 经纬线网格（自转，网格对称稳定、不闪烁）
     var earthSelf = t * 0.55;
