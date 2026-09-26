@@ -994,17 +994,22 @@
     }
     var nT = tilts(n);
     var items = [];
-    // 顶/底面（12° 分片）
+    // 顶/底面（6° 分片，与刻度步长对齐），记录每个分片的最小深度供刻度/圆线引用
+    var faceMin = {};
     [[h / 2, nT], [-h / 2, neg(nT)]].forEach(function (pair) {
       var zl = pair[0], N = pair[1];
-      for (var th = 0; th < 360; th += 12) {
-        var mw = W(th + 6, (Ro + Ri) / 2, zl);
+      var key = zl > 0 ? 't' : 'b';
+      for (var th = 0; th < 360; th += 6) {
+        var mw = W(th + 3, (Ro + Ri) / 2, zl);
         if (!facing(mw, N)) continue;
         var outer = [], inner = [];
-        for (var a = th; a <= th + 12; a += 1.5) { outer.push(pt(a, Ro, zl)); inner.push(pt(a, Ri, zl)); }
+        for (var a = th; a <= th + 6; a += 1.5) { outer.push(pt(a, Ro, zl)); inner.push(pt(a, Ri, zl)); }
         var d = outer.concat(inner.slice().reverse());
-        var z = 0; for (var k = 0; k < d.length; k++) z += d[k].z; z /= d.length;
+        var z = 0, zmin = Infinity;
+        for (var k = 0; k < d.length; k++) { z += d[k].z; if (d[k].z < zmin) zmin = d[k].z; }
+        z /= d.length;
         items.push({ z: z, kind: 'face', pts: d, side: false });
+        faceMin[key + ':' + th] = zmin;
       }
     });
     // 外/内侧面（12° 分片）
@@ -1021,34 +1026,35 @@
         items.push({ z: z, kind: 'face', pts: d, side: true });
       });
     }
-    // 计算本环所有面片的最小深度：轮廓线与刻度都要"浮"到面片之上，
-    // 否则顶/底面片朝向相机时（正视）会把外侧面上的刻度、圆线盖住 → 看不见。
-    var minFaceZ = Infinity;
-    for (var fi = 0; fi < items.length; fi++) {
-      if (items[fi].kind === 'face' && items[fi].z < minFaceZ) minFaceZ = items[fi].z;
-    }
-    if (minFaceZ === Infinity) minFaceZ = 0;
-    // 圆线（6° 段）：环顶/底面的内外圆轮廓线，深度提到面片之上，不再闪现
+    // 圆线（6° 段）：环顶/底面的内外圆轮廓线，深度 = 对应端面分片最小深度 - 0.3
     [[Ro, h / 2, nT], [Ri, h / 2, nT], [Ro, -h / 2, neg(nT)], [Ri, -h / 2, neg(nT)]].forEach(function (p) {
       var rho = p[0], zl = p[1], N = p[2];
+      var key = zl > 0 ? 't' : 'b';
       for (var th3 = 0; th3 < 360; th3 += 6) {
         var mw = W(th3 + 3, rho, zl);
         if (!facing(mw, N)) continue;
         var a2 = pt(th3, rho, zl), b2 = pt(th3 + 6, rho, zl);
-        items.push({ z: minFaceZ - 0.3, kind: 'line', a: a2, b: b2 });
+        var fz = faceMin[key + ':' + th3];
+        if (fz === undefined) fz = (a2.z + b2.z) / 2;
+        items.push({ z: fz - 0.3, kind: 'line', a: a2, b: b2 });
       }
     });
-    // ① 刻度：外侧面沿圆周短弧，深度提到本环所有面片之上，恒定可见（图层不再遮挡）
-    for (var th4 = 0; th4 < 360; th4 += 6) {
-      var uN4 = uT(th4);
-      var mw2 = W(th4, Ro, 0);
-      if (!facing(mw2, uN4)) continue;
-      var major = (th4 % 30 === 0);
-      var dTh = major ? 3 : 1.2;   // 刻度弧长（度）
-      var a3 = pt(th4 - dTh / 2, Ro, 0);
-      var b3 = pt(th4 + dTh / 2, Ro, 0);
-      items.push({ z: minFaceZ - 0.5, kind: major ? 'tick' : 'tick-fine', a: a3, b: b3 });
-    }
+    // ① 刻度：环面（端面）上的径向短刻度——主 30° 从内圆到外圆全长、
+    //    次级 6° 只延伸约一半；深度 = 对应端面分片最小深度 - 0.5，画在环面之上。
+    [[h / 2, nT], [-h / 2, neg(nT)]].forEach(function (pair) {
+      var zl = pair[0], N = pair[1];
+      var key = zl > 0 ? 't' : 'b';
+      for (var th4 = 0; th4 < 360; th4 += 6) {
+        var mw2 = W(th4, (Ro + Ri) / 2, zl);
+        if (!facing(mw2, N)) continue;
+        var major = (th4 % 30 === 0);
+        var a3 = pt(th4, Ri, zl);
+        var b3 = pt(th4, major ? Ro : Ri + (Ro - Ri) * 0.45, zl);
+        var fz = faceMin[key + ':' + th4];
+        if (fz === undefined) fz = (a3.z + b3.z) / 2;
+        items.push({ z: fz - 0.5, kind: major ? 'tick' : 'tick-fine', a: a3, b: b3 });
+      }
+    });
     return items;
   }
 
@@ -1171,20 +1177,13 @@
         ctx.beginPath();
         ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2);
         if (it.sun) {
-          var sg = ctx.createRadialGradient(it.x, it.y, it.r * 0.15, it.x, it.y, it.r);
+          // 太阳：轻微的径向渐变（中心暖亮、边缘背景），表现圆面发光
+          var sg = ctx.createRadialGradient(it.x, it.y, it.r * 0.4, it.x, it.y, it.r);
           sg.addColorStop(0, COL_LIT);
           sg.addColorStop(1, COL_BG);
           ctx.fillStyle = sg;
-        } else if (it.lx !== null && it.lx !== undefined) {
-          var dx = it.lx - it.x, dy = it.ly - it.y;
-          var dlen = Math.hypot(dx, dy) || 1;
-          dx /= dlen; dy /= dlen;
-          var lg = ctx.createLinearGradient(it.x + dx * it.r, it.y + dy * it.r, it.x - dx * it.r, it.y - dy * it.r);
-          lg.addColorStop(0, COL_LIT);
-          lg.addColorStop(0.55, COL_BG);
-          lg.addColorStop(1, COL_SHADE);
-          ctx.fillStyle = lg;
         } else {
+          // 地球/月亮：纯背景色填充（去掉光影，避免与板块贴图冲突）
           ctx.fillStyle = COL_BG;
         }
         ctx.fill();
