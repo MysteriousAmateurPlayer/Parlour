@@ -923,7 +923,7 @@
   }
   function readColors() {
     COL_BG = cssVar('--bg', '#16171a');
-    COL_LINE = cssVar('--ring-line', '#cfc7ba');
+    COL_LINE = cssVar('--ink-soft', '#57504a');   // 线条用文字/内容色（次级文字），而非近背景的 --ring-line
     COL_TICK = COL_LINE;
     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
     COL_LAND = dark ? 'rgba(214,166,82,0.6)' : 'rgba(186,86,56,0.55)';
@@ -1084,40 +1084,70 @@
     var pc = proj(tc.x, tc.y, tc.z);
     return { z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: r * (FOCAL / (FOCAL + tc.z)), lw: lw, lx: lightFrom ? lightFrom.x : null, ly: lightFrom ? lightFrom.y : null, sun: !!isSun };
   }
-  // 太阳火焰：两层写实火焰——内层短而亮的白金焰舌、外层长而暗的橙红焰舌，
-  // 带轻微摆动；画在太阳 disc 之后（背景），从太阳圆面边缘伸出。
+  // 球体 + 经纬线网格（只画前半球 z<=0），返回 items；网格均匀对称，自转时不闪烁跳变。
+  function sphereGridItems(center, r, rotLon) {
+    var items = [];
+    var tc = tilts(center);
+    var pc = proj(tc.x, tc.y, tc.z);
+    items.push({ z: tc.z, kind: 'disc', x: pc.x, y: pc.y, r: r * (FOCAL / (FOCAL + tc.z)), lw: 1.1 });
+    // 经线
+    for (var lon = 0; lon < 360; lon += 30) {
+      var pts = [];
+      for (var lat = -90; lat <= 90; lat += 6) {
+        var la = lon * Math.PI / 180 + rotLon, ph = lat * Math.PI / 180;
+        var wp = { x: center.x + r * Math.cos(ph) * Math.cos(la), y: center.y + r * Math.sin(ph), z: center.z + r * Math.cos(ph) * Math.sin(la) };
+        var t = tilts(wp);
+        if (t.z > 0) continue;
+        pts.push(t);
+      }
+      for (var k = 0; k < pts.length - 1; k++) {
+        items.push({ z: (pts[k].z + pts[k + 1].z) / 2, kind: 'line', lw: 0.5, a: proj(pts[k].x, pts[k].y, pts[k].z), b: proj(pts[k + 1].x, pts[k + 1].y, pts[k + 1].z) });
+      }
+    }
+    // 纬线
+    for (var lat2 = -75; lat2 <= 75; lat2 += 30) {
+      var ph2 = lat2 * Math.PI / 180, rho2 = r * Math.cos(ph2), yc = center.y + r * Math.sin(ph2);
+      var pts2 = [];
+      for (var a2 = 0; a2 <= 360; a2 += 6) {
+        var rr = a2 * Math.PI / 180;
+        var wp2 = { x: center.x + rho2 * Math.cos(rr + rotLon), y: yc, z: center.z + rho2 * Math.sin(rr + rotLon) };
+        var t2 = tilts(wp2);
+        if (t2.z > 0) continue;
+        pts2.push(t2);
+      }
+      for (var k2 = 0; k2 < pts2.length - 1; k2++) {
+        items.push({ z: (pts2[k2].z + pts2[k2 + 1].z) / 2, kind: 'line', lw: 0.5, a: proj(pts2[k2].x, pts2[k2].y, pts2[k2].z), b: proj(pts2[k2 + 1].x, pts2[k2 + 1].y, pts2[k2 + 1].z) });
+      }
+    }
+    return items;
+  }
+  // 太阳火焰：曼荼罗式旋转对称火焰——内层 24 瓣短白金焰舌 + 外层 12 瓣橙红焰舌
+  // （交错在每两瓣之间），紧贴太阳球体，带轻微"呼吸"脉动。
   function drawFlame(cx, cy, r, t) {
-    // 内层焰舌（短、亮白金，18 根交错）
-    for (var i = 0; i < 18; i++) {
-      var a0 = i * Math.PI / 9 + t * 0.09 + Math.sin(t * 0.6 + i * 1.7) * 0.05;
-      var tip = r + 6 + (i % 3) * 7;
-      var sp = 0.12;
+    var pulse = 1 + 0.05 * Math.sin(t * 1.6);
+    // 内层：24 瓣短白金焰舌（每 15° 一瓣，完美旋转对称）
+    for (var i = 0; i < 24; i++) {
+      var a0 = i * Math.PI / 12;
+      var tip = r + 5 * pulse;
+      var sp = Math.PI / 26;
       ctx.beginPath();
       ctx.moveTo(cx + Math.cos(a0 - sp) * (r - 1), cy + Math.sin(a0 - sp) * (r - 1));
-      ctx.bezierCurveTo(
-        cx + Math.cos(a0 - sp * 0.45) * (r + tip * 0.55), cy + Math.sin(a0 - sp * 0.45) * (r + tip * 0.55),
-        cx + Math.cos(a0) * (r + tip), cy + Math.sin(a0) * (r + tip),
-        cx + Math.cos(a0 + sp) * (r - 1), cy + Math.sin(a0 + sp) * (r - 1)
-      );
+      ctx.quadraticCurveTo(cx + Math.cos(a0) * tip, cy + Math.sin(a0) * tip, cx + Math.cos(a0 + sp) * (r - 1), cy + Math.sin(a0 + sp) * (r - 1));
       ctx.closePath();
-      ctx.fillStyle = 'rgba(255,244,210,0.75)';
+      ctx.fillStyle = 'rgba(255,244,210,0.8)';
       ctx.fill();
     }
-    // 外层焰舌（长、橙红，14 根交错）
-    for (var j = 0; j < 14; j++) {
-      var b0 = j * Math.PI / 7 + t * 0.05 + Math.sin(t * 0.4 + j * 2.1) * 0.07;
-      var tip2 = r + 20 + (j % 2) * 16;
-      var sp2 = 0.17;
+    // 外层：12 瓣橙红焰舌（每 30° 一瓣，交错在每两瓣之间）
+    for (var j = 0; j < 12; j++) {
+      var a1 = (j + 0.5) * Math.PI / 6;
+      var tip2 = r + 11 * pulse;
+      var sp2 = Math.PI / 16;
       ctx.beginPath();
-      ctx.moveTo(cx + Math.cos(b0 - sp2) * (r - 2), cy + Math.sin(b0 - sp2) * (r - 2));
-      ctx.bezierCurveTo(
-        cx + Math.cos(b0 - sp2 * 0.5) * (r + tip2 * 0.6), cy + Math.sin(b0 - sp2 * 0.5) * (r + tip2 * 0.6),
-        cx + Math.cos(b0) * (r + tip2), cy + Math.sin(b0) * (r + tip2),
-        cx + Math.cos(b0 + sp2) * (r - 2), cy + Math.sin(b0 + sp2) * (r - 2)
-      );
+      ctx.moveTo(cx + Math.cos(a1 - sp2) * (r - 1), cy + Math.sin(a1 - sp2) * (r - 1));
+      ctx.quadraticCurveTo(cx + Math.cos(a1) * tip2, cy + Math.sin(a1) * tip2, cx + Math.cos(a1 + sp2) * (r - 1), cy + Math.sin(a1 + sp2) * (r - 1));
       ctx.closePath();
       ctx.fillStyle = COL_SUN;
-      ctx.globalAlpha = 0.6;
+      ctx.globalAlpha = 0.7;
       ctx.fill();
       ctx.globalAlpha = 1;
     }
@@ -1159,14 +1189,11 @@
     }
     for (var ok = 0; ok < orbPts.length - 1; ok++) {
       var back = orbPts[ok].z > 0 && orbPts[ok + 1].z > 0;
-      items.push({ z: (orbPts[ok].z + orbPts[ok + 1].z) / 2, kind: 'orbit', a: proj(orbPts[ok].x, orbPts[ok].y, orbPts[ok].z), b: proj(orbPts[ok + 1].x, orbPts[ok + 1].y, orbPts[ok + 1].z), back: back });
+      items.push({ z: (orbPts[ok].z + orbPts[ok + 1].z) / 2 + 0.4, kind: 'orbit', a: proj(orbPts[ok].x, orbPts[ok].y, orbPts[ok].z), b: proj(orbPts[ok + 1].x, orbPts[ok + 1].y, orbPts[ok + 1].z), back: back });
     }
-    // 地球：光照渐变球体（朝向太阳亮、背向暗）+ 大陆板块（自转）
+    // 地球：球体 + 经纬线网格（自转，网格对称稳定、不闪烁）
     var earthSelf = t * 0.55;
-    items.push(discItem(earth, EARTH_R, 1.1, { x: CX, y: CY }, false));
-    for (var c = 0; c < CONTINENTS.length; c++) {
-      items = items.concat(continentItems(earth, EARTH_R, earthSelf, CONTINENTS[c]));
-    }
+    items = items.concat(sphereGridItems(earth, EARTH_R, earthSelf));
     // 月亮绕地球（在轨道面内）
     var ma = t * 1.3;
     var radial = norm(earth);
@@ -1177,10 +1204,8 @@
       y: earth.y + MOON_ORBIT * (radial.y * Math.cos(ma) + e2.y * Math.sin(ma)),
       z: earth.z + MOON_ORBIT * (radial.z * Math.cos(ma) + e2.z * Math.sin(ma))
     };
-    items.push(discItem(moon, MOON_R, 1.0, { x: CX, y: CY }, false));
-    var mtc = tilts(moon);
-    var mpc = proj(mtc.x, mtc.y, mtc.z);
-    items.push({ z: mtc.z - 0.1, kind: 'mare', x: mpc.x, y: mpc.y, r: MOON_R * (FOCAL / (FOCAL + mtc.z)), t: t });
+    // 月亮：纯球体（无表面）
+    items.push(discItem(moon, MOON_R, 1.0));
     return items;
   }
 
@@ -1212,36 +1237,6 @@
         ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.lw || 1.3; ctx.stroke();
       } else if (it.kind === 'flame') {
         drawFlame(it.x, it.y, it.r, it.t);
-      } else if (it.kind === 'continent') {
-        ctx.beginPath();
-        for (var k2 = 0; k2 < it.pts.length; k2++) {
-          if (k2 === 0) ctx.moveTo(it.pts[k2].x, it.pts[k2].y); else ctx.lineTo(it.pts[k2].x, it.pts[k2].y);
-        }
-        ctx.closePath();
-        ctx.fillStyle = COL_LAND; ctx.fill();
-        ctx.strokeStyle = COL_LAND; ctx.lineWidth = 0.5; ctx.globalAlpha = 0.9; ctx.stroke();
-        ctx.globalAlpha = 1;
-      } else if (it.kind === 'mare') {
-        ctx.save();
-        ctx.beginPath(); ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2); ctx.clip();
-        var spots = [
-          { ox: -0.35, oy: 0.18, rr: 0.34 }, { ox: 0.30, oy: -0.12, rr: 0.26 },
-          { ox: -0.05, oy: -0.38, rr: 0.20 }, { ox: 0.42, oy: 0.30, rr: 0.18 }
-        ];
-        ctx.fillStyle = 'rgba(125,115,105,0.55)';
-        for (var s = 0; s < spots.length; s++) {
-          ctx.beginPath();
-          ctx.arc(it.x + spots[s].ox * it.r, it.y + spots[s].oy * it.r, spots[s].rr * it.r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.strokeStyle = 'rgba(125,115,105,0.7)'; ctx.lineWidth = 0.5;
-        for (var cr = 0; cr < 3; cr++) {
-          var ca = cr * 2.1 + it.t * 0.2;
-          ctx.beginPath();
-          ctx.arc(it.x + Math.cos(ca) * it.r * 0.5, it.y + Math.sin(ca) * it.r * 0.5, it.r * 0.12, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-        ctx.restore();
       } else if (it.kind === 'orbit') {
         ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.6;
         ctx.globalAlpha = it.back ? 0.35 : 0.55;   // 前后都是实线，背面略淡表示深度
@@ -1249,8 +1244,8 @@
         ctx.globalAlpha = 1;
       } else {
         ctx.strokeStyle = COL_LINE;
-        ctx.lineWidth = it.kind === 'tick' ? 0.95 : (it.kind === 'tick-fine' ? 0.7 : 1.15);
-        ctx.globalAlpha = it.kind === 'tick' ? 0.65 : (it.kind === 'tick-fine' ? 0.72 : 0.95);
+        ctx.lineWidth = it.lw || (it.kind === 'tick' ? 0.95 : (it.kind === 'tick-fine' ? 0.7 : 1.15));
+        ctx.globalAlpha = it.kind === 'tick' ? 0.65 : (it.kind === 'tick-fine' ? 0.72 : 0.9);
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
       }
