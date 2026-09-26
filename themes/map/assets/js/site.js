@@ -1188,26 +1188,29 @@
     items.push({ z: 89, kind: 'flame', x: CX, y: CY, r: SUN_R, t: t });
     // 太阳球体：光源（径向渐变），球心原点
     items.push(discItem({ x: 0, y: 0, z: 0 }, SUN_R, 1.2, null, true));
-    // 地球公转位置（轨道面绕 x 轴倾斜 ORBIT_INC）
-    var ea = t * 0.3;   // 地球公转（轨道运动）
-    var earth = { x: EARTH_ORBIT * Math.cos(ea), y: -EARTH_ORBIT * Math.sin(ea) * Math.sin(ORBIT_INC), z: EARTH_ORBIT * Math.sin(ea) * Math.cos(ORBIT_INC) };
-    // 地球公转轨道（3D 圆，完整：前半实线、后半虚线）
+    // 地球公转：轨道面绕 x 轴倾斜 ORBIT_INC，再绕 y 轴缓慢进动（3D 运动），中心恒为太阳
+    var ea = t * 0.3;
+    var prec = t * 0.12;
+    var earthRaw = { x: EARTH_ORBIT * Math.cos(ea), y: -EARTH_ORBIT * Math.sin(ea) * Math.sin(ORBIT_INC), z: EARTH_ORBIT * Math.sin(ea) * Math.cos(ORBIT_INC) };
+    var earth = rotY(earthRaw, prec);
+    // 地球公转轨道
     var orbPts = [];
     for (var oi = 0; oi <= 360; oi += 6) {
       var oa = oi * Math.PI / 180;
-      orbPts.push(tilts({ x: EARTH_ORBIT * Math.cos(oa), y: -EARTH_ORBIT * Math.sin(oa) * Math.sin(ORBIT_INC), z: EARTH_ORBIT * Math.sin(oa) * Math.cos(ORBIT_INC) }));
+      var orbRaw = { x: EARTH_ORBIT * Math.cos(oa), y: -EARTH_ORBIT * Math.sin(oa) * Math.sin(ORBIT_INC), z: EARTH_ORBIT * Math.sin(oa) * Math.cos(ORBIT_INC) };
+      orbPts.push(tilts(rotY(orbRaw, prec)));
     }
     for (var ok = 0; ok < orbPts.length - 1; ok++) {
       var back = orbPts[ok].z > 0 && orbPts[ok + 1].z > 0;
-      items.push({ z: (orbPts[ok].z + orbPts[ok + 1].z) / 2 + 6.0, kind: 'orbit', a: proj(orbPts[ok].x, orbPts[ok].y, orbPts[ok].z), b: proj(orbPts[ok + 1].x, orbPts[ok + 1].y, orbPts[ok + 1].z), back: back });
+      items.push({ z: (orbPts[ok].z + orbPts[ok + 1].z) / 2 + 20, kind: 'orbit', a: proj(orbPts[ok].x, orbPts[ok].y, orbPts[ok].z), b: proj(orbPts[ok + 1].x, orbPts[ok + 1].y, orbPts[ok + 1].z), back: back });
     }
     // 地球：球体 + 经纬线网格（自转，网格对称稳定、不闪烁）
     var earthSelf = t * 0.55;
     items = items.concat(sphereGridItems(earth, EARTH_R, earthSelf));
-    // 月亮绕地球（在轨道面内）
+    // 月亮绕地球（在轨道面内，轨道面随进动）
     var ma = t * 1.3;
     var radial = norm(earth);
-    var Norb = { x: 0, y: Math.cos(ORBIT_INC), z: Math.sin(ORBIT_INC) };
+    var Norb = rotY({ x: 0, y: Math.cos(ORBIT_INC), z: Math.sin(ORBIT_INC) }, prec);
     var e2 = norm(cross(Norb, radial));
     var moon = {
       x: earth.x + MOON_ORBIT * (radial.x * Math.cos(ma) + e2.x * Math.sin(ma)),
@@ -1217,6 +1220,42 @@
     // 月亮：纯球体（无表面）
     items.push(discItem(moon, MOON_R, 0.75));
     return items;
+  }
+
+  // 最外圈固定环（正对镜头、不旋转）：环面显示古典花边（锯齿纹 + 圆点），画在背景层
+  function drawOuterRing() {
+    var Ri = 395, Ro = 450, cx = CX, cy = CY;
+    ctx.beginPath();
+    ctx.arc(cx, cy, Ro, 0, Math.PI * 2);
+    ctx.arc(cx, cy, Ri, 0, Math.PI * 2, true);
+    ctx.fillStyle = COL_BG;
+    ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, Ro, 0, Math.PI * 2);
+    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 1.0; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy, Ri, 0, Math.PI * 2);
+    ctx.lineWidth = 0.7; ctx.stroke();
+    // 锯齿花边（外圆→内圆→外圆，连续）
+    var N = 72, Rm = (Ri + Ro) / 2;
+    ctx.lineWidth = 0.5; ctx.globalAlpha = 0.75;
+    for (var i = 0; i < N; i++) {
+      var a0 = i * 2 * Math.PI / N;
+      var a1 = (i + 0.5) * 2 * Math.PI / N;
+      var a2 = (i + 1) * 2 * Math.PI / N;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a0) * Ro, cy + Math.sin(a0) * Ro);
+      ctx.lineTo(cx + Math.cos(a1) * Ri, cy + Math.sin(a1) * Ri);
+      ctx.lineTo(cx + Math.cos(a2) * Ro, cy + Math.sin(a2) * Ro);
+      ctx.stroke();
+    }
+    // 圆点（环带中心，每个锯齿之间）
+    ctx.fillStyle = COL_LINE;
+    for (var j = 0; j < N; j++) {
+      var am = (j + 0.5) * 2 * Math.PI / N;
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(am) * Rm, cy + Math.sin(am) * Rm, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
   }
 
   function draw(items) {
@@ -1273,6 +1312,7 @@
     ctx.setTransform(sc, 0, 0, sy, 0, 0);
     ctx.clearRect(0, 0, W, H);
     readColors();
+    drawOuterRing();   // 最外圈花边环（背景层，正对镜头、固定不动）
     var items = [];
     rings.forEach(function (rg) { items = items.concat(ringItems(rg, rg.self, rg.prec)); });
     items = items.concat(solarItems(T));
