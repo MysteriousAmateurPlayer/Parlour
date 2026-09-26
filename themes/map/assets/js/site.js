@@ -1012,15 +1012,15 @@
         faceMin[key + ':' + th] = zmin;
       }
     });
-    // 外/内侧面（12° 分片）
-    for (var th2 = 0; th2 < 360; th2 += 12) {
+    // 外/内侧面（6° 分片，更细，边缘更圆滑、不再有"被切一块"的棱角）
+    for (var th2 = 0; th2 < 360; th2 += 6) {
       [[Ro, 1], [Ri, -1]].forEach(function (pair) {
         var rho = pair[0], sgn = pair[1];
-        var N = sgn > 0 ? uT(th2 + 6) : neg(uT(th2 + 6));
-        var mw = W(th2 + 6, rho, 0);
+        var N = sgn > 0 ? uT(th2 + 3) : neg(uT(th2 + 3));
+        var mw = W(th2 + 3, rho, 0);
         if (!facing(mw, N)) return;
         var top = [], bot = [];
-        for (var a = th2; a <= th2 + 12; a += 1.5) { top.push(pt(a, rho, h / 2)); bot.push(pt(a, rho, -h / 2)); }
+        for (var a = th2; a <= th2 + 6; a += 1.5) { top.push(pt(a, rho, h / 2)); bot.push(pt(a, rho, -h / 2)); }
         var d = top.concat(bot.slice().reverse());
         var z = 0; for (var k2 = 0; k2 < d.length; k2++) z += d[k2].z; z /= d.length;
         items.push({ z: z, kind: 'face', pts: d, side: true });
@@ -1222,8 +1222,8 @@
     return items;
   }
 
-  // 最外圈固定环（正对镜头、不旋转）：双层沟边 + 内部流线花边，画在背景层
-  function drawOuterRing() {
+  // 最外圈固定环（正对镜头，花边沿自身平面缓慢自转）：双层沟边 + 内部流线花边，画在背景层
+  function drawOuterRing(t) {
     var Ri = 435, Ro = 495, cx = CX, cy = CY;
     ctx.beginPath();
     ctx.arc(cx, cy, Ro, 0, Math.PI * 2);
@@ -1239,8 +1239,9 @@
       ctx.lineWidth = (e === 0 || e === 3) ? 0.36 : 0.22;
       ctx.stroke();
     }
-    // 内部流线花边：三条交错波浪线（柔和流线，沿圆周连续）
+    // 内部流线花边：三条交错波浪线（柔和流线，沿圆周连续，整体缓慢自转）
     var Rm = (Ri + Ro) / 2;
+    var rot = t * 0.05;   // 花边沿自身平面缓慢自转
     ctx.globalAlpha = 0.75;
     ctx.lineWidth = 0.22;
     for (var w = 0; w < 3; w++) {
@@ -1249,7 +1250,7 @@
       ctx.beginPath();
       for (var i = 0; i <= 360; i++) {
         var a = i * Math.PI / 180;
-        var wave = Math.sin(a * 24 + phase) * 6;
+        var wave = Math.sin((a + rot) * 24 + phase) * 6;
         var r = baseR + wave;
         if (i === 0) ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
         else ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
@@ -1268,7 +1269,7 @@
       var r = 425 * (0.3 + Math.random() * 0.55);
       stars.push({ lon: lon, lat: lat, r: r, size: 0.4 + Math.random() * 1.1, bright: 0.25 + Math.random() * 0.65, phase: Math.random() * Math.PI * 2 });
     }
-    for (var c = 0; c < 7; c++) {
+    for (var c = 0; c < 12; c++) {
       var cl = Math.random() * 360;
       var cb = Math.asin(Math.random() * 2 - 1) * 180 / Math.PI;
       var cr = 425 * (0.35 + Math.random() * 0.5);
@@ -1277,7 +1278,7 @@
       for (var s = 0; s < n; s++) {
         cs.push({ lon: cl + (Math.random() - 0.5) * 45, lat: cb + (Math.random() - 0.5) * 35, r: cr * (0.95 + Math.random() * 0.1) });
       }
-      constellations.push(cs);
+      constellations.push({ stars: cs, driftLon: (Math.random() - 0.5) * 0.03, driftLat: (Math.random() - 0.5) * 0.02 });
     }
   })();
   function starProject(st, rotDeg) {
@@ -1300,17 +1301,20 @@
     }
     ctx.globalAlpha = 1;
     for (var c = 0; c < constellations.length; c++) {
-      var cs = constellations[c];
+      var cg = constellations[c];
+      var cs = cg.stars;
+      var dLon = cg.driftLon * t;   // 星座缓慢漂移
+      var dLat = cg.driftLat * t;
       ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.3; ctx.globalAlpha = 0.4;
       ctx.beginPath();
       for (var s = 0; s < cs.length; s++) {
-        var p = starProject(cs[s], rotDeg);
+        var p = starProject({ lon: cs[s].lon + dLon, lat: cs[s].lat + dLat, r: cs[s].r }, rotDeg);
         if (s === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
       }
       ctx.stroke();
       ctx.globalAlpha = 0.8; ctx.fillStyle = COL_LINE;
       for (var s2 = 0; s2 < cs.length; s2++) {
-        var p2 = starProject(cs[s2], rotDeg);
+        var p2 = starProject({ lon: cs[s2].lon + dLon, lat: cs[s2].lat + dLat, r: cs[s2].r }, rotDeg);
         ctx.beginPath();
         ctx.arc(p2.x, p2.y, 1.1, 0, Math.PI * 2);
         ctx.fill();
@@ -1335,7 +1339,7 @@
       }
       for (var k = 0; k < pts.length - 1; k++) {
         // 正交投影（无透视放大），渲染整个球（前后都画，靠深度排序表现前后）
-        var zz = (pts[k].z + pts[k + 1].z) / 2;   // 用真实深度：球笼正面在最前、背面在最后
+        var zz = (pts[k].z + pts[k + 1].z) / 2 + 2;   // 真实深度 + 2 偏置，避免与可动环面片同深度时排序冲突
         items.push({ z: zz, kind: 'wire', a: { x: CX + pts[k].x, y: CY - pts[k].y }, b: { x: CX + pts[k + 1].x, y: CY - pts[k + 1].y } });
       }
     }
@@ -1352,7 +1356,7 @@
         pts2.push(tilts(wp2));
       }
       for (var k2 = 0; k2 < pts2.length - 1; k2++) {
-        var zz2 = (pts2[k2].z + pts2[k2 + 1].z) / 2;
+        var zz2 = (pts2[k2].z + pts2[k2 + 1].z) / 2 + 2;
         items.push({ z: zz2, kind: 'wire', a: { x: CX + pts2[k2].x, y: CY - pts2[k2].y }, b: { x: CX + pts2[k2 + 1].x, y: CY - pts2[k2 + 1].y } });
       }
     }
@@ -1369,7 +1373,7 @@
         }
         ctx.closePath();
         ctx.fillStyle = COL_BG; ctx.fill();
-        ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.side ? 0.25 : 0.31; ctx.stroke();
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = it.side ? 0.25 : 0.31; ctx.globalAlpha = 0.6; ctx.stroke(); ctx.globalAlpha = 1;
       } else if (it.kind === 'disc') {
         ctx.beginPath();
         ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2);
@@ -1394,13 +1398,13 @@
         ctx.globalAlpha = 1;
       } else if (it.kind === 'wire') {
         ctx.strokeStyle = COL_LINE; ctx.lineWidth = 3.5;   // 粗细增大 5 倍
-        ctx.globalAlpha = 0.125;   // 不透明度变为原来的 25%
+        ctx.globalAlpha = 0.0625;   // 不透明度再变为原来的 50%
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
       } else {
         ctx.strokeStyle = COL_LINE;
         ctx.lineWidth = it.lw || (it.kind === 'tick' ? 0.25 : (it.kind === 'tick-fine' ? 0.22 : 0.31));
-        ctx.globalAlpha = it.kind === 'tick' ? 0.65 : (it.kind === 'tick-fine' ? 0.72 : 0.9);
+        ctx.globalAlpha = it.kind === 'tick' ? 0.5 : (it.kind === 'tick-fine' ? 0.55 : 0.6);
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
       }
@@ -1418,7 +1422,7 @@
     ctx.setTransform(sc, 0, 0, sy, 0, 0);
     ctx.clearRect(0, 0, W, H);
     readColors();
-    drawOuterRing();   // 最外圈花边环（背景层，正对镜头、固定不动）
+    drawOuterRing(T);  // 最外圈花边环（背景层，花边沿自身平面缓慢自转）
     drawStars(T);      // 星空与星座（背景层，球笼内浮动）
     var items = [];
     items = items.concat(sphereWireframe(T));   // 镂空经纬线球（背景层）
