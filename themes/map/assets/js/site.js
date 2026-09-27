@@ -1049,7 +1049,7 @@
         if (!facing(mw2, N)) continue;
         var major = (th4 % 30 === 0);
         var a3 = pt(th4, Ri, zl);
-        var b3 = pt(th4, major ? Ro : Ri + (Ro - Ri) * 0.6, zl);   // 次级延伸约 60%
+        var b3 = pt(th4, major ? Ro : Ri + (Ro - Ri) * 0.4, zl);   // 次级更短：只延伸约 40%
         var fz = faceMin[key + ':' + th4];
         if (fz === undefined) fz = (a3.z + b3.z) / 2;
         items.push({ z: fz - 0.5, kind: major ? 'tick' : 'tick-fine', a: a3, b: b3 });
@@ -1299,46 +1299,37 @@
     var la = (st.lon + rotDeg) * Math.PI / 180, ph = st.lat * Math.PI / 180;
     var x = st.r * Math.cos(ph) * Math.cos(la), y = st.r * Math.sin(ph), z = st.r * Math.cos(ph) * Math.sin(la);
     var tp = tilts({ x: x, y: y, z: z });
-    return { x: CX + tp.x, y: CY - tp.y, z: tp.z };
+    var pr = proj(tp.x, tp.y, tp.z);   // 透视投影，与环/球线一致，参与正确 3D 遮挡
+    return { x: pr.x, y: pr.y, z: tp.z };
   }
-  function drawStars(t) {
+  // 星星与星座 → items（参与深度排序，实现 3D 动态遮挡）
+  function starsItems(t) {
+    var items = [];
     var rotDeg = t * 0.06 * 180 / Math.PI;
-    ctx.fillStyle = COL_LINE;
     for (var i = 0; i < stars.length; i++) {
       var st = stars[i];
       var rr = st.r * (1 + 0.03 * Math.sin(t * 0.5 + st.phase));
       var p = starProject({ lon: st.lon, lat: st.lat, r: rr }, rotDeg);
-      ctx.globalAlpha = st.bright * 0.7;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, st.size, 0, Math.PI * 2);
-      ctx.fill();
+      items.push({ z: p.z, kind: 'star', x: p.x, y: p.y, size: st.size, bright: st.bright });
     }
-    ctx.globalAlpha = 1;
     for (var c = 0; c < constellations.length; c++) {
       var cg = constellations[c];
       var cs = cg.stars;
-      var dLon = cg.driftLon * t;   // 星座缓慢漂移
+      var dLon = cg.driftLon * t;
       var dLat = cg.driftLat * t;
       var pps = [];
       for (var s = 0; s < cs.length; s++) {
         pps.push(starProject({ lon: cs[s].lon + dLon, lat: cs[s].lat + dLat, r: cs[s].r }, rotDeg));
       }
-      ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.3; ctx.globalAlpha = 0.4;
-      ctx.beginPath();
       for (var e = 0; e < cg.edges.length; e++) {
         var ea = pps[cg.edges[e][0]], eb = pps[cg.edges[e][1]];
-        ctx.moveTo(ea.x, ea.y);
-        ctx.lineTo(eb.x, eb.y);
+        items.push({ z: (ea.z + eb.z) / 2, kind: 'consline', a: { x: ea.x, y: ea.y }, b: { x: eb.x, y: eb.y } });
       }
-      ctx.stroke();
-      ctx.globalAlpha = 0.8; ctx.fillStyle = COL_LINE;
       for (var s2 = 0; s2 < pps.length; s2++) {
-        ctx.beginPath();
-        ctx.arc(pps[s2].x, pps[s2].y, 1.1, 0, Math.PI * 2);
-        ctx.fill();
+        items.push({ z: pps[s2].z, kind: 'consstar', x: pps[s2].x, y: pps[s2].y, size: 3.2 });
       }
     }
-    ctx.globalAlpha = 1;
+    return items;
   }
 
   // 数学符号浮动（生命周期：淡入 → 保持 → 淡出，之后重生）
@@ -1359,28 +1350,25 @@
     };
   }
   for (var si = 0; si < 12; si++) symbols.push(newSymbol(Math.random() * 8));
-  function drawSymbols(t) {
+  // 符号 → items（参与深度排序，实现 3D 动态遮挡）
+  function symbolsItems(t) {
+    var items = [];
     var rotDeg = t * 0.06 * 180 / Math.PI;
     for (var i = 0; i < symbols.length; i++) {
       var sm = symbols[i];
       var age = t - sm.born;
-      if (age <= 0) continue;   // 尚未出生，不显示（避免 born 前 alpha 计算异常导致闪烁）
+      if (age <= 0) continue;   // 尚未出生，不显示
       var total = sm.fadeIn + sm.hold + sm.fadeOut;
       if (age > total) { symbols[i] = newSymbol(t); continue; }
-      var life = age / total;   // 归一化生命周期 0~1
+      var life = age / total;
       var alpha;
-      if (life < 0.22) alpha = smEase(life / 0.22);           // 丝滑淡入
-      else if (life < 0.58) alpha = 1;                        // 满亮保持
-      else alpha = 1 - smEase((life - 0.58) / 0.42);          // 丝滑淡出
+      if (life < 0.22) alpha = smEase(life / 0.22);
+      else if (life < 0.58) alpha = 1;
+      else alpha = 1 - smEase((life - 0.58) / 0.42);
       var p = starProject(sm, rotDeg);
-      ctx.globalAlpha = alpha * 0.55;
-      ctx.fillStyle = COL_LINE;
-      ctx.font = sm.size + 'px "Georgia", serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(sm.ch, p.x, p.y);
+      items.push({ z: p.z, kind: 'symbol', x: p.x, y: p.y, ch: sm.ch, size: sm.size, alpha: alpha });
     }
-    ctx.globalAlpha = 1;
+    return items;
   }
 
   // 镂空经纬线球（3D、缓慢自转、只显示经纬线）：12 条经线 + 10 条纬线
@@ -1461,9 +1449,41 @@
         ctx.globalAlpha = 0.0625;   // 不透明度再变为原来的 50%
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
+      } else if (it.kind === 'star') {
+        ctx.fillStyle = COL_LINE;
+        ctx.globalAlpha = it.bright * 0.7;
+        ctx.beginPath(); ctx.arc(it.x, it.y, it.size, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1;
+      } else if (it.kind === 'consline') {
+        ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.3; ctx.globalAlpha = 0.4;
+        ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
+        ctx.globalAlpha = 1;
+      } else if (it.kind === 'consstar') {
+        var R = it.size, k = R * 0.16;   // 四角星（星座星星，更显眼）
+        ctx.fillStyle = COL_LINE; ctx.globalAlpha = 0.9;
+        ctx.beginPath();
+        ctx.moveTo(it.x, it.y - R);
+        ctx.lineTo(it.x + k, it.y - k);
+        ctx.lineTo(it.x + R, it.y);
+        ctx.lineTo(it.x + k, it.y + k);
+        ctx.lineTo(it.x, it.y + R);
+        ctx.lineTo(it.x - k, it.y + k);
+        ctx.lineTo(it.x - R, it.y);
+        ctx.lineTo(it.x - k, it.y - k);
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      } else if (it.kind === 'symbol') {
+        ctx.globalAlpha = it.alpha * 0.55;
+        ctx.fillStyle = COL_LINE;
+        ctx.font = it.size + 'px "Georgia", serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(it.ch, it.x, it.y);
+        ctx.globalAlpha = 1;
       } else {
         ctx.strokeStyle = COL_LINE;
-        ctx.lineWidth = it.lw || (it.kind === 'tick' ? 0.25 : (it.kind === 'tick-fine' ? 0.22 : 0.31));
+        ctx.lineWidth = it.lw || (it.kind === 'tick' ? 0.28 : (it.kind === 'tick-fine' ? 0.15 : 0.31));
         ctx.globalAlpha = it.kind === 'tick' ? 0.5 : (it.kind === 'tick-fine' ? 0.55 : 0.6);
         ctx.beginPath(); ctx.moveTo(it.a.x, it.a.y); ctx.lineTo(it.b.x, it.b.y); ctx.stroke();
         ctx.globalAlpha = 1;
@@ -1483,10 +1503,10 @@
     ctx.clearRect(0, 0, W, H);
     readColors();
     drawOuterRing(T);  // 最外圈花边环（背景层，花边沿自身平面缓慢自转）
-    drawStars(T);      // 星空与星座（背景层，球笼内浮动）
-    drawSymbols(T);    // 数学符号（背景层，淡入-保持-淡出浮动）
     var items = [];
-    items = items.concat(sphereWireframe(T));   // 镂空经纬线球（背景层）
+    items = items.concat(starsItems(T));      // 星星与星座（参与 3D 遮挡排序）
+    items = items.concat(symbolsItems(T));    // 数学符号（参与 3D 遮挡排序）
+    items = items.concat(sphereWireframe(T)); // 镂空经纬线球
     rings.forEach(function (rg) { items = items.concat(ringItems(rg, rg.self, rg.prec)); });
     items = items.concat(solarItems(T));
     items.sort(function (p, q) { return q.z - p.z; });
