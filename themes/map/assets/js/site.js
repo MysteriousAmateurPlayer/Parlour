@@ -1555,13 +1555,13 @@
   var R_MOON_ORBIT = R / 2;         // 月相盘公转半径 198
   var R_MOON = 120;                 // 月相盘内月亮圆半径
 
-  var COL_BG = '#0b1a2a', COL_LINE = '#c9a227', COL_GOLD = '#e3c25e', COL_BLUE = '#274a6d';
+  var COL_BG = '#0e1b2e', COL_LINE = '#a08a5e', COL_GOLD = '#c9a86a', COL_BLUE = '#2a4a6e';
   function readColors() {
     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    COL_BG = dark ? '#0b1a2a' : '#eef3f9';    // 表盘底（蓝）
-    COL_LINE = dark ? '#c9a227' : '#1a3a5c';  // 线/阿拉伯数字
-    COL_GOLD = dark ? '#e3c25e' : '#a8842a';  // 金（花边/罗马/指针/月相亮面）
-    COL_BLUE = dark ? '#2a5178' : '#6f94c4';  // 蓝（表圈/月相暗面）
+    COL_BG = dark ? '#0e1b2e' : '#f4efe4';    // 盘面底（深蓝 / 米白，古典）
+    COL_GOLD = dark ? '#c9a86a' : '#8a6d3b';  // 古金（主色：线条/数字/装饰/指针）
+    COL_LINE = dark ? '#a08a5e' : '#6b5b3e';  // 墨金（次要线）
+    COL_BLUE = dark ? '#2a4a6e' : '#1f3a5f';  // 深蓝（点缀：表圈内圈/黄道/月相暗面）
   }
 
   var ROMAN = ['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
@@ -1591,44 +1591,39 @@
 
   function drawFiligree(t) {
     var Ri = R_RIM_IN, Ro = R;
+    // 环带底
     ctx.beginPath();
     ctx.arc(CX, CY, Ro, 0, Math.PI * 2);
     ctx.arc(CX, CY, Ri, 0, Math.PI * 2, true);
     ctx.fillStyle = COL_BG; ctx.fill();
-    var edges = [Ro, Ro - 8, Ri + 8, Ri];
+    // 双层沟边：外圆、内圆金色粗线；中间两条细沟线
+    var edges = [Ro, Ro - 7, Ri + 7, Ri];
     for (var e = 0; e < edges.length; e++) {
       ctx.beginPath();
       ctx.arc(CX, CY, edges[e], 0, Math.PI * 2);
       ctx.strokeStyle = COL_GOLD;
-      ctx.lineWidth = (e === 0 || e === 3) ? 0.55 : 0.34;
+      ctx.lineWidth = (e === 0 || e === 3) ? 0.9 : 0.4;
       ctx.stroke();
     }
+    // 珠饰：环带中线一圈圆点（古典念珠），缓慢自转
     var Rm = (Ri + Ro) / 2;
-    var rot = t * 0.05;
-    ctx.globalAlpha = 0.8;
-    ctx.lineWidth = 0.34;
-    for (var w = 0; w < 3; w++) {
-      var baseR = Rm + (w - 1) * 8;
-      var phase = w * 2 * Math.PI / 3;
+    var rot = t * 0.04;
+    var N = 90;
+    ctx.fillStyle = COL_GOLD;
+    for (var i = 0; i < N; i++) {
+      var a = i * 2 * Math.PI / N + rot;
       ctx.beginPath();
-      for (var i = 0; i <= 360; i++) {
-        var a = i * Math.PI / 180;
-        var wave = Math.sin((a + rot) * 24 + phase) * 4.8;
-        var r = baseR + wave;
-        if (i === 0) ctx.moveTo(CX + Math.cos(a) * r, CY + Math.sin(a) * r);
-        else ctx.lineTo(CX + Math.cos(a) * r, CY + Math.sin(a) * r);
-      }
-      ctx.stroke();
+      ctx.arc(CX + Math.cos(a) * Rm, CY + Math.sin(a) * Rm, 1.6, 0, Math.PI * 2);
+      ctx.fill();
     }
-    ctx.globalAlpha = 1;
   }
 
   function drawBezels() {
     var rings = [
-      [R_ROMAN + 14, COL_GOLD, 0.5], [R_ROMAN - 14, COL_GOLD, 0.28],
-      [R_ARAB + 12, COL_LINE, 0.4], [R_ARAB - 12, COL_LINE, 0.24],
-      [R_ZODIAC + 10, COL_BLUE, 0.4], [R_ZODIAC - 10, COL_BLUE, 0.24],
-      [R_DIAL + 6, COL_LINE, 0.5], [R_DIAL, COL_LINE, 0.3]
+      [R_ROMAN + 14, COL_GOLD, 0.55], [R_ROMAN - 14, COL_GOLD, 0.3],
+      [R_ARAB + 12, COL_GOLD, 0.45], [R_ARAB - 12, COL_GOLD, 0.25],
+      [R_ZODIAC + 10, COL_GOLD, 0.45], [R_ZODIAC - 10, COL_GOLD, 0.25],
+      [R_DIAL + 6, COL_GOLD, 0.55], [R_DIAL, COL_GOLD, 0.3]
     ];
     for (var i = 0; i < rings.length; i++) {
       ctx.beginPath();
@@ -1646,9 +1641,11 @@
       ctx.fillStyle = COL_GOLD;
       ctx.font = '600 30px Georgia, "Times New Roman", serif';
       ctx.fillText(ROMAN[i], CX + Math.cos(a) * R_ROMAN, CY + Math.sin(a) * R_ROMAN);
-      ctx.fillStyle = COL_LINE;
-      ctx.font = '22px Georgia, serif';
+      ctx.fillStyle = COL_GOLD;
+      ctx.globalAlpha = 0.82;
+      ctx.font = '20px Georgia, serif';
       ctx.fillText(ARAB[i], CX + Math.cos(a) * R_ARAB, CY + Math.sin(a) * R_ARAB);
+      ctx.globalAlpha = 1;
     }
   }
 
@@ -1673,12 +1670,12 @@
       var a = sd.a + sidereal;
       ctx.beginPath();
       ctx.arc(CX + Math.cos(a) * sd.r, CY + Math.sin(a) * sd.r, sd.s, 0, Math.PI * 2);
-      ctx.fillStyle = COL_LINE;
+      ctx.fillStyle = COL_GOLD;
       ctx.globalAlpha = 0.7;
       ctx.fill();
       ctx.globalAlpha = 1;
     }
-    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.4; ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = COL_GOLD; ctx.lineWidth = 0.4; ctx.globalAlpha = 0.5;
     for (var c = 0; c < consLines.length; c++) {
       ctx.beginPath();
       for (var p = 0; p < consLines[c].length; p++) {
@@ -1720,17 +1717,30 @@
   }
 
   function drawHands(h, m, s) {
+    ctx.lineCap = 'round';
     var aH = ((h % 12) + m / 60 + s / 3600) / 12 * 2 * Math.PI - Math.PI / 2;
-    ctx.strokeStyle = COL_GOLD; ctx.lineWidth = 5; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(CX, CY); ctx.lineTo(CX + Math.cos(aH) * 190, CY + Math.sin(aH) * 190); ctx.stroke();
+    ctx.strokeStyle = COL_GOLD; ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(CX - Math.cos(aH) * 26, CY - Math.sin(aH) * 26);   // 尾部配重
+    ctx.lineTo(CX + Math.cos(aH) * 190, CY + Math.sin(aH) * 190);
+    ctx.stroke();
     var aM = (m + s / 60) / 60 * 2 * Math.PI - Math.PI / 2;
     ctx.lineWidth = 3.2;
-    ctx.beginPath(); ctx.moveTo(CX, CY); ctx.lineTo(CX + Math.cos(aM) * 285, CY + Math.sin(aM) * 285); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(CX - Math.cos(aM) * 34, CY - Math.sin(aM) * 34);
+    ctx.lineTo(CX + Math.cos(aM) * 285, CY + Math.sin(aM) * 285);
+    ctx.stroke();
     var aS = s / 60 * 2 * Math.PI - Math.PI / 2;
-    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.moveTo(CX, CY); ctx.lineTo(CX + Math.cos(aS) * 315, CY + Math.sin(aS) * 315); ctx.stroke();
-    ctx.beginPath(); ctx.arc(CX, CY, 6, 0, Math.PI * 2);
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(CX - Math.cos(aS) * 40, CY - Math.sin(aS) * 40);
+    ctx.lineTo(CX + Math.cos(aS) * 315, CY + Math.sin(aS) * 315);
+    ctx.stroke();
+    // 中心轴：外金圈 + 内底点
+    ctx.beginPath(); ctx.arc(CX, CY, 7, 0, Math.PI * 2);
     ctx.fillStyle = COL_GOLD; ctx.fill();
+    ctx.beginPath(); ctx.arc(CX, CY, 3, 0, Math.PI * 2);
+    ctx.fillStyle = COL_BG; ctx.fill();
   }
 
   function render(t) {
