@@ -2,7 +2,7 @@
 {{- $meta := partial "section-meta.html" .Section -}}
 {{- $paginator := .Paginate .RegularPages.ByDate.Reverse -}}
 
-<header class="page-head" style="--accent: {{ $meta.accent }}">
+<header class="page-head{{ if eq .Section "blogs" }} page-head--clock{{ end }}" style="--accent: {{ $meta.accent }}">
   {{- if eq .Section "blogs" }}{{ partial "classical-clock.html" . }}{{ else }}{{ partial "galaxy.html" . }}{{ end }}
   <div class="wrap">
     {{- with $meta.en }}<p class="page-head__kicker">{{ . }}</p>{{ end }}
