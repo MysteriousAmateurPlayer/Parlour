@@ -1394,7 +1394,7 @@
       }
     }
     // 10 条纬线
-    var lats = [-72, -56, -40, -24, -8, 8, 24, 40, 56, 72];
+    var lats = [-70, -50, -30, -10, 10, 30, 50, 70];   // 8 条纬线，间隔 20°，均匀分布
     for (var li = 0; li < lats.length; li++) {
       var ph2 = lats[li] * Math.PI / 180;
       var rho = R * Math.cos(ph2);
