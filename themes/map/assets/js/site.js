@@ -1532,3 +1532,248 @@
   window.addEventListener('resize', render, { passive: true });
   new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 })();
+
+/* ==========================================================================
+   天文表盘时钟（随性笔记页）：canvas 软件渲染的蓝金配色天文钟。
+   读出真实时间（时/分/秒针）+ 天象：太阳黄经驱动黄道十二宫环、朔望月驱动月相盘。
+   结构（由外到内）：天球仪同款固定花边 → 双层表圈（罗马+阿拉伯数字）→
+   黄道十二宫 → 可转动星图 → 绕表心公转的月相盘 → 时/分/秒针。
+   ========================================================================== */
+(function () {
+  var cv = document.querySelector('.clock-canvas');
+  if (!cv || !cv.getContext) return;
+  var ctx = cv.getContext('2d');
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+  var W = 1000, H = 1000, CX = 500, CY = 500;
+  var R = 495;                      // 表盘半径 = 天球仪最外圈
+  var R_RIM_IN = 435;               // 花边内径
+  var R_ROMAN = 420;                // 罗马数字环半径
+  var R_ARAB = 392;                 // 阿拉伯数字环半径
+  var R_ZODIAC = 358;               // 黄道十二宫环半径
+  var R_DIAL = 340;                 // 表盘（星图）半径
+  var R_MOON_DISC = R / 2;          // 月相盘半径 247.5
+  var R_MOON_ORBIT = R / 2;         // 月相盘公转半径 247.5
+  var R_MOON = 150;                 // 月相盘内月亮圆半径
+
+  var COL_BG = '#0b1a2a', COL_LINE = '#c9a227', COL_GOLD = '#e3c25e', COL_BLUE = '#274a6d';
+  function readColors() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    COL_BG = dark ? '#0b1a2a' : '#eef3f9';    // 表盘底（蓝）
+    COL_LINE = dark ? '#c9a227' : '#1a3a5c';  // 线/阿拉伯数字
+    COL_GOLD = dark ? '#e3c25e' : '#a8842a';  // 金（花边/罗马/指针/月相亮面）
+    COL_BLUE = dark ? '#2a5178' : '#6f94c4';  // 蓝（表圈/月相暗面）
+  }
+
+  var ROMAN = ['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+  var ARAB = ['12','1','2','3','4','5','6','7','8','9','10','11'];
+  var ZODIAC = ['\u2648','\u2649','\u264A','\u264B','\u264C','\u264D','\u264E','\u264F','\u2650','\u2651','\u2652','\u2653'];
+
+  // 固定星图：星点 + 几组星座连线（随恒星时整体旋转）
+  var starDots = [], consLines = [];
+  (function initDial() {
+    for (var i = 0; i < 90; i++) {
+      starDots.push({ a: Math.random() * 2 * Math.PI, r: Math.sqrt(Math.random()) * R_DIAL, s: 0.4 + Math.random() * 1.1 });
+    }
+    var cons = [
+      [[0.4, 0.35], [0.75, 0.45], [1.15, 0.6], [1.6, 0.75], [2.05, 0.85]],
+      [[1.2, 1.6], [1.7, 1.45], [2.2, 1.3], [2.7, 1.15]],
+      [[3.2, 3.4], [3.7, 3.6], [4.2, 3.9]],
+      [[4.6, 1.2], [5.0, 1.0], [5.5, 0.85]]
+    ];
+    for (var c = 0; c < cons.length; c++) {
+      var seg = [];
+      for (var p = 0; p < cons[c].length; p++) seg.push({ a: cons[c][p][0], r: cons[c][p][1] * 60 });
+      consLines.push(seg);
+    }
+  })();
+
+  function daysInYear(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 ? 366 : 365; }
+
+  function drawFiligree(t) {
+    var Ri = R_RIM_IN, Ro = R;
+    ctx.beginPath();
+    ctx.arc(CX, CY, Ro, 0, Math.PI * 2);
+    ctx.arc(CX, CY, Ri, 0, Math.PI * 2, true);
+    ctx.fillStyle = COL_BG; ctx.fill();
+    var edges = [Ro, Ro - 10, Ri + 10, Ri];
+    for (var e = 0; e < edges.length; e++) {
+      ctx.beginPath();
+      ctx.arc(CX, CY, edges[e], 0, Math.PI * 2);
+      ctx.strokeStyle = COL_GOLD;
+      ctx.lineWidth = (e === 0 || e === 3) ? 0.55 : 0.34;
+      ctx.stroke();
+    }
+    var Rm = (Ri + Ro) / 2;
+    var rot = t * 0.05;
+    ctx.globalAlpha = 0.8;
+    ctx.lineWidth = 0.34;
+    for (var w = 0; w < 3; w++) {
+      var baseR = Rm + (w - 1) * 10;
+      var phase = w * 2 * Math.PI / 3;
+      ctx.beginPath();
+      for (var i = 0; i <= 360; i++) {
+        var a = i * Math.PI / 180;
+        var wave = Math.sin((a + rot) * 24 + phase) * 6;
+        var r = baseR + wave;
+        if (i === 0) ctx.moveTo(CX + Math.cos(a) * r, CY + Math.sin(a) * r);
+        else ctx.lineTo(CX + Math.cos(a) * r, CY + Math.sin(a) * r);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawBezels() {
+    var rings = [
+      [R_ROMAN + 14, COL_GOLD, 0.5], [R_ROMAN - 14, COL_GOLD, 0.28],
+      [R_ARAB + 12, COL_LINE, 0.4], [R_ARAB - 12, COL_LINE, 0.24],
+      [R_ZODIAC + 10, COL_BLUE, 0.4], [R_ZODIAC - 10, COL_BLUE, 0.24],
+      [R_DIAL + 6, COL_LINE, 0.5], [R_DIAL, COL_LINE, 0.3]
+    ];
+    for (var i = 0; i < rings.length; i++) {
+      ctx.beginPath();
+      ctx.arc(CX, CY, rings[i][0], 0, Math.PI * 2);
+      ctx.strokeStyle = rings[i][1];
+      ctx.lineWidth = rings[i][2];
+      ctx.stroke();
+    }
+  }
+
+  function drawNumerals() {
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (var i = 0; i < 12; i++) {
+      var a = -Math.PI / 2 + i * Math.PI / 6;
+      ctx.fillStyle = COL_GOLD;
+      ctx.font = '600 30px Georgia, "Times New Roman", serif';
+      ctx.fillText(ROMAN[i], CX + Math.cos(a) * R_ROMAN, CY + Math.sin(a) * R_ROMAN);
+      ctx.fillStyle = COL_LINE;
+      ctx.font = '22px Georgia, serif';
+      ctx.fillText(ARAB[i], CX + Math.cos(a) * R_ARAB, CY + Math.sin(a) * R_ARAB);
+    }
+  }
+
+  function drawZodiac(sunLon) {
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (var i = 0; i < 12; i++) {
+      var a = sunLon * Math.PI / 180 + i * Math.PI / 6 - Math.PI / 2;
+      ctx.fillStyle = COL_GOLD;
+      ctx.font = '20px Georgia, serif';
+      ctx.fillText(ZODIAC[i], CX + Math.cos(a) * R_ZODIAC, CY + Math.sin(a) * R_ZODIAC);
+    }
+  }
+
+  function drawDial(sidereal) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(CX, CY, R_DIAL, 0, Math.PI * 2);
+    ctx.fillStyle = COL_BG; ctx.fill();
+    ctx.clip();
+    for (var i = 0; i < starDots.length; i++) {
+      var sd = starDots[i];
+      var a = sd.a + sidereal;
+      ctx.beginPath();
+      ctx.arc(CX + Math.cos(a) * sd.r, CY + Math.sin(a) * sd.r, sd.s, 0, Math.PI * 2);
+      ctx.fillStyle = COL_LINE;
+      ctx.globalAlpha = 0.7;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 0.4; ctx.globalAlpha = 0.5;
+    for (var c = 0; c < consLines.length; c++) {
+      ctx.beginPath();
+      for (var p = 0; p < consLines[c].length; p++) {
+        var a = consLines[c][p].a + sidereal;
+        var x = CX + Math.cos(a) * consLines[c][p].r, y = CY + Math.sin(a) * consLines[c][p].r;
+        if (p === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    // 黄道圈（椭圆，随恒星时）
+    ctx.save();
+    ctx.translate(CX, CY);
+    ctx.rotate(sidereal);
+    ctx.strokeStyle = COL_BLUE; ctx.lineWidth = 0.4; ctx.globalAlpha = 0.6;
+    ctx.beginPath(); ctx.ellipse(0, 0, R_DIAL * 0.78, R_DIAL * 0.3, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawMoonDisc(mx, my, discR, moonR, phase) {
+    ctx.beginPath();
+    ctx.arc(mx, my, discR, 0, Math.PI * 2);
+    ctx.fillStyle = COL_BG; ctx.fill();
+    ctx.strokeStyle = COL_GOLD; ctx.lineWidth = 0.5; ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(mx, my, moonR, 0, Math.PI * 2);
+    ctx.fillStyle = COL_BLUE; ctx.fill();
+    ctx.strokeStyle = COL_GOLD; ctx.lineWidth = 0.4; ctx.stroke();
+    var waxing = phase < 0.5;
+    var k = Math.abs(Math.cos(phase * 2 * Math.PI));
+    ctx.beginPath();
+    ctx.arc(mx, my, moonR, -Math.PI / 2, Math.PI / 2, waxing ? false : true);
+    ctx.arc(mx, my, moonR * k, Math.PI / 2, -Math.PI / 2, waxing ? true : false);
+    ctx.closePath();
+    ctx.fillStyle = COL_GOLD;
+    ctx.fill();
+  }
+
+  function drawHands(h, m, s) {
+    var aH = ((h % 12) + m / 60 + s / 3600) / 12 * 2 * Math.PI - Math.PI / 2;
+    ctx.strokeStyle = COL_GOLD; ctx.lineWidth = 5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(CX, CY); ctx.lineTo(CX + Math.cos(aH) * 190, CY + Math.sin(aH) * 190); ctx.stroke();
+    var aM = (m + s / 60) / 60 * 2 * Math.PI - Math.PI / 2;
+    ctx.lineWidth = 3.2;
+    ctx.beginPath(); ctx.moveTo(CX, CY); ctx.lineTo(CX + Math.cos(aM) * 285, CY + Math.sin(aM) * 285); ctx.stroke();
+    var aS = s / 60 * 2 * Math.PI - Math.PI / 2;
+    ctx.strokeStyle = COL_LINE; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(CX, CY); ctx.lineTo(CX + Math.cos(aS) * 315, CY + Math.sin(aS) * 315); ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, 6, 0, Math.PI * 2);
+    ctx.fillStyle = COL_GOLD; ctx.fill();
+  }
+
+  function render(t) {
+    var rect = cv.getBoundingClientRect();
+    if (!rect.width) return;
+    cv.width = Math.round(rect.width * dpr);
+    cv.height = Math.round(rect.height * dpr);
+    var sc = dpr * rect.width / W;
+    var sy = dpr * rect.height / H;
+    ctx.setTransform(sc, 0, 0, sy, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    readColors();
+
+    var d = new Date();
+    var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds() + d.getMilliseconds() / 1000;
+    var start = new Date(d.getFullYear(), 0, 0);
+    var doy = (d - start) / 86400000;
+    var sunLon = (((doy - 80) / daysInYear(d.getFullYear())) * 360 + 360) % 360;
+    var age = ((d.getTime() - Date.UTC(2000, 0, 6, 18, 14)) / 86400000) % 29.53059;
+    var phase = age / 29.53059;
+    var utcMs = d.getTime() + d.getTimezoneOffset() * 60000;
+    var sidereal = (utcMs % 86164091) / 86164091 * 2 * Math.PI;
+
+    drawFiligree(t);
+    drawBezels();
+    drawNumerals();
+    drawZodiac(sunLon);
+    drawDial(sidereal);
+    var ma = phase * 2 * Math.PI - Math.PI / 2;
+    drawMoonDisc(CX + Math.cos(ma) * R_MOON_ORBIT, CY + Math.sin(ma) * R_MOON_ORBIT, R_MOON_DISC, R_MOON, phase);
+    drawHands(h, m, s);
+  }
+
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var T = 0;
+  function loop() {
+    T += 0.016;
+    render(T);
+    requestAnimationFrame(loop);
+  }
+  render(0);
+  if (reduce) return;
+  requestAnimationFrame(loop);
+  window.addEventListener('resize', function () { render(T); }, { passive: true });
+  new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();

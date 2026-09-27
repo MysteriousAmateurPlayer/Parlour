@@ -2515,18 +2515,16 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.94;
+  opacity: 0.96;
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.5) 12%, #000 30%);
-  mask-image: linear-gradient(96deg, transparent 0%, rgba(0,0,0,.5) 12%, #000 30%);
 }
-.orloj__svg {
+.clock-canvas {
   position: absolute;
-  right: -4%;
+  left: 50%;
   top: 50%;
-  width: auto;
-  height: 148%;              /* 比页头高 → 只露约 2/3 */
-  transform: translateY(-50%);
+  width: 1500px;
+  height: 1500px;
+  transform: translate(-50%, -50%);
 }
 /* 盘面与环带：面＝背景色，线＝文字深色 */
 .orloj__plate { fill: var(--bg); stroke: var(--ink); stroke-width: 1.2; opacity: 0.96; }
