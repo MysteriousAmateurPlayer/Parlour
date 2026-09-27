@@ -1545,15 +1545,15 @@
   var ctx = cv.getContext('2d');
   var dpr = Math.min(2, window.devicePixelRatio || 1);
   var W = 1000, H = 1000, CX = 500, CY = 500;
-  var R = 396;                      // 表盘半径（天球仪最外圈 495 ×0.8）
-  var R_RIM_IN = 348;               // 花边内径
-  var R_ROMAN = 336;                // 罗马数字环半径
-  var R_ARAB = 314;                 // 阿拉伯数字环半径
-  var R_ZODIAC = 286;               // 黄道十二宫环半径
-  var R_DIAL = 272;                 // 表盘（星图）半径
-  var R_MOON_DISC = R / 2;          // 月相盘半径 198
-  var R_MOON_ORBIT = R / 2;         // 月相盘公转半径 198
-  var R_MOON = 120;                 // 月相盘内月亮圆半径
+  var R = 495;                      // 表盘半径 = 天球仪最外圈（同款花边外径）
+  var R_RIM_IN = 435;               // 花边内径（与天球仪一致）
+  var R_ROMAN = 420;                // 罗马数字环半径
+  var R_ARAB = 392;                 // 阿拉伯数字环半径
+  var R_ZODIAC = 358;               // 黄道十二宫环半径
+  var R_DIAL = 340;                 // 表盘（星图）半径
+  var R_MOON_DISC = R / 2;          // 月相盘半径 = 1/2 R
+  var R_MOON_ORBIT = R / 2;         // 月相盘公转半径 = 1/2 R
+  var R_MOON = 150;                 // 月相盘内月亮圆半径
 
   var COL_BG = '#0e1b2e', COL_LINE = '#a08a5e', COL_GOLD = '#c9a86a', COL_BLUE = '#2a4a6e';
   function readColors() {
@@ -1590,32 +1590,39 @@
   function daysInYear(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 ? 366 : 365; }
 
   function drawFiligree(t) {
-    var Ri = R_RIM_IN, Ro = R;
-    // 环带底
+    var Ri = R_RIM_IN, Ro = R;   // 435 / 495：与天球仪最外圈完全同款
     ctx.beginPath();
     ctx.arc(CX, CY, Ro, 0, Math.PI * 2);
     ctx.arc(CX, CY, Ri, 0, Math.PI * 2, true);
     ctx.fillStyle = COL_BG; ctx.fill();
-    // 双层沟边：外圆、内圆金色粗线；中间两条细沟线
-    var edges = [Ro, Ro - 7, Ri + 7, Ri];
+    // 双层沟边：外圆、外沟内线、内沟内线、内圆（4 条同心圆）
+    var edges = [Ro, Ro - 10, Ri + 10, Ri];
     for (var e = 0; e < edges.length; e++) {
       ctx.beginPath();
       ctx.arc(CX, CY, edges[e], 0, Math.PI * 2);
       ctx.strokeStyle = COL_GOLD;
-      ctx.lineWidth = (e === 0 || e === 3) ? 0.9 : 0.4;
+      ctx.lineWidth = (e === 0 || e === 3) ? 0.49 : 0.3;
       ctx.stroke();
     }
-    // 珠饰：环带中线一圈圆点（古典念珠），缓慢自转
+    // 内部流线花边：三条交错波浪线（与天球仪同款），沿自身平面缓慢自转
     var Rm = (Ri + Ro) / 2;
-    var rot = t * 0.04;
-    var N = 90;
-    ctx.fillStyle = COL_GOLD;
-    for (var i = 0; i < N; i++) {
-      var a = i * 2 * Math.PI / N + rot;
+    var rot = t * 0.05;
+    ctx.globalAlpha = 0.75;
+    ctx.lineWidth = 0.3;
+    for (var w = 0; w < 3; w++) {
+      var baseR = Rm + (w - 1) * 10;
+      var phase = w * 2 * Math.PI / 3;
       ctx.beginPath();
-      ctx.arc(CX + Math.cos(a) * Rm, CY + Math.sin(a) * Rm, 1.6, 0, Math.PI * 2);
-      ctx.fill();
+      for (var i = 0; i <= 360; i++) {
+        var a = i * Math.PI / 180;
+        var wave = Math.sin((a + rot) * 24 + phase) * 6;
+        var r = baseR + wave;
+        if (i === 0) ctx.moveTo(CX + Math.cos(a) * r, CY + Math.sin(a) * r);
+        else ctx.lineTo(CX + Math.cos(a) * r, CY + Math.sin(a) * r);
+      }
+      ctx.stroke();
     }
+    ctx.globalAlpha = 1;
   }
 
   function drawBezels() {
@@ -1748,10 +1755,10 @@
     if (!rect.width) return;
     cv.width = Math.round(rect.width * dpr);
     cv.height = Math.round(rect.height * dpr);
-    var sc = dpr * rect.width / W;
-    var sy = dpr * rect.height / H;
-    ctx.setTransform(sc, 0, 0, sy, 0, 0);
-    ctx.clearRect(0, 0, W, H);
+    var s = dpr * Math.min(rect.width, rect.height) * 0.95 / W;   // 等比缩放，表盘完整可见且留边
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.setTransform(s, 0, 0, s, (cv.width - W * s) / 2, (cv.height - H * s) / 2);
     readColors();
 
     var d = new Date();
