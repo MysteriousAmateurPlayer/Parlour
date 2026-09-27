@@ -1534,257 +1534,924 @@
 })();
 
 /* ==========================================================================
-   天文表盘时钟（随性笔记页）：canvas 软件渲染的蓝金配色天文钟。
-   读出真实时间（时/分/秒针）+ 天象：太阳黄经驱动黄道十二宫环、朔望月驱动月相盘。
-   结构（由外到内）：天球仪同款固定花边 → 双层表圈（罗马+阿拉伯数字）→
-   黄道十二宫 → 可转动星图 → 绕表心公转的月相盘 → 时/分/秒针。
+   天文表盘时钟（随性笔记页）：canvas 软件渲染的蓝金豪华天文钟。
+   读出真实时间（时/分/秒针）+ 天象：太阳黄经驱动日躔位置，朔望月驱动月相。
+   结构（由外到内）：
+     ① 天球仪同款固定花边（435–495）
+     ② 双层表圈：罗马数字环 + 阿拉伯数字环
+     ③ 可转动星图表盘：玑镂纹（guilloché）、恒星、星座、黄道圈、日躔
+     ④ 绕表心公转的月相盘（半径 1/2R、圆心轨道半径 1/2R）：
+        蓝珐琅盘面 + 十二宫浮雕徽章 + 真实月相
+     ⑤ 时/分/秒针 + 中心轴
+   质感：金属渐变、双色浮雕描边、玑镂纹、噪点做旧、投影、珐琅。
    ========================================================================== */
 (function () {
   var cv = document.querySelector('.clock-canvas');
   if (!cv || !cv.getContext) return;
   var ctx = cv.getContext('2d');
+  var TAU = Math.PI * 2;
   var dpr = Math.min(2, window.devicePixelRatio || 1);
   var W = 1000, H = 1000, CX = 500, CY = 500;
-  var R = 495;                      // 表盘半径 = 天球仪最外圈（同款花边外径）
-  var R_RIM_IN = 435;               // 花边内径（与天球仪一致）
-  var R_ROMAN = 420;                // 罗马数字环半径
-  var R_ARAB = 392;                 // 阿拉伯数字环半径
-  var R_ZODIAC = 358;               // 黄道十二宫环半径
-  var R_DIAL = 340;                 // 表盘（星图）半径
-  var R_MOON_DISC = R / 2;          // 月相盘半径 = 1/2 R
-  var R_MOON_ORBIT = R / 2;         // 月相盘公转半径 = 1/2 R
-  var R_MOON = 150;                 // 月相盘内月亮圆半径
 
-  var COL_BG = '#0e1b2e', COL_LINE = '#a08a5e', COL_GOLD = '#c9a86a', COL_BLUE = '#2a4a6e';
+  var R = 495;                 // 花边外径 = 天球仪最外圈
+  var R_RIM_IN = 435;          // 花边内径（与天球仪一致）
+  var R_ROMAN = 410;           // 罗马数字环
+  var R_ARAB = 378;            // 阿拉伯数字环
+  var R_DIAL = 352;            // 星图表盘
+  var R_ECL = 286;             // 黄道圈
+  var R_MOON_DISC = R / 2;     // 月相盘半径 = 1/2 R
+  var R_MOON_ORBIT = R / 2;    // 月相盘公转半径 = 1/2 R
+  var R_ZOD_DISC = 190;        // 十二宫环（位于月相盘上）
+  var R_MOON = 106;            // 月亮圆半径
+  var SPIN_PERIOD = 240;       // 月相盘自转周期（秒）
+
+  var FONT = '"Palatino Linotype","Book Antiqua",Palatino,Constantia,Cambria,Georgia,"Times New Roman",serif';
+
+  var COL = null;
   function readColors() {
-    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    COL_BG = dark ? '#0e1b2e' : '#f4efe4';    // 盘面底（深蓝 / 米白，古典）
-    COL_GOLD = dark ? '#c9a86a' : '#8a6d3b';  // 古金（主色：线条/数字/装饰/指针）
-    COL_LINE = dark ? '#a08a5e' : '#6b5b3e';  // 墨金（次要线）
-    COL_BLUE = dark ? '#2a4a6e' : '#1f3a5f';  // 深蓝（点缀：表圈内圈/黄道/月相暗面）
+    if (document.documentElement.getAttribute('data-theme') === 'dark') {
+      COL = {
+        field: '#0a1423', plate: '#162a47', plateLo: '#060d18',
+        gold: '#c9a86a', goldHi: '#f6e9c2', goldLo: '#7d6430',
+        tick: '#b99a58',
+        numeral: '#efdcaa', numShadow: 'rgba(0,0,0,0.75)',
+        edgeDark: 'rgba(0,0,0,0.62)',
+        blue: '#2c5286', blueD: '#0c1c33',
+        discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138',
+        shadow: 'rgba(0,0,0,0.55)', hilite: 'rgba(255,246,214,0.45)',
+        vignette: 'rgba(0,0,0,0.55)', sheen: 'rgba(190,215,255,0.14)',
+        filigree: 'rgba(200,168,106,0.10)',
+        moon: '#f2e7c8', moonHi: '#fffaea', moonLo: '#d6c398',
+        mare: 'rgba(146,128,94,0.28)', mareSoft: 'rgba(146,128,94,0.12)',
+        crater: 'rgba(96,86,58,0.22)', craterHi: 'rgba(255,248,224,0.30)'
+      };
+    } else {
+      COL = {
+        field: '#dfd3b4', plate: '#faf4e2', plateLo: '#cdb98d',
+        gold: '#8f6f2f', goldHi: '#e8d29a', goldLo: '#54411a',
+        tick: '#8a6d3b',
+        numeral: '#5b4519', numShadow: 'rgba(255,253,246,0.95)',
+        edgeDark: 'rgba(120,96,52,0.42)',
+        blue: '#1f3a63', blueD: '#0f2138',
+        discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138',
+        shadow: 'rgba(70,52,24,0.28)', hilite: 'rgba(255,252,240,0.9)',
+        vignette: 'rgba(110,86,42,0.38)', sheen: 'rgba(255,255,255,0.5)',
+        filigree: 'rgba(180,150,90,0.12)',
+        moon: '#f7eed6', moonHi: '#fffdf6', moonLo: '#dfcfa2',
+        mare: 'rgba(154,134,98,0.24)', mareSoft: 'rgba(154,134,98,0.10)',
+        crater: 'rgba(150,128,86,0.20)', craterHi: 'rgba(255,252,240,0.6)'
+      };
+    }
   }
 
-  var ROMAN = ['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
-  var ARAB = ['12','1','2','3','4','5','6','7','8','9','10','11'];
-  var ZODIAC = ['\u2648','\u2649','\u264A','\u264B','\u264C','\u264D','\u264E','\u264F','\u2650','\u2651','\u2652','\u2653'];
+  var goldGrad = null;
+  function buildGrads() {
+    var g = ctx.createLinearGradient(CX - R * 0.95, CY - R * 0.95, CX + R * 0.95, CY + R * 0.95);
+    g.addColorStop(0.00, COL.goldLo);
+    g.addColorStop(0.18, COL.gold);
+    g.addColorStop(0.36, COL.goldHi);
+    g.addColorStop(0.54, COL.gold);
+    g.addColorStop(0.72, COL.goldLo);
+    g.addColorStop(0.88, COL.goldHi);
+    g.addColorStop(1.00, COL.goldLo);
+    goldGrad = g;
+  }
 
-  // 固定星图：星点 + 几组星座连线（随恒星时整体旋转）
-  var starDots = [], consLines = [];
-  (function initDial() {
-    for (var i = 0; i < 90; i++) {
-      starDots.push({ a: Math.random() * 2 * Math.PI, r: Math.sqrt(Math.random()) * R_DIAL, s: 0.4 + Math.random() * 1.1 });
+  /* ---------- 做旧噪点 ---------- */
+  var noisePat = null;
+  function ensureNoise() {
+    if (noisePat) return;
+    var n = document.createElement('canvas');
+    n.width = 128; n.height = 128;
+    var nc = n.getContext('2d');
+    var img = nc.createImageData(128, 128), dd = img.data;
+    for (var i = 0; i < dd.length; i += 4) {
+      var v = (Math.random() * 255) | 0;
+      dd[i] = dd[i + 1] = dd[i + 2] = v;
+      dd[i + 3] = (Math.random() * 22) | 0;
+    }
+    nc.putImageData(img, 0, 0);
+    noisePat = ctx.createPattern(n, 'repeat');
+  }
+
+  /* ---------- 浮雕圆环：暗边 + 金属线 + 内侧高光 ---------- */
+  function bevelRing(r, w, strong) {
+    ctx.beginPath(); ctx.arc(CX, CY, r + (strong ? 1.3 : 0.9), 0, TAU);
+    ctx.lineWidth = w + (strong ? 2.6 : 1.8);
+    ctx.strokeStyle = COL.edgeDark; ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, r, 0, TAU);
+    ctx.lineWidth = w;
+    ctx.strokeStyle = strong ? goldGrad : COL.gold;
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, r - w * 0.5 - 0.5, 0, TAU);
+    ctx.lineWidth = Math.max(0.3, w * 0.34);
+    ctx.strokeStyle = COL.hilite;
+    ctx.globalAlpha = strong ? 0.6 : 0.38;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  /* ---------- 珠链环（rolling bead） ---------- */
+  function beadRing(r, n, size) {
+    for (var i = 0; i < n; i++) {
+      var a = i * TAU / n;
+      var x = CX + Math.cos(a) * r, y = CY + Math.sin(a) * r;
+      ctx.beginPath(); ctx.arc(x, y, size, 0, TAU);
+      ctx.fillStyle = COL.gold; ctx.globalAlpha = 0.8; ctx.fill();
+      ctx.beginPath(); ctx.arc(x - size * 0.3, y - size * 0.3, size * 0.46, 0, TAU);
+      ctx.fillStyle = COL.goldHi; ctx.globalAlpha = 0.85; ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* ---------- 实心金属环带 ---------- */
+  function goldBand(r0, r1) {
+    ctx.beginPath();
+    ctx.arc(CX, CY, r1, 0, TAU);
+    ctx.arc(CX, CY, r0, 0, TAU, true);
+    ctx.fillStyle = goldGrad;
+    ctx.fill();
+    ctx.strokeStyle = COL.goldLo;
+    ctx.lineWidth = 0.7;
+    ctx.beginPath(); ctx.arc(CX, CY, r1, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, r0, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, (r0 + r1) / 2 + (r1 - r0) * 0.22, 0, TAU);
+    ctx.strokeStyle = COL.hilite; ctx.globalAlpha = 0.55; ctx.lineWidth = (r1 - r0) * 0.2;
+    ctx.stroke(); ctx.globalAlpha = 1;
+  }
+
+  var ROMAN = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
+  var ARAB = ['12', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
+
+  /* ---------- 十二宫符号（自绘线描，非字体符号） ---------- */
+  function zgAries() {
+    ctx.beginPath();
+    ctx.moveTo(0, 26); ctx.lineTo(0, -6);
+    ctx.bezierCurveTo(0, -30, -20, -34, -27, -16);
+    ctx.moveTo(0, -6);
+    ctx.bezierCurveTo(0, -30, 20, -34, 27, -16);
+    ctx.stroke();
+  }
+  function zgTaurus() {
+    ctx.beginPath(); ctx.arc(0, 12, 19, 0, TAU); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-30, -16);
+    ctx.bezierCurveTo(-16, -42, 16, -42, 30, -16);
+    ctx.stroke();
+  }
+  function zgGemini() {
+    ctx.beginPath();
+    ctx.moveTo(-15, -30); ctx.lineTo(-15, 30);
+    ctx.moveTo(15, -30); ctx.lineTo(15, 30);
+    ctx.moveTo(-28, -30); ctx.quadraticCurveTo(0, -43, 28, -30);
+    ctx.moveTo(-28, 30); ctx.quadraticCurveTo(0, 43, 28, 30);
+    ctx.stroke();
+  }
+  function zgCancer() {
+    ctx.beginPath();
+    ctx.moveTo(-30, 12);
+    ctx.bezierCurveTo(-30, -12, -10, -22, 4, -12);
+    ctx.bezierCurveTo(16, -4, 30, -4, 30, -4);
+    ctx.moveTo(30, -10);
+    ctx.bezierCurveTo(30, 14, 10, 24, -4, 14);
+    ctx.bezierCurveTo(-16, 6, -30, 6, -30, 6);
+    ctx.stroke();
+  }
+  function zgLeo() {
+    ctx.beginPath(); ctx.arc(-15, -10, 10, 0, TAU); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-5, -10);
+    ctx.bezierCurveTo(6, -2, 6, 16, -6, 20);
+    ctx.bezierCurveTo(-20, 24, -30, 14, -26, 2);
+    ctx.stroke();
+  }
+  function zgVirgo() {
+    ctx.beginPath();
+    ctx.moveTo(-30, -20); ctx.lineTo(-30, 14);
+    ctx.bezierCurveTo(-30, 26, -18, 26, -12, 14); ctx.lineTo(-12, -20);
+    ctx.bezierCurveTo(-12, 26, 0, 26, 6, 14); ctx.lineTo(6, -20);
+    ctx.bezierCurveTo(6, 26, 18, 26, 24, 14); ctx.lineTo(24, -18);
+    ctx.moveTo(2, -32); ctx.lineTo(28, 18);
+    ctx.stroke();
+  }
+  function zgLibra() {
+    ctx.beginPath();
+    ctx.moveTo(-30, -16); ctx.lineTo(30, -16);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-24, -16);
+    ctx.bezierCurveTo(-24, 20, 24, 20, 24, -16);
+    ctx.stroke();
+  }
+  function zgScorpio() {
+    ctx.beginPath();
+    ctx.moveTo(-30, -18); ctx.lineTo(-30, 12);
+    ctx.bezierCurveTo(-30, 26, -18, 26, -12, 12); ctx.lineTo(-12, -18);
+    ctx.bezierCurveTo(-12, 26, 0, 26, 6, 12); ctx.lineTo(6, -18);
+    ctx.bezierCurveTo(6, 26, 18, 26, 24, 10); ctx.lineTo(24, 2);
+    ctx.lineTo(30, -20);
+    ctx.moveTo(30, -20); ctx.lineTo(18, -16);
+    ctx.moveTo(30, -20); ctx.lineTo(26, -32);
+    ctx.stroke();
+  }
+  function zgSagittarius() {
+    ctx.beginPath();
+    ctx.moveTo(-28, 28); ctx.lineTo(24, -24);
+    ctx.moveTo(24, -24); ctx.lineTo(8, -22);
+    ctx.moveTo(24, -24); ctx.lineTo(22, -8);
+    ctx.moveTo(-12, -12); ctx.lineTo(12, 12);
+    ctx.stroke();
+  }
+  function zgCapricorn() {
+    ctx.beginPath();
+    ctx.moveTo(-28, -18);
+    ctx.bezierCurveTo(-28, 16, -14, 24, -6, 8);
+    ctx.lineTo(4, -22);
+    ctx.lineTo(12, 2);
+    ctx.bezierCurveTo(18, 18, 30, 16, 28, 2);
+    ctx.bezierCurveTo(27, -8, 18, -10, 16, -2);
+    ctx.stroke();
+  }
+  function zgAquarius() {
+    ctx.beginPath();
+    ctx.moveTo(-30, -14); ctx.lineTo(-18, -24); ctx.lineTo(-6, -10);
+    ctx.lineTo(6, -24); ctx.lineTo(18, -10); ctx.lineTo(30, -18);
+    ctx.moveTo(-30, 10); ctx.lineTo(-18, 0); ctx.lineTo(-6, 14);
+    ctx.lineTo(6, 0); ctx.lineTo(18, 14); ctx.lineTo(30, 6);
+    ctx.stroke();
+  }
+  function zgPisces() {
+    ctx.beginPath();
+    ctx.moveTo(-10, -28);
+    ctx.bezierCurveTo(-34, -12, -34, 12, -10, 28);
+    ctx.moveTo(10, -28);
+    ctx.bezierCurveTo(34, -12, 34, 12, 10, 28);
+    ctx.moveTo(-11, 0); ctx.lineTo(11, 0);
+    ctx.stroke();
+  }
+  var ZG = [zgAries, zgTaurus, zgGemini, zgCancer, zgLeo, zgVirgo,
+            zgLibra, zgScorpio, zgSagittarius, zgCapricorn, zgAquarius, zgPisces];
+
+  /* ---------- 星图数据 ---------- */
+  var starDots = [], consLines = [], craters = [], maria = [];
+  (function initData() {
+    var i, a, r;
+    for (i = 0; i < 240; i++) {
+      a = Math.random() * TAU;
+      r = Math.sqrt(Math.random()) * (R_ECL - 6);
+      starDots.push({ a: a, r: r, s: 0.7 + Math.random() * 2.2, b: Math.random() < 0.09 });
     }
     var cons = [
-      [[0.4, 0.35], [0.75, 0.45], [1.15, 0.6], [1.6, 0.75], [2.05, 0.85]],
-      [[1.2, 1.6], [1.7, 1.45], [2.2, 1.3], [2.7, 1.15]],
-      [[3.2, 3.4], [3.7, 3.6], [4.2, 3.9]],
-      [[4.6, 1.2], [5.0, 1.0], [5.5, 0.85]]
+      [[0.4, 0.35], [0.75, 0.45], [1.15, 0.6], [1.6, 0.75], [2.05, 0.85], [2.5, 0.7]],
+      [[1.2, 1.6], [1.7, 1.45], [2.2, 1.3], [2.7, 1.15], [3.05, 0.95]],
+      [[3.2, 3.4], [3.7, 3.6], [4.2, 3.9], [4.5, 4.3]],
+      [[4.6, 1.2], [5.0, 1.0], [5.5, 0.85], [5.9, 1.1]],
+      [[2.4, 4.4], [2.9, 4.7], [3.4, 4.9], [3.9, 5.1], [4.3, 4.8]],
+      [[0.2, 3.1], [0.7, 3.4], [1.2, 3.3], [1.6, 2.9]],
+      [[5.3, 5.2], [5.6, 4.8], [6.0, 4.6], [6.3, 5.0]],
+      [[3.9, 0.6], [4.3, 0.9], [4.8, 0.7], [5.2, 1.0]]
     ];
     for (var c = 0; c < cons.length; c++) {
       var seg = [];
-      for (var p = 0; p < cons[c].length; p++) seg.push({ a: cons[c][p][0], r: cons[c][p][1] * 60 });
+      for (var p = 0; p < cons[c].length; p++) seg.push({ a: cons[c][p][0], r: cons[c][p][1] * 52 });
       consLines.push(seg);
+    }
+    maria.push({ x: -0.3, y: -0.24, rx: 0.56, ry: 0.44, a: 0.9 });
+    maria.push({ x: 0.24, y: -0.36, rx: 0.36, ry: 0.26, a: -0.5 });
+    maria.push({ x: 0.3, y: 0.24, rx: 0.44, ry: 0.34, a: 0.4 });
+    maria.push({ x: -0.2, y: 0.42, rx: 0.34, ry: 0.24, a: -0.9 });
+    maria.push({ x: -0.52, y: 0.1, rx: 0.26, ry: 0.2, a: 1.3 });
+    for (i = 0; i < 26; i++) {
+      a = Math.random() * TAU;
+      r = Math.sqrt(Math.random()) * 0.66;
+      craters.push({ x: Math.cos(a) * r, y: Math.sin(a) * r, r: 0.025 + Math.random() * 0.075 });
     }
   })();
 
   function daysInYear(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 ? 366 : 365; }
 
-  function drawFiligree(t) {
-    var Ri = R_RIM_IN, Ro = R;   // 435 / 495：与天球仪最外圈完全同款
+  /* ---------- ① 外圈花边（与天球仪同款，仅加金属描边） ---------- */
+  function drawFiligree(T) {
+    var Ri = R_RIM_IN, Ro = R;
     ctx.beginPath();
-    ctx.arc(CX, CY, Ro, 0, Math.PI * 2);
-    ctx.arc(CX, CY, Ri, 0, Math.PI * 2, true);
-    ctx.fillStyle = COL_BG; ctx.fill();
-    // 双层沟边：外圆、外沟内线、内沟内线、内圆（4 条同心圆）
+    ctx.arc(CX, CY, Ro, 0, TAU);
+    ctx.arc(CX, CY, Ri, 0, TAU, true);
+    ctx.fillStyle = COL.field; ctx.fill();      // 不透明：月相盘从其下穿过
+    ctx.fillStyle = COL.filigree; ctx.fill();
+
     var edges = [Ro, Ro - 10, Ri + 10, Ri];
     for (var e = 0; e < edges.length; e++) {
-      ctx.beginPath();
-      ctx.arc(CX, CY, edges[e], 0, Math.PI * 2);
-      ctx.strokeStyle = COL_GOLD;
-      ctx.lineWidth = (e === 0 || e === 3) ? 0.49 : 0.3;
+      ctx.beginPath(); ctx.arc(CX, CY, edges[e], 0, TAU);
+      ctx.strokeStyle = goldGrad;
+      ctx.lineWidth = (e === 0 || e === 3) ? 1.0 : 0.5;
       ctx.stroke();
     }
-    // 内部流线花边：三条交错波浪线（与天球仪同款），沿自身平面缓慢自转
+    ctx.beginPath(); ctx.arc(CX, CY, Ri + 1.4, 0, TAU);
+    ctx.strokeStyle = COL.hilite; ctx.globalAlpha = 0.55; ctx.lineWidth = 0.4; ctx.stroke();
+    ctx.globalAlpha = 1;
+
     var Rm = (Ri + Ro) / 2;
-    var rot = t * 0.05;
-    ctx.globalAlpha = 0.75;
-    ctx.lineWidth = 0.3;
+    var rot = T * 0.05;
+    ctx.globalAlpha = 0.9;
+    ctx.strokeStyle = goldGrad;
+    ctx.lineWidth = 0.45;
     for (var w = 0; w < 3; w++) {
       var baseR = Rm + (w - 1) * 10;
-      var phase = w * 2 * Math.PI / 3;
+      var phase = w * TAU / 3;
       ctx.beginPath();
       for (var i = 0; i <= 360; i++) {
         var a = i * Math.PI / 180;
-        var wave = Math.sin((a + rot) * 24 + phase) * 6;
-        var r = baseR + wave;
-        if (i === 0) ctx.moveTo(CX + Math.cos(a) * r, CY + Math.sin(a) * r);
-        else ctx.lineTo(CX + Math.cos(a) * r, CY + Math.sin(a) * r);
+        var rr = baseR + Math.sin((a + rot) * 24 + phase) * 6;
+        var x = CX + Math.cos(a) * rr, y = CY + Math.sin(a) * rr;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
+  }
+
+  /* ---------- ② 表圈：实心金环分隔 + 分界环 ---------- */
+  function drawTicks() {
+    goldBand(393, 401);
+    goldBand(358, 366);
   }
 
   function drawBezels() {
-    var rings = [
-      [R_ROMAN + 14, COL_GOLD, 0.55], [R_ROMAN - 14, COL_GOLD, 0.3],
-      [R_ARAB + 12, COL_GOLD, 0.45], [R_ARAB - 12, COL_GOLD, 0.25],
-      [R_ZODIAC + 10, COL_GOLD, 0.45], [R_ZODIAC - 10, COL_GOLD, 0.25],
-      [R_DIAL + 6, COL_GOLD, 0.55], [R_DIAL, COL_GOLD, 0.3]
-    ];
-    for (var i = 0; i < rings.length; i++) {
-      ctx.beginPath();
-      ctx.arc(CX, CY, rings[i][0], 0, Math.PI * 2);
-      ctx.strokeStyle = rings[i][1];
-      ctx.lineWidth = rings[i][2];
-      ctx.stroke();
-    }
+    bevelRing(R_RIM_IN, 0.8, true);
+    bevelRing(R_DIAL + 8, 0.6, false);
+    bevelRing(R_DIAL, 1.6, true);
   }
 
-  function drawNumerals() {
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    for (var i = 0; i < 12; i++) {
-      var a = -Math.PI / 2 + i * Math.PI / 6;
-      ctx.fillStyle = COL_GOLD;
-      ctx.font = '600 30px Georgia, "Times New Roman", serif';
-      ctx.fillText(ROMAN[i], CX + Math.cos(a) * R_ROMAN, CY + Math.sin(a) * R_ROMAN);
-      ctx.fillStyle = COL_GOLD;
-      ctx.globalAlpha = 0.82;
-      ctx.font = '20px Georgia, serif';
-      ctx.fillText(ARAB[i], CX + Math.cos(a) * R_ARAB, CY + Math.sin(a) * R_ARAB);
-      ctx.globalAlpha = 1;
-    }
-  }
-
-  function drawZodiac(sunLon) {
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    for (var i = 0; i < 12; i++) {
-      var a = sunLon * Math.PI / 180 + i * Math.PI / 6 - Math.PI / 2;
-      ctx.fillStyle = COL_GOLD;
-      ctx.font = '20px Georgia, serif';
-      ctx.fillText(ZODIAC[i], CX + Math.cos(a) * R_ZODIAC, CY + Math.sin(a) * R_ZODIAC);
-    }
-  }
-
-  function drawDial(sidereal) {
+  /* ---------- 外场玑镂（数字环底色） ---------- */
+  function drawFieldTexture() {
     ctx.save();
     ctx.beginPath();
-    ctx.arc(CX, CY, R_DIAL, 0, Math.PI * 2);
-    ctx.fillStyle = COL_BG; ctx.fill();
+    ctx.arc(CX, CY, R_RIM_IN - 1, 0, TAU);
+    ctx.arc(CX, CY, R_DIAL + 5, 0, TAU, true);
     ctx.clip();
-    for (var i = 0; i < starDots.length; i++) {
-      var sd = starDots[i];
-      var a = sd.a + sidereal;
+    ctx.strokeStyle = COL.gold;
+    ctx.lineWidth = 0.3;
+    ctx.globalAlpha = 0.14;
+    for (var q = 0; q < 360; q++) {
+      var a = q * TAU / 360;
       ctx.beginPath();
-      ctx.arc(CX + Math.cos(a) * sd.r, CY + Math.sin(a) * sd.r, sd.s, 0, Math.PI * 2);
-      ctx.fillStyle = COL_GOLD;
-      ctx.globalAlpha = 0.7;
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    }
-    ctx.strokeStyle = COL_GOLD; ctx.lineWidth = 0.4; ctx.globalAlpha = 0.5;
-    for (var c = 0; c < consLines.length; c++) {
-      ctx.beginPath();
-      for (var p = 0; p < consLines[c].length; p++) {
-        var a = consLines[c][p].a + sidereal;
-        var x = CX + Math.cos(a) * consLines[c][p].r, y = CY + Math.sin(a) * consLines[c][p].r;
-        if (p === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
+      ctx.moveTo(CX + Math.cos(a) * (R_DIAL + 5), CY + Math.sin(a) * (R_DIAL + 5));
+      ctx.lineTo(CX + Math.cos(a) * (R_RIM_IN - 1), CY + Math.sin(a) * (R_RIM_IN - 1));
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
     ctx.restore();
-    // 黄道圈（椭圆，随恒星时）
+  }
+
+  /* ---------- ③ 数字 ---------- */
+  function drawNumerals() {
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    for (var i = 0; i < 12; i++) {
+      var a = -Math.PI / 2 + i * Math.PI / 6;
+      var ca = Math.cos(a), sa = Math.sin(a);
+      var x = CX + ca * R_ROMAN, y = CY + sa * R_ROMAN;
+      ctx.font = '400 29px ' + FONT;
+      ctx.lineWidth = 3.4;
+      ctx.strokeStyle = COL.numShadow;
+      ctx.strokeText(ROMAN[i], x, y);
+      ctx.fillStyle = COL.numeral;
+      ctx.fillText(ROMAN[i], x, y);
+      var x2 = CX + ca * R_ARAB, y2 = CY + sa * R_ARAB;
+      ctx.font = '400 21px ' + FONT;
+      ctx.lineWidth = 3.0;
+      ctx.strokeStyle = COL.numShadow;
+      ctx.strokeText(ARAB[i], x2, y2);
+      ctx.fillStyle = COL.numeral;
+      ctx.globalAlpha = 0.88;
+      ctx.fillText(ARAB[i], x2, y2);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  /* ---------- ④ 星图表盘 ---------- */
+  function drawDial(sidereal, sunLon) {
+    // 盘面：先落投影（抬起感），再铺金属穹顶
+    ctx.save();
+    ctx.shadowColor = COL.shadow;
+    ctx.shadowBlur = 20;
+    ctx.shadowOffsetY = 6;
+    ctx.beginPath(); ctx.arc(CX, CY, R_DIAL, 0, TAU);
+    ctx.fillStyle = COL.plate; ctx.fill();
+    ctx.restore();
+
+    ctx.beginPath(); ctx.arc(CX, CY, R_DIAL, 0, TAU);
+    var rg = ctx.createRadialGradient(CX - R_DIAL * 0.32, CY - R_DIAL * 0.34, R_DIAL * 0.04, CX, CY, R_DIAL * 1.04);
+    rg.addColorStop(0, COL.plate);
+    rg.addColorStop(0.4, COL.plate);
+    rg.addColorStop(1, COL.plateLo);
+    ctx.fillStyle = rg;
+    ctx.fill();
+
+    ctx.save();
+    ctx.beginPath(); ctx.arc(CX, CY, R_DIAL, 0, TAU);
+    ctx.clip();
+
+    ensureNoise();
+    if (noisePat) {
+      ctx.fillStyle = noisePat;
+      ctx.fillRect(CX - R_DIAL, CY - R_DIAL, R_DIAL * 2, R_DIAL * 2);
+    }
+
+    // ── 玑镂纹：外带放射纹
+    ctx.strokeStyle = COL.gold;
+    ctx.lineWidth = 0.35;
+    ctx.globalAlpha = 0.22;
+    for (var q = 0; q < 288; q++) {
+      var qa = q * TAU / 288;
+      ctx.beginPath();
+      ctx.moveTo(CX + Math.cos(qa) * 296, CY + Math.sin(qa) * 296);
+      ctx.lineTo(CX + Math.cos(qa) * 332, CY + Math.sin(qa) * 332);
+      ctx.stroke();
+    }
+    // ── 玑镂纹：内区细同心纹
+    ctx.globalAlpha = 0.17;
+    for (var rr2 = 22; rr2 < 158; rr2 += 3) {
+      ctx.beginPath(); ctx.arc(CX, CY, rr2, 0, TAU); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // ── 铁轨式分钟刻度（railway track）
+    ctx.strokeStyle = COL.gold;
+    ctx.globalAlpha = 0.75; ctx.lineWidth = 0.5;
+    ctx.beginPath(); ctx.arc(CX, CY, 344, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, 350, 0, TAU); ctx.stroke();
+    for (var m2 = 0; m2 < 120; m2++) {
+      var ma2 = m2 * TAU / 120;
+      var big = (m2 % 10 === 0);
+      ctx.globalAlpha = big ? 0.95 : 0.45;
+      ctx.lineWidth = big ? 1.0 : 0.35;
+      ctx.beginPath();
+      ctx.moveTo(CX + Math.cos(ma2) * (big ? 337 : 342), CY + Math.sin(ma2) * (big ? 337 : 342));
+      ctx.lineTo(CX + Math.cos(ma2) * 350, CY + Math.sin(ma2) * 350);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // ── 珠链环
+    beadRing(339, 140, 2.2);
+    beadRing(168, 84, 1.9);
+
+    // ── 中心玫瑰纹
+    ctx.strokeStyle = COL.gold;
+    ctx.lineWidth = 0.55;
+    for (var p = 0; p < 12; p++) {
+      ctx.save();
+      ctx.translate(CX, CY);
+      ctx.rotate(p * TAU / 12);
+      ctx.globalAlpha = 0.26;
+      ctx.beginPath(); ctx.ellipse(0, -76, 15, 44, 0, 0, TAU); ctx.stroke();
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+
+    // 旋转星图
+    for (var s = 0; s < starDots.length; s++) {
+      var sd = starDots[s];
+      var sa = sd.a + sidereal;
+      var sx = CX + Math.cos(sa) * sd.r, sy = CY + Math.sin(sa) * sd.r;
+      ctx.beginPath(); ctx.arc(sx, sy, sd.s, 0, TAU);
+      ctx.fillStyle = COL.gold;
+      ctx.globalAlpha = sd.b ? 1 : 0.8;
+      ctx.fill();
+      if (sd.b) {
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath();
+        ctx.moveTo(sx - 7, sy); ctx.lineTo(sx + 7, sy);
+        ctx.moveTo(sx, sy - 7); ctx.lineTo(sx, sy + 7);
+        ctx.lineWidth = 0.35; ctx.strokeStyle = COL.gold; ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.7; ctx.globalAlpha = 0.8;
+    for (var c = 0; c < consLines.length; c++) {
+      ctx.beginPath();
+      for (var q2 = 0; q2 < consLines[c].length; q2++) {
+        var ca2 = consLines[c][q2].a + sidereal;
+        var x = CX + Math.cos(ca2) * consLines[c][q2].r, y = CY + Math.sin(ca2) * consLines[c][q2].r;
+        if (q2 === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      // 星座星点
+      for (var q3 = 0; q3 < consLines[c].length; q3++) {
+        var ca3 = consLines[c][q3].a + sidereal;
+        ctx.beginPath();
+        ctx.arc(CX + Math.cos(ca3) * consLines[c][q3].r, CY + Math.sin(ca3) * consLines[c][q3].r, 2.4, 0, TAU);
+        ctx.fillStyle = COL.gold; ctx.globalAlpha = 1; ctx.fill();
+      }
+      ctx.globalAlpha = 0.8;
+    }
+    ctx.globalAlpha = 1;
+
+    // 黄道圈（随恒星时旋转）+ 日躔
     ctx.save();
     ctx.translate(CX, CY);
     ctx.rotate(sidereal);
-    ctx.strokeStyle = COL_BLUE; ctx.lineWidth = 0.4; ctx.globalAlpha = 0.6;
-    ctx.beginPath(); ctx.ellipse(0, 0, R_DIAL * 0.78, R_DIAL * 0.3, 0, 0, Math.PI * 2); ctx.stroke();
-    ctx.restore();
+    ctx.strokeStyle = COL.blue;
+    ctx.globalAlpha = 0.9; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 0, R_ECL, 0, TAU); ctx.stroke();
+    ctx.globalAlpha = 0.5; ctx.lineWidth = 0.5;
+    ctx.beginPath(); ctx.arc(0, 0, R_ECL - 5, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R_ECL + 5, 0, TAU); ctx.stroke();
+    for (var t2 = 0; t2 < 72; t2++) {
+      var ta = t2 * TAU / 72;
+      var lg = (t2 % 6 === 0);
+      ctx.globalAlpha = lg ? 0.8 : 0.45;
+      ctx.lineWidth = lg ? 1.0 : 0.35;
+      ctx.strokeStyle = COL.blue;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(ta) * (R_ECL + 5), Math.sin(ta) * (R_ECL + 5));
+      ctx.lineTo(Math.cos(ta) * (R_ECL + (lg ? 15 : 10)), Math.sin(ta) * (R_ECL + (lg ? 15 : 10)));
+      ctx.stroke();
+    }
     ctx.globalAlpha = 1;
+    var ea = sunLon * Math.PI / 180;
+    var ex = Math.cos(ea) * R_ECL, ey = Math.sin(ea) * R_ECL;
+    for (var q4 = 0; q4 < 16; q4++) {
+      var qa2 = q4 * TAU / 16;
+      ctx.beginPath();
+      ctx.moveTo(ex + Math.cos(qa2) * 11, ey + Math.sin(qa2) * 11);
+      ctx.lineTo(ex + Math.cos(qa2) * (q4 % 2 ? 15 : 19), ey + Math.sin(qa2) * (q4 % 2 ? 15 : 19));
+      ctx.lineWidth = 0.9; ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.9; ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(ex, ey, 9, 0, TAU);
+    var sg = ctx.createRadialGradient(ex - 3, ey - 3, 1, ex, ey, 10);
+    sg.addColorStop(0, COL.goldHi);
+    sg.addColorStop(0.7, COL.gold);
+    sg.addColorStop(1, COL.goldLo);
+    ctx.fillStyle = sg; ctx.fill();
+    ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.7; ctx.stroke();
+    ctx.restore();
+
+    // 边缘内晕
+    var vg = ctx.createRadialGradient(CX, CY, R_DIAL * 0.5, CX, CY, R_DIAL);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(0.7, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, COL.vignette);
+    ctx.fillStyle = vg;
+    ctx.fillRect(CX - R_DIAL, CY - R_DIAL, R_DIAL * 2, R_DIAL * 2);
+
+    // 金属斜向反光（sheen）
+    var sh = ctx.createLinearGradient(CX - R_DIAL, CY + R_DIAL, CX + R_DIAL, CY - R_DIAL);
+    sh.addColorStop(0.00, 'rgba(255,255,255,0)');
+    sh.addColorStop(0.30, 'rgba(255,255,255,0)');
+    sh.addColorStop(0.44, COL.sheen);
+    sh.addColorStop(0.56, 'rgba(255,255,255,0)');
+    sh.addColorStop(1.00, 'rgba(255,255,255,0)');
+    ctx.fillStyle = sh;
+    ctx.fillRect(CX - R_DIAL, CY - R_DIAL, R_DIAL * 2, R_DIAL * 2);
+    ctx.restore();
+
+    bevelRing(R_DIAL, 2.4, true);
   }
 
-  function drawMoonDisc(mx, my, discR, moonR, phase) {
+  /* ---------- ⑤ 月相 ---------- */
+  function drawMoon(r, phase) {
+    var f = (1 - Math.cos(phase * TAU)) / 2;   // 被照亮比例 0=朔 1=望
+    var k = Math.abs(1 - 2 * f);               // 明暗界线半轴系数
+
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU);
+    var dg = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r);
+    dg.addColorStop(0, COL.blue); dg.addColorStop(1, COL.blueD);
+    ctx.fillStyle = dg; ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, r * 0.97, 0, TAU);
+    ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.3; ctx.lineWidth = r * 0.015; ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // 亮面：+x 方向朝向表心（太阳方向）
+    ctx.save();
     ctx.beginPath();
-    ctx.arc(mx, my, discR, 0, Math.PI * 2);
-    ctx.fillStyle = COL_BG; ctx.fill();
-    ctx.strokeStyle = COL_GOLD; ctx.lineWidth = 0.5; ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(mx, my, moonR, 0, Math.PI * 2);
-    ctx.fillStyle = COL_BLUE; ctx.fill();
-    ctx.strokeStyle = COL_GOLD; ctx.lineWidth = 0.4; ctx.stroke();
-    var waxing = phase < 0.5;
-    var k = Math.abs(Math.cos(phase * 2 * Math.PI));
-    ctx.beginPath();
-    ctx.arc(mx, my, moonR, -Math.PI / 2, Math.PI / 2, waxing ? false : true);
-    ctx.arc(mx, my, moonR * k, Math.PI / 2, -Math.PI / 2, waxing ? true : false);
+    ctx.moveTo(0, -r);
+    ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2, false);
+    ctx.ellipse(0, 0, Math.max(0.0001, r * k), r, 0, Math.PI / 2, -Math.PI / 2, f < 0.5);
     ctx.closePath();
-    ctx.fillStyle = COL_GOLD;
+    ctx.clip();
+    var lg = ctx.createRadialGradient(r * 0.18, -r * 0.12, r * 0.04, 0, 0, r * 1.04);
+    lg.addColorStop(0, COL.moonHi);
+    lg.addColorStop(0.5, COL.moon);
+    lg.addColorStop(0.86, COL.moon);
+    lg.addColorStop(1, COL.moonLo);
+    ctx.fillStyle = lg;
+    ctx.fillRect(-r, -r, r * 2, r * 2);
+    // 月海（柔和边缘）
+    for (var m = 0; m < maria.length; m++) {
+      var mm = maria[m];
+      ctx.save();
+      ctx.translate(mm.x * r, mm.y * r);
+      ctx.rotate(mm.a);
+      ctx.scale(mm.rx, mm.ry);
+      var grd = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+      grd.addColorStop(0, COL.mare);
+      grd.addColorStop(0.55, COL.mareSoft);
+      grd.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grd;
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+      ctx.restore();
+    }
+    // 环形山
+    for (var i = 0; i < craters.length; i++) {
+      var c = craters[i];
+      var px = c.x * r, py = c.y * r, pr = c.r * r;
+      var cg = ctx.createRadialGradient(px - pr * 0.3, py - pr * 0.3, pr * 0.1, px, py, pr);
+      cg.addColorStop(0, COL.crater);
+      cg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.arc(px, py, pr, 0, TAU);
+      ctx.fillStyle = cg; ctx.fill();
+      ctx.beginPath(); ctx.arc(px, py, pr * 0.9, Math.PI * 1.06, Math.PI * 1.94);
+      ctx.strokeStyle = COL.craterHi; ctx.lineWidth = r * 0.008; ctx.stroke();
+    }
+    ctx.restore();
+
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU);
+    ctx.lineWidth = r * 0.03; ctx.strokeStyle = goldGrad; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, r - r * 0.024, 0, TAU);
+    ctx.lineWidth = r * 0.008; ctx.strokeStyle = COL.hilite;
+    ctx.globalAlpha = 0.5; ctx.stroke(); ctx.globalAlpha = 1;
+  }
+
+  function drawMoonDisc(mx, my, ang, spin, phase, sunDir) {
+    ctx.save();
+    ctx.translate(mx, my);
+
+    ctx.save();
+    ctx.shadowColor = COL.shadow;
+    ctx.shadowBlur = 24;
+    ctx.shadowOffsetX = 7;
+    ctx.shadowOffsetY = 9;
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC, 0, TAU);
+    ctx.fillStyle = COL.goldLo; ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.rotate(spin);   // 盘面自转（含十二宫环与刻纹）
+
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC, 0, TAU);
+    var mg = ctx.createLinearGradient(-R_MOON_DISC, -R_MOON_DISC, R_MOON_DISC, R_MOON_DISC);
+    mg.addColorStop(0.00, COL.goldLo);
+    mg.addColorStop(0.20, COL.gold);
+    mg.addColorStop(0.38, COL.goldHi);
+    mg.addColorStop(0.56, COL.gold);
+    mg.addColorStop(0.74, COL.goldLo);
+    mg.addColorStop(0.90, COL.goldHi);
+    mg.addColorStop(1.00, COL.goldLo);
+    ctx.fillStyle = mg; ctx.fill();
+
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 18, 0, TAU);
+    var eg = ctx.createRadialGradient(-R_MOON_DISC * 0.3, -R_MOON_DISC * 0.3, R_MOON_DISC * 0.06, 0, 0, R_MOON_DISC);
+    eg.addColorStop(0, COL.discHi);
+    eg.addColorStop(0.55, COL.disc);
+    eg.addColorStop(1, COL.discLo);
+    ctx.fillStyle = eg; ctx.fill();
+    ctx.save();
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 18, 0, TAU); ctx.clip();
+    ensureNoise();
+    if (noisePat) {
+      ctx.fillStyle = noisePat;
+      ctx.fillRect(-R_MOON_DISC, -R_MOON_DISC, R_MOON_DISC * 2, R_MOON_DISC * 2);
+    }
+    ctx.restore();
+
+    // 外圈刻纹（让自转看得见）
+    for (var i = 0; i < 96; i++) {
+      var a = i * TAU / 96;
+      var long = (i % 8 === 0);
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * (R_MOON_DISC - 16), Math.sin(a) * (R_MOON_DISC - 16));
+      ctx.lineTo(Math.cos(a) * (R_MOON_DISC - (long ? 4 : 10)), Math.sin(a) * (R_MOON_DISC - (long ? 4 : 10)));
+      ctx.strokeStyle = long ? COL.goldHi : COL.gold;
+      ctx.globalAlpha = long ? 0.95 : 0.6;
+      ctx.lineWidth = long ? 1.3 : 0.5;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 16, 0, TAU);
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.7; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 18, 0, TAU);
+    ctx.strokeStyle = COL.hilite; ctx.globalAlpha = 0.55; ctx.lineWidth = 0.5; ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // 十二宫环底纹
+    ctx.beginPath(); ctx.arc(0, 0, R_ZOD_DISC, 0, TAU);
+    ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.6; ctx.lineWidth = 0.6; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R_ZOD_DISC - 30, 0, TAU);
+    ctx.globalAlpha = 0.45; ctx.lineWidth = 0.45; ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // 十二宫徽章
+    for (var z = 0; z < 12; z++) {
+      var za = -Math.PI / 2 + z * TAU / 12;
+      var zx = Math.cos(za) * R_ZOD_DISC, zy = Math.sin(za) * R_ZOD_DISC;
+      ctx.save();
+      ctx.translate(zx, zy);
+      ctx.save();
+      ctx.rotate(za + Math.PI / 2);
+
+      ctx.beginPath(); ctx.arc(0, 0, 26, 0, TAU);
+      var rg2 = ctx.createRadialGradient(-8, -9, 2, 0, 0, 27);
+      rg2.addColorStop(0, COL.goldHi);
+      rg2.addColorStop(0.42, COL.gold);
+      rg2.addColorStop(0.78, COL.goldLo);
+      rg2.addColorStop(1, COL.gold);
+      ctx.fillStyle = rg2; ctx.fill();
+
+      ctx.beginPath(); ctx.arc(0, 0, 22.2, 0, TAU);
+      var rg3 = ctx.createRadialGradient(-5, -8, 2, 0, 0, 23);
+      rg3.addColorStop(0, COL.discHi);
+      rg3.addColorStop(0.7, COL.disc);
+      rg3.addColorStop(1, COL.discLo);
+      ctx.fillStyle = rg3; ctx.fill();
+      ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.8; ctx.stroke();
+
+      ctx.save();
+      ctx.scale(0.42, 0.42);
+      ctx.lineWidth = 5.6;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.globalAlpha = 0.7;
+      ctx.strokeStyle = COL.goldLo;
+      ctx.save(); ctx.translate(1.6, 2.2); ZG[z](); ctx.restore();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = COL.goldHi;
+      ZG[z]();
+      ctx.restore();
+
+      ctx.restore();
+      ctx.restore();
+
+      var ba = za + TAU / 24;
+      ctx.beginPath();
+      ctx.arc(Math.cos(ba) * R_ZOD_DISC, Math.sin(ba) * R_ZOD_DISC, 3, 0, TAU);
+      ctx.fillStyle = COL.goldHi; ctx.globalAlpha = 0.9; ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // 内圈挡圈
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON + 21, 0, TAU);
+    ctx.strokeStyle = goldGrad; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON + 23.5, 0, TAU);
+    ctx.strokeStyle = COL.hilite; ctx.globalAlpha = 0.45; ctx.lineWidth = 0.5; ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    ctx.restore();   // 结束自转
+
+    // 月球（不随盘自转；亮面永远朝向太阳刻度 = 真实月相）
+    ctx.save();
+    ctx.rotate(sunDir);
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON + 17, 0, TAU);
+    ctx.fillStyle = COL.blueD; ctx.fill();
+    ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.9; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON + 17, 0, TAU);
+    ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.5; ctx.lineWidth = 0.4; ctx.stroke();
+    ctx.globalAlpha = 1;
+    drawMoon(R_MOON, phase);
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  /* ---------- ⑥ 指针 ---------- */
+  function drawHand(ang, len, tail, wb) {
+    var ca = Math.cos(ang), sa = Math.sin(ang);
+    var px = -sa, py = ca;
+    var sx = CX + ca * len * 0.3, sy = CY + sa * len * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(CX + ca * len, CY + sa * len);
+    ctx.lineTo(sx + px * wb * 0.5, sy + py * wb * 0.5);
+    ctx.lineTo(CX - ca * tail + px * wb * 0.26, CY - sa * tail + py * wb * 0.26);
+    ctx.lineTo(CX - ca * tail - px * wb * 0.26, CY - sa * tail - py * wb * 0.26);
+    ctx.lineTo(sx - px * wb * 0.5, sy - py * wb * 0.5);
+    ctx.closePath();
+    ctx.fillStyle = goldGrad;
     ctx.fill();
+    ctx.lineWidth = 1.0;
+    ctx.strokeStyle = COL.goldLo;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(CX + ca * len * 0.95, CY + sa * len * 0.95);
+    ctx.lineTo(sx + px * wb * 0.16, sy + py * wb * 0.16);
+    ctx.lineTo(CX - ca * tail * 0.85, CY - sa * tail * 0.85);
+    ctx.strokeStyle = COL.hilite;
+    ctx.globalAlpha = 0.55;
+    ctx.lineWidth = 1.0;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    // 尖端矛形
+    ctx.beginPath();
+    ctx.moveTo(CX + ca * (len + 16), CY + sa * (len + 16));
+    ctx.lineTo(CX + ca * len + px * wb * 0.42, CY + sa * len + py * wb * 0.42);
+    ctx.lineTo(CX + ca * (len - 22), CY + sa * (len - 22));
+    ctx.lineTo(CX + ca * len - px * wb * 0.42, CY + sa * len - py * wb * 0.42);
+    ctx.closePath();
+    ctx.fillStyle = goldGrad; ctx.fill();
+    ctx.lineWidth = 0.8; ctx.strokeStyle = COL.goldLo; ctx.stroke();
+    // 尾部配重环
+    ctx.beginPath();
+    ctx.arc(CX - ca * tail * 0.72, CY - sa * tail * 0.72, wb * 0.34, 0, TAU);
+    ctx.fillStyle = COL.goldLo; ctx.fill();
+    ctx.beginPath();
+    ctx.arc(CX - ca * tail * 0.72, CY - sa * tail * 0.72, wb * 0.34, 0, TAU);
+    ctx.strokeStyle = COL.goldHi; ctx.lineWidth = 0.6; ctx.stroke();
   }
 
   function drawHands(h, m, s) {
     ctx.lineCap = 'round';
-    var aH = ((h % 12) + m / 60 + s / 3600) / 12 * 2 * Math.PI - Math.PI / 2;
-    ctx.strokeStyle = COL_GOLD; ctx.lineWidth = 5;
+    var aH = ((h % 12) + m / 60 + s / 3600) / 12 * TAU - Math.PI / 2;
+    var aM = (m + s / 60) / 60 * TAU - Math.PI / 2;
+    var aS = s / 60 * TAU - Math.PI / 2;
+
+    drawHand(aH, 150, 34, 22);
+    drawHand(aM, 252, 46, 12);
+
     ctx.beginPath();
-    ctx.moveTo(CX - Math.cos(aH) * 26, CY - Math.sin(aH) * 26);   // 尾部配重
-    ctx.lineTo(CX + Math.cos(aH) * 190, CY + Math.sin(aH) * 190);
+    ctx.moveTo(CX - Math.cos(aS) * 50, CY - Math.sin(aS) * 50);
+    ctx.lineTo(CX + Math.cos(aS) * 316, CY + Math.sin(aS) * 316);
+    ctx.strokeStyle = COL.goldLo;
+    ctx.lineWidth = 2.4;
     ctx.stroke();
-    var aM = (m + s / 60) / 60 * 2 * Math.PI - Math.PI / 2;
-    ctx.lineWidth = 3.2;
     ctx.beginPath();
-    ctx.moveTo(CX - Math.cos(aM) * 34, CY - Math.sin(aM) * 34);
-    ctx.lineTo(CX + Math.cos(aM) * 285, CY + Math.sin(aM) * 285);
+    ctx.moveTo(CX - Math.cos(aS) * 48, CY - Math.sin(aS) * 48);
+    ctx.lineTo(CX + Math.cos(aS) * 314, CY + Math.sin(aS) * 314);
+    ctx.strokeStyle = COL.goldHi;
+    ctx.lineWidth = 0.9;
     ctx.stroke();
-    var aS = s / 60 * 2 * Math.PI - Math.PI / 2;
-    ctx.lineWidth = 1.1;
     ctx.beginPath();
-    ctx.moveTo(CX - Math.cos(aS) * 40, CY - Math.sin(aS) * 40);
-    ctx.lineTo(CX + Math.cos(aS) * 315, CY + Math.sin(aS) * 315);
-    ctx.stroke();
-    // 中心轴：外金圈 + 内底点
-    ctx.beginPath(); ctx.arc(CX, CY, 7, 0, Math.PI * 2);
-    ctx.fillStyle = COL_GOLD; ctx.fill();
-    ctx.beginPath(); ctx.arc(CX, CY, 3, 0, Math.PI * 2);
-    ctx.fillStyle = COL_BG; ctx.fill();
+    ctx.arc(CX - Math.cos(aS) * 50, CY - Math.sin(aS) * 50, 6, 0, TAU);
+    ctx.fillStyle = goldGrad; ctx.fill();
+    ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.6; ctx.stroke();
+
+    ctx.beginPath(); ctx.arc(CX, CY, 16, 0, TAU);
+    ctx.fillStyle = goldGrad; ctx.fill();
+    ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.9; ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, 13, 0, TAU);
+    ctx.strokeStyle = COL.hilite; ctx.globalAlpha = 0.5; ctx.lineWidth = 0.6; ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(CX, CY, 9, 0, TAU);
+    ctx.fillStyle = COL.blue; ctx.fill();
+    ctx.strokeStyle = COL.goldHi; ctx.lineWidth = 0.6; ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, 3.2, 0, TAU);
+    ctx.fillStyle = COL.goldHi; ctx.fill();
   }
 
-  function render(t) {
+  /* ---------- 渲染 ---------- */
+  function render(T) {
     var rect = cv.getBoundingClientRect();
-    if (!rect.width) return;
-    cv.width = Math.round(rect.width * dpr);
-    cv.height = Math.round(rect.height * dpr);
-    var s = dpr * Math.min(rect.width, rect.height) * 0.95 / W;   // 等比缩放，表盘完整可见且留边
+    if (!rect.width || !rect.height) return;
+    var w = Math.round(rect.width * dpr), h = Math.round(rect.height * dpr);
+    if (cv.width !== w) cv.width = w;
+    if (cv.height !== h) cv.height = h;
+    var s = dpr * Math.min(rect.width, rect.height) * 0.95 / W;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, cv.width, cv.height);
     ctx.setTransform(s, 0, 0, s, (cv.width - W * s) / 2, (cv.height - H * s) / 2);
     readColors();
+    buildGrads();
 
     var d = new Date();
-    var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds() + d.getMilliseconds() / 1000;
-    var start = new Date(d.getFullYear(), 0, 0);
-    var doy = (d - start) / 86400000;
+    var hh = d.getHours(), mm = d.getMinutes(), ss = d.getSeconds() + d.getMilliseconds() / 1000;
+    var doy = (d - new Date(d.getFullYear(), 0, 0)) / 86400000;
     var sunLon = (((doy - 80) / daysInYear(d.getFullYear())) * 360 + 360) % 360;
     var age = ((d.getTime() - Date.UTC(2000, 0, 6, 18, 14)) / 86400000) % 29.53059;
+    if (age < 0) age += 29.53059;
     var phase = age / 29.53059;
     var utcMs = d.getTime() + d.getTimezoneOffset() * 60000;
-    var sidereal = (utcMs % 86164091) / 86164091 * 2 * Math.PI;
+    var sidereal = (utcMs % 86164091) / 86164091 * TAU;
 
-    drawFiligree(t);
+    ctx.save();
+    ctx.shadowColor = COL.shadow;
+    ctx.shadowBlur = 30;
+    ctx.shadowOffsetY = 8;
+    ctx.beginPath(); ctx.arc(CX, CY, R, 0, TAU);
+    ctx.fillStyle = COL.field;
+    ctx.fill();
+    ctx.restore();
+
+    drawDial(sidereal, sunLon);
+    drawFieldTexture();
+
+    // 月相盘：位置 = 太阳方向 + 距角（= 月相角），故它与日躔刻度的相对位置就是真实月龄
+    var sunDir = sunLon * Math.PI / 180 + sidereal;
+    var mo = sunDir + phase * TAU;
+    drawMoonDisc(CX + Math.cos(mo) * R_MOON_ORBIT, CY + Math.sin(mo) * R_MOON_ORBIT,
+                 mo, (T / SPIN_PERIOD) * TAU, phase, sunDir);
+
+    drawFiligree(T);
+    drawTicks();
     drawBezels();
     drawNumerals();
-    drawZodiac(sunLon);
-    drawDial(sidereal);
-    var ma = phase * 2 * Math.PI - Math.PI / 2;
-    drawMoonDisc(CX + Math.cos(ma) * R_MOON_ORBIT, CY + Math.sin(ma) * R_MOON_ORBIT, R_MOON_DISC, R_MOON, phase);
-    drawHands(h, m, s);
+    drawHands(hh, mm, ss);
   }
 
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var T = 0;
-  function loop() {
-    T += 0.016;
+  function loop(now) {
+    T = now / 1000;
     render(T);
     requestAnimationFrame(loop);
   }
@@ -1792,5 +2459,6 @@
   if (reduce) return;
   requestAnimationFrame(loop);
   window.addEventListener('resize', function () { render(T); }, { passive: true });
-  new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  new MutationObserver(function () { render(T); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 })();
