@@ -1375,7 +1375,7 @@
 
   // 镂空经纬线球（3D、缓慢自转、只显示经纬线）：12 条经线 + 10 条纬线
   function sphereWireframe(t) {
-    var R = 415;   // 球半径 415
+    var R = 413;   // 球半径 413
     var items = [];
     var rotDeg = t * 0.06 * 180 / Math.PI;   // 缓慢自转
     // 12 条经线（每 30°）
