@@ -1375,7 +1375,7 @@
 
   // 镂空经纬线球（3D、缓慢自转、只显示经纬线）：12 条经线 + 10 条纬线
   function sphereWireframe(t) {
-    var R = 420;   // 球半径略小于外圈环内径 435，完全处于环内部
+    var R = 413;   // 球半径 = 最外圈固定环内径(435)的 95%，完全处于环内部
     var items = [];
     var rotDeg = t * 0.06 * 180 / Math.PI;   // 缓慢自转
     // 12 条经线（每 30°）
@@ -1388,9 +1388,9 @@
         pts.push(tilts(wp));
       }
       for (var k = 0; k < pts.length - 1; k++) {
-        // 透视投影（与可动环一致，保证图层关系正确）
-        var zz = (pts[k].z + pts[k + 1].z) / 2 + 2;   // 真实深度 + 2 偏置，避免与可动环面片同深度时排序冲突
-        items.push({ z: zz, kind: 'wire', a: proj(pts[k].x, pts[k].y, pts[k].z), b: proj(pts[k + 1].x, pts[k + 1].y, pts[k + 1].z) });
+        // 正交投影（无透视放大，球线投影半径 = 球半径，完全处于环内）
+        var zz = (pts[k].z + pts[k + 1].z) / 2;
+        items.push({ z: zz, kind: 'wire', a: { x: CX + pts[k].x, y: CY - pts[k].y }, b: { x: CX + pts[k + 1].x, y: CY - pts[k + 1].y } });
       }
     }
     // 10 条纬线
@@ -1406,8 +1406,8 @@
         pts2.push(tilts(wp2));
       }
       for (var k2 = 0; k2 < pts2.length - 1; k2++) {
-        var zz2 = (pts2[k2].z + pts2[k2 + 1].z) / 2 + 2;
-        items.push({ z: zz2, kind: 'wire', a: proj(pts2[k2].x, pts2[k2].y, pts2[k2].z), b: proj(pts2[k2 + 1].x, pts2[k2 + 1].y, pts2[k2 + 1].z) });
+        var zz2 = (pts2[k2].z + pts2[k2 + 1].z) / 2;
+        items.push({ z: zz2, kind: 'wire', a: { x: CX + pts2[k2].x, y: CY - pts2[k2].y }, b: { x: CX + pts2[k2 + 1].x, y: CY - pts2[k2 + 1].y } });
       }
     }
     return items;
