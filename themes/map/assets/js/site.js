@@ -1545,15 +1545,15 @@
   var ctx = cv.getContext('2d');
   var dpr = Math.min(2, window.devicePixelRatio || 1);
   var W = 1000, H = 1000, CX = 500, CY = 500;
-  var R = 495;                      // 表盘半径 = 天球仪最外圈
-  var R_RIM_IN = 435;               // 花边内径
-  var R_ROMAN = 420;                // 罗马数字环半径
-  var R_ARAB = 392;                 // 阿拉伯数字环半径
-  var R_ZODIAC = 358;               // 黄道十二宫环半径
-  var R_DIAL = 340;                 // 表盘（星图）半径
-  var R_MOON_DISC = R / 2;          // 月相盘半径 247.5
-  var R_MOON_ORBIT = R / 2;         // 月相盘公转半径 247.5
-  var R_MOON = 150;                 // 月相盘内月亮圆半径
+  var R = 396;                      // 表盘半径（天球仪最外圈 495 ×0.8）
+  var R_RIM_IN = 348;               // 花边内径
+  var R_ROMAN = 336;                // 罗马数字环半径
+  var R_ARAB = 314;                 // 阿拉伯数字环半径
+  var R_ZODIAC = 286;               // 黄道十二宫环半径
+  var R_DIAL = 272;                 // 表盘（星图）半径
+  var R_MOON_DISC = R / 2;          // 月相盘半径 198
+  var R_MOON_ORBIT = R / 2;         // 月相盘公转半径 198
+  var R_MOON = 120;                 // 月相盘内月亮圆半径
 
   var COL_BG = '#0b1a2a', COL_LINE = '#c9a227', COL_GOLD = '#e3c25e', COL_BLUE = '#274a6d';
   function readColors() {
@@ -1595,7 +1595,7 @@
     ctx.arc(CX, CY, Ro, 0, Math.PI * 2);
     ctx.arc(CX, CY, Ri, 0, Math.PI * 2, true);
     ctx.fillStyle = COL_BG; ctx.fill();
-    var edges = [Ro, Ro - 10, Ri + 10, Ri];
+    var edges = [Ro, Ro - 8, Ri + 8, Ri];
     for (var e = 0; e < edges.length; e++) {
       ctx.beginPath();
       ctx.arc(CX, CY, edges[e], 0, Math.PI * 2);
@@ -1608,12 +1608,12 @@
     ctx.globalAlpha = 0.8;
     ctx.lineWidth = 0.34;
     for (var w = 0; w < 3; w++) {
-      var baseR = Rm + (w - 1) * 10;
+      var baseR = Rm + (w - 1) * 8;
       var phase = w * 2 * Math.PI / 3;
       ctx.beginPath();
       for (var i = 0; i <= 360; i++) {
         var a = i * Math.PI / 180;
-        var wave = Math.sin((a + rot) * 24 + phase) * 6;
+        var wave = Math.sin((a + rot) * 24 + phase) * 4.8;
         var r = baseR + wave;
         if (i === 0) ctx.moveTo(CX + Math.cos(a) * r, CY + Math.sin(a) * r);
         else ctx.lineTo(CX + Math.cos(a) * r, CY + Math.sin(a) * r);
