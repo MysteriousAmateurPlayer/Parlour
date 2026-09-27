@@ -2538,14 +2538,19 @@ html[data-theme="light"] .galaxy__core-halo { opacity: 0.07; }
   align-items: center;
   padding-block: clamp(3rem, 8vh, 6rem);
 }
-/* 随性笔记页：天文钟要比天球仪再大一圈（直径约为原来的 1.25 倍）。
-   表盘按容器短边等比缩放（0.95 系数留边），因此把这一栏加高即等于把钟放大。
-   110vh 时表盘直径 ≈ 0.95 × 1.10 × 视口高，刚好略大于视口，视觉上最饱满。 */
+/* 随性笔记页：天文钟比天球仪再大一圈，并且整枚表盘的中心要落在
+   「视口垂直正中 × 屏宽黄金分割点（0.618）」上。
+   表盘直径大于页眉以下的可视高度，所以让 canvas 向上探进页眉区域
+   （--clock-lift 由 JS 依视口算出），因此这里必须放开 overflow。 */
 .page-head.page-head--clock {
   min-height: clamp(800px, 110vh, 1400px);
   display: flex;
   align-items: center;
   padding-block: clamp(2rem, 5vh, 4rem);
+  overflow: visible;
+}
+.page-head.page-head--clock .orloj {
+  top: var(--clock-lift, 0px);
 }
 @media (max-width: 720px) {
   .page-head.page-head--profile { min-height: clamp(420px, 72vh, 680px); }
