@@ -1560,9 +1560,10 @@
   var R_ROMAN = 410;           // 罗马数字环
   var R_ARAB = 378;            // 阿拉伯数字环
   var R_DIAL = 352;            // 星图表盘
-  var R_BELT_OUT = 332;        // 蓝色黄道带外缘
-  var R_BELT_IN = 306;         // 蓝色黄道带内缘
-  var R_ECL = (R_BELT_IN + R_BELT_OUT) / 2;   // 日躔所在半径
+  var R_BELT_OUT = 338;        // 蓝色黄道带外缘
+  var R_BELT_IN = 300;         // 蓝色黄道带内缘
+  var R_ZOD_BELT = 312;        // 十二宫标识所在半径
+  var R_ECL = 330;             // 日躔（太阳）所在半径
   var R_MOON_DISC = 194;       // 月相盘半径（外沿正好压到阿拉伯数字环 378）
   var R_MOON_ORBIT = 194;      // 月相盘公转半径
   var R_ZOD_DISC = 146;        // 十二宫环（位于月相盘上）
@@ -1570,6 +1571,7 @@
   var SPIN_PERIOD = 300;       // 月相盘自转周期（秒）
   var ORBIT_PERIOD = 420;      // 月相盘公转周期（秒，演示速率）
   var STAR_PERIOD = 480;       // 星点流动周期（秒，演示速率）
+  var GAL_A = 18, GAL_B = 0.62;   // 银河两条对数旋臂：r = A·e^(Bθ)
 
   var FONT = '"Palatino Linotype","Book Antiqua",Palatino,Constantia,Cambria,Georgia,"Times New Roman",serif';
 
@@ -1586,6 +1588,8 @@
         belt: '#16304f', beltHi: '#20456f', beltLo: '#0b1a2e', beltLit: 'rgba(150,190,240,0.42)',
         discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138', discHot: '#4a7cb8',
         glow: 'rgba(246,233,194,0.34)', glowSoft: 'rgba(246,233,194,0.16)',
+        coreGlow: 'rgba(246,233,194,0.20)', coreGlowSoft: 'rgba(190,215,250,0.09)',
+        armHaze: 'rgba(170,205,250,0.10)', armHi: 'rgba(200,225,255,0.13)',
         shadow: 'rgba(0,0,0,0.55)', hilite: 'rgba(255,246,214,0.45)',
         vignette: 'rgba(0,0,0,0.38)', sheen: 'rgba(190,215,255,0.10)',
         filigree: 'rgba(200,168,106,0.10)',
@@ -1604,6 +1608,8 @@
         belt: '#26456f', beltHi: '#37619a', beltLo: '#172d4d', beltLit: 'rgba(170,205,248,0.55)',
         discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138', discHot: '#4a7cb8',
         glow: 'rgba(255,250,232,0.7)', glowSoft: 'rgba(255,250,232,0.34)',
+        coreGlow: 'rgba(255,246,214,0.34)', coreGlowSoft: 'rgba(200,220,250,0.14)',
+        armHaze: 'rgba(214,190,140,0.17)', armHi: 'rgba(232,212,164,0.20)',
         shadow: 'rgba(70,52,24,0.28)', hilite: 'rgba(255,252,240,0.9)',
         vignette: 'rgba(110,86,42,0.22)', sheen: 'rgba(255,255,255,0.34)',
         filigree: 'rgba(180,150,90,0.12)',
@@ -1642,6 +1648,25 @@
     }
     nc.putImageData(img, 0, 0);
     noisePat = ctx.createPattern(n, 'repeat');
+  }
+
+  /* ---------- 四角星 ---------- */
+  function sparkAt(x, y, R, o) {
+    var w = R * 0.15;
+    ctx.beginPath();
+    ctx.moveTo(x, y - R);
+    ctx.quadraticCurveTo(x + w, y - w, x + R, y);
+    ctx.quadraticCurveTo(x + w, y + w, x, y + R);
+    ctx.quadraticCurveTo(x - w, y + w, x - R, y);
+    ctx.quadraticCurveTo(x - w, y - w, x, y - R);
+    ctx.closePath();
+    ctx.fillStyle = COL.gold;
+    ctx.globalAlpha = o;
+    ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, R * 0.22, 0, TAU);
+    ctx.fillStyle = COL.goldHi;
+    ctx.fill();
+    ctx.globalAlpha = 1;
   }
 
   /* ---------- 浮雕圆环：暗边 + 金属线 + 内侧高光 ---------- */
@@ -1802,14 +1827,41 @@
   var ZG = [zgAries, zgTaurus, zgGemini, zgCancer, zgLeo, zgVirgo,
             zgLibra, zgScorpio, zgSagittarius, zgCapricorn, zgAquarius, zgPisces];
 
-  /* ---------- 星图数据（只有星点，没有星座连线） ---------- */
-  var starDots = [], craters = [], maria = [];
+  /* ---------- 星图数据：圆形星点组成银河（旋臂＋核球＋晕），另加少量随机四角星 ---------- */
+  var starDots = [], sparkStars = [], craters = [], maria = [];
   (function initData() {
-    var i, a, r;
-    for (i = 0; i < 260; i++) {
+    var i, a, r, th;
+    // 两条对数旋臂（按弧长均匀取样，外圈才不会稀疏）
+    var A0 = GAL_A, B = GAL_B;
+    var rmin = 24, rmax = 284;
+    for (i = 0; i < 900; i++) {
+      var arm = i % 2;
+      r = rmin + Math.pow(Math.random(), 1.35) * (rmax - rmin);
+      th = Math.log(r / GAL_A) / GAL_B;
+      a = th + arm * Math.PI + (Math.random() - 0.5) * 0.19;
+      starDots.push({
+        a: a, r: r * (0.95 + Math.random() * 0.1),
+        s: 0.8 + Math.random() * 1.9, o: 0.5 + Math.random() * 0.5,
+        c: Math.random() < 0.15
+      });
+    }
+    // 核球
+    for (i = 0; i < 190; i++) {
       a = Math.random() * TAU;
-      r = Math.sqrt(Math.random()) * (R_BELT_IN - 10);
-      starDots.push({ a: a, r: r, s: 0.7 + Math.random() * 2.3, b: Math.random() < 0.1, c: Math.random() < 0.18 });
+      r = Math.pow(Math.random(), 1.9) * 72;
+      starDots.push({ a: a, r: r, s: 0.7 + Math.random() * 1.6, o: 0.55 + Math.random() * 0.45, c: Math.random() < 0.12 });
+    }
+    // 弥散晕
+    for (i = 0; i < 60; i++) {
+      a = Math.random() * TAU;
+      r = 46 + Math.sqrt(Math.random()) * 240;
+      starDots.push({ a: a, r: r, s: 0.5 + Math.random() * 0.9, o: 0.2 + Math.random() * 0.3 });
+    }
+    // 少量随机四角星
+    for (i = 0; i < 15; i++) {
+      a = Math.random() * TAU;
+      r = 46 + Math.sqrt(Math.random()) * 248;
+      sparkStars.push({ a: a, r: r, s: 3.6 + Math.random() * 4.2, o: 0.45 + Math.random() * 0.4 });
     }
     maria.push({ x: -0.3, y: -0.24, rx: 0.56, ry: 0.44, a: 0.9 });
     maria.push({ x: 0.24, y: -0.36, rx: 0.36, ry: 0.26, a: -0.5 });
@@ -1991,21 +2043,14 @@
     }
     ctx.globalAlpha = 1;
 
-    // ── 中心玫瑰纹（玫瑰车花 rose engine，淡）
+    // ── 中心玫瑰车花只留极淡的一层，把主角让给银河
     ctx.strokeStyle = COL.blue;
     ctx.lineWidth = 0.4;
-    ctx.globalAlpha = 0.2;
+    ctx.globalAlpha = 0.09;
     for (var p = 0; p < 20; p++) {
       var pa3 = p * TAU / 20;
       ctx.beginPath();
       ctx.arc(CX + Math.cos(pa3) * 62, CY + Math.sin(pa3) * 62, 62, 0, TAU);
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 0.15;
-    for (var p2 = 0; p2 < 14; p2++) {
-      var pa4 = p2 * TAU / 14;
-      ctx.beginPath();
-      ctx.arc(CX + Math.cos(pa4) * 32, CY + Math.sin(pa4) * 32, 32, 0, TAU);
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
@@ -2045,28 +2090,27 @@
     ctx.beginPath(); ctx.arc(0, 0, R_BELT_IN, 0, TAU);
     ctx.lineWidth = 1.1; ctx.stroke();
 
-    // 刻度：每 2.5° 一格，每 30°（一宫）加长
-    for (var t2 = 0; t2 < 144; t2++) {
-      var ta = t2 * TAU / 144;
-      var lg = (t2 % 12 === 0);
-      ctx.globalAlpha = lg ? 0.95 : 0.42;
-      ctx.lineWidth = lg ? 1.1 : 0.32;
-      ctx.strokeStyle = lg ? COL.goldHi : COL.gold;
+    // 刻度：每 30° 一宫的宫界线
+    for (var t2 = 0; t2 < 12; t2++) {
+      var ta = -Math.PI / 2 + t2 * Math.PI / 6;
+      ctx.globalAlpha = 0.4;
+      ctx.lineWidth = 0.6;
+      ctx.strokeStyle = COL.gold;
       ctx.beginPath();
-      ctx.moveTo(Math.cos(ta) * R_BELT_OUT, Math.sin(ta) * R_BELT_OUT);
-      ctx.lineTo(Math.cos(ta) * (R_BELT_OUT - (lg ? 15 : 7)), Math.sin(ta) * (R_BELT_OUT - (lg ? 15 : 7)));
+      ctx.moveTo(Math.cos(ta) * R_BELT_IN, Math.sin(ta) * R_BELT_IN);
+      ctx.lineTo(Math.cos(ta) * R_BELT_OUT, Math.sin(ta) * R_BELT_OUT);
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
 
-    // 二分二至：四个节气位加饰
+    // 二分二至：四个节气位加菱形饰
     for (var sq = 0; sq < 4; sq++) {
       var sa2 = -Math.PI / 2 + sq * Math.PI / 2;
       ctx.save();
       ctx.rotate(sa2);
-      ctx.translate(0, (R_BELT_IN + R_BELT_OUT) / 2);
+      ctx.translate(0, 315);
       ctx.beginPath();
-      ctx.moveTo(0, -6); ctx.lineTo(5, 0); ctx.lineTo(0, 6); ctx.lineTo(-5, 0);
+      ctx.moveTo(0, -5.5); ctx.lineTo(4.5, 0); ctx.lineTo(0, 5.5); ctx.lineTo(-4.5, 0);
       ctx.closePath();
       ctx.fillStyle = COL.goldHi;
       ctx.globalAlpha = 0.9;
@@ -2074,6 +2118,29 @@
       ctx.globalAlpha = 1;
       ctx.restore();
     }
+
+    // 十二宫标识：每宫正中一枚线描符号，太阳所在那宫提亮
+    var hotSec = Math.floor(sunLon / 30) % 12;
+    for (var gz = 0; gz < 12; gz++) {
+      var gc = -Math.PI / 2 + (gz + 0.5) * Math.PI / 6;
+      var gHot = (gz === hotSec);
+      ctx.save();
+      ctx.rotate(gc);
+      ctx.translate(0, R_ZOD_BELT);
+      ctx.rotate(Math.PI);            // 符号的“上”朝外
+      ctx.scale(0.24, 0.24);
+      ctx.lineWidth = 5.4;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.globalAlpha = 0.6;
+      ctx.strokeStyle = COL.beltLo;
+      ctx.save(); ctx.translate(2.2, 2.8); ZG[gz](); ctx.restore();
+      ctx.globalAlpha = gHot ? 1 : 0.9;
+      ctx.strokeStyle = gHot ? COL.goldHi : COL.gold;
+      ZG[gz]();
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
 
     // 日躔（太阳在黄道上的真实位置，一天走约 1°；0° = 春分在正上方）
     var ea = sunLon * Math.PI / 180 - Math.PI / 2;
@@ -2098,24 +2165,51 @@
     ctx.restore();
     ctx.restore();
 
-    // ══ 流动的星点（只有星星，没有星座连线）
+    // ══ 银河：圆形星点排成两条旋臂 + 核球 + 晕，另有少量随机四角星
     ctx.save();
     ctx.translate(CX, CY);
     ctx.rotate(frame * 1.0);
+
+    // 核球柔光
+    var cg = ctx.createRadialGradient(0, 0, 2, 0, 0, 132);
+    cg.addColorStop(0, COL.coreGlow);
+    cg.addColorStop(0.4, COL.coreGlowSoft);
+    cg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(0, 0, 132, 0, TAU);
+    ctx.fillStyle = cg; ctx.fill();
+
+    // 旋臂霾光（先铺一层朦胧的“银河”，星点再压上去）
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (var arm2 = 0; arm2 < 2; arm2++) {
+      for (var pass = 0; pass < 2; pass++) {
+        ctx.beginPath();
+        for (var q5 = 0; q5 <= 64; q5++) {
+          var th5 = 0.16 + (q5 / 64) * 4.3;
+          var rr5 = GAL_A * Math.exp(GAL_B * th5);
+          var aa5 = th5 + arm2 * Math.PI;
+          var px5 = Math.cos(aa5) * rr5, py5 = Math.sin(aa5) * rr5;
+          if (q5 === 0) ctx.moveTo(px5, py5); else ctx.lineTo(px5, py5);
+        }
+        ctx.strokeStyle = pass ? COL.armHi : COL.armHaze;
+        ctx.lineWidth = pass ? 15 : 42;
+        ctx.stroke();
+      }
+    }
+
     for (var s = 0; s < starDots.length; s++) {
       var sd = starDots[s];
       var sx = Math.cos(sd.a) * sd.r, sy = Math.sin(sd.a) * sd.r;
       ctx.beginPath(); ctx.arc(sx, sy, sd.s, 0, TAU);
       ctx.fillStyle = sd.c ? COL.blue : COL.gold;
-      ctx.globalAlpha = sd.b ? 1 : 0.75;
+      ctx.globalAlpha = sd.o;
       ctx.fill();
-      if (sd.b) {
-        ctx.globalAlpha = 0.45;
-        ctx.beginPath();
-        ctx.moveTo(sx - 7, sy); ctx.lineTo(sx + 7, sy);
-        ctx.moveTo(sx, sy - 7); ctx.lineTo(sx, sy + 7);
-        ctx.lineWidth = 0.35; ctx.strokeStyle = COL.gold; ctx.stroke();
-      }
+    }
+
+    // 四角星
+    for (var k = 0; k < sparkStars.length; k++) {
+      var sp = sparkStars[k];
+      sparkAt(Math.cos(sp.a) * sp.r, Math.sin(sp.a) * sp.r, sp.s, sp.o);
     }
     ctx.globalAlpha = 1;
     ctx.restore();
