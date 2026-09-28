@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    MAP · 站点交互脚本
    1. 明暗主题切换（记忆到 localStorage）
    2. 移动端导航
@@ -402,7 +402,7 @@
   var COL = ['#7cf5a8', '#ec6f9c', '#7fb3f0', '#eafff2'];
   var dark = false;
 
-  var SS = 5;
+  var SS = 2;
   var off = document.createElement('canvas');
   var octx = off.getContext('2d');
 
@@ -442,12 +442,15 @@
   }
 
   function pick() {
+    // 极坐标：以地心为原点。th = 方位角，r0 = 离地心的距离
     for (var i = 0; i < 60; i++) {
-      var x = W * (0.07 + Math.random() * 0.86);
-      var y = 150 + Math.random() * (H * 0.83);
-      var dx = x - gcx, dy = (y - gcy) * 1.28;          // 天空比地球宽，判定也压扁一点
-      if (Math.sqrt(dx * dx + dy * dy) < gr * 1.04) continue;   // 不落在地球身上
-      return { x: x, y: y };
+      var th = -Math.PI / 2 + (Math.random() - 0.5) * TAU;    // 任意方位
+      var r0 = gr * (1.02 + Math.random() * 0.55);
+      var x = gcx + Math.cos(th) * r0;
+      var y = gcy + Math.sin(th) * r0;
+      if (y < 150 || y > H - 40) continue;                     // 不靠近上方的太阳与星轨
+      if (x < W * 0.05 || x > W * 0.95) continue;
+      return { th: th, r0: r0 };
     }
     return null;
   }
@@ -455,22 +458,18 @@
   function spawn(t) {
     var s = pick();
     if (!s) return;
-    var w = W * (0.15 + Math.random() * 0.15);
-    var h = H * (0.17 + Math.random() * 0.13);
-    if (s.y - h < 26) s.y = h + 26;                     // 帘幕完整落在画布内（星轨在上缘之上）
     bands.push({
-      x: s.x, y: s.y,
-      w: w,
-      h: h,
+      th: s.th,
+      r0: s.r0,
+      w: gr * (0.36 + Math.random() * 0.40),      // 切向宽度（弧长）
+      len: gr * (0.26 + Math.random() * 0.30),    // 沿半径向外的长度
       t0: t,
       fin: 4 + Math.random() * 3,
       hold: 11 + Math.random() * 15,
       fout: 5 + Math.random() * 4,
       seed: Math.random() * 100,
-      k1: 0.0016 + Math.random() * 0.0014,
-      k2: 0.0055 + Math.random() * 0.004,
-      drift: (Math.random() - 0.5) * 0.02,
-      rays: 34 + Math.floor(Math.random() * 16)
+      spin: (Math.random() - 0.5) * 0.012,        // 沿方位角缓慢漂移
+      rays: 26 + Math.floor(Math.random() * 12)
     });
     var b = bands[bands.length - 1];
     b.life = b.fin + b.hold + b.fout;
@@ -510,50 +509,47 @@
       if (env <= 0) continue;
       env = env * env * (3 - 2 * env);                // 平滑的淡入淡出
       var sway = Math.sin(t * 0.11 + bd.seed) * 0.5 + 0.5;
-      var cx0 = bd.x + (t - bd.t0) * bd.drift * bd.w;
+      var th = bd.th + (t - bd.t0) * bd.spin;         // 沿方位角缓慢漂移
 
-      // 帘幕整体：一层很淡的底光，主要亮度交给下面的光柱
-      var gAll = octx.createLinearGradient(0, bd.y, 0, bd.y - bd.h);
-      gAll.addColorStop(0.00, toRgba(COL[1], 0.00));
-      gAll.addColorStop(0.06, toRgba(COL[1], 0.10 * env));   // 底缘一点粉红
-      gAll.addColorStop(0.17, toRgba(COL[0], 0.17 * env));
-      gAll.addColorStop(0.44, toRgba(COL[0], 0.09 * env));
-      gAll.addColorStop(0.74, toRgba(COL[2], 0.035 * env));
-      gAll.addColorStop(1.00, toRgba(COL[2], 0.00));
-      octx.beginPath();
-      octx.ellipse(cx0, bd.y - bd.h * 0.38, bd.w * 0.5, bd.h * 0.44, 0, 0, TAU);
-      octx.fillStyle = gAll;
-      octx.fill();
+      // 换到以地心为原点的极坐标局部系：
+      // 局部 +x = 背离地球（极光向天上长），局部 +y = 切向（帘幕的宽度方向）
+      octx.save();
+      octx.translate(gcx, gcy);
+      octx.rotate(th);
+      octx.translate(bd.r0, 0);
 
-      // 竖直光柱（极光帘的褶皱）：底边参差、高度不一，才不像一个发光的胶囊
       var n = bd.rays;
+      var halfW = bd.w * 0.5;
       for (var r2 = 0; r2 < n; r2++) {
         var u = (r2 + 0.5) / n;
-        var rx = cx0 + (u - 0.5) * bd.w;
+        var yy = (u - 0.5) * bd.w;
         var wob = Math.sin(u * 7.2 + bd.seed + t * 0.32) * 0.5 + 0.5;
         var jit = Math.sin(u * 23.7 + bd.seed * 2.1) * 0.5 + Math.sin(u * 5.3 - bd.seed) * 0.5;
-        var yB = bd.y + jit * bd.h * 0.12;                       // 底边不齐
-        var hh = bd.h * (0.30 + 0.78 * wob) * (0.62 + 0.38 * Math.sin(u * 3.1 - bd.seed * 1.3 + t * 0.19));
-        var al = (0.26 + 0.62 * wob) * env * (0.5 + 0.5 * Math.abs(Math.sin(r2 * 2.3 + t * 0.7)));
-        if (al <= 0.01 || hh <= 4) continue;
-        var gr2 = octx.createLinearGradient(0, yB, 0, yB - hh);
-        gr2.addColorStop(0.00, toRgba(COL[1], 0.00));
-        gr2.addColorStop(0.09, toRgba(COL[0], al * 0.95));
-        gr2.addColorStop(0.34, toRgba(COL[0], al * 0.52));
-        gr2.addColorStop(0.72, toRgba(COL[2], al * 0.16));
-        gr2.addColorStop(1.00, toRgba(COL[2], 0.00));
+        var x0 = jit * bd.len * 0.10;                            // 底边参差
+        var hh = bd.len * (0.30 + 0.78 * wob) * (0.62 + 0.38 * Math.sin(u * 3.1 - bd.seed * 1.3 + t * 0.19));
+        var al = (0.30 + 0.62 * wob) * env * (0.5 + 0.5 * Math.abs(Math.sin(r2 * 2.3 + t * 0.7)));
+        if (al <= 0.012 || hh <= 4) continue;
+        var g2 = octx.createLinearGradient(x0, 0, x0 + hh, 0);
+        g2.addColorStop(0.00, toRgba(COL[1], 0.00));
+        g2.addColorStop(0.10, toRgba(COL[0], al * 0.95));        // 靠地球一侧是亮绿
+        g2.addColorStop(0.36, toRgba(COL[0], al * 0.50));
+        g2.addColorStop(0.74, toRgba(COL[2], al * 0.15));
+        g2.addColorStop(1.00, toRgba(COL[2], 0.00));
         octx.beginPath();
-        octx.ellipse(rx, yB - hh * 0.5, bd.w / n * 0.68, hh * 0.5, 0, 0, TAU);
-        octx.fillStyle = gr2;
+        octx.ellipse(x0 + hh * 0.5, yy, hh * 0.5, bd.w / n * 0.58, 0, 0, TAU);
+        octx.fillStyle = g2;
         octx.fill();
       }
 
-      // 底缘那条白绿亮线
+      // 贴着地球一侧的那道白绿亮弧
       octx.beginPath();
-      octx.ellipse(cx0, bd.y + Math.sin(t * 0.21 + bd.seed) * bd.h * 0.03,
-                   bd.w * 0.42, bd.h * 0.028, 0, 0, TAU);
-      octx.fillStyle = toRgba(COL[3], 0.20 * env * (0.7 + 0.3 * sway));
+      octx.ellipse(Math.sin(t * 0.21 + bd.seed) * bd.len * 0.03,
+                   Math.sin(t * 0.17 + bd.seed * 1.7) * bd.w * 0.04,
+                   bd.len * 0.055, halfW * 0.82, 0, 0, TAU);
+      octx.fillStyle = toRgba(COL[3], 0.16 * env * (0.7 + 0.3 * sway));
       octx.fill();
+
+      octx.restore();
     }
     octx.globalCompositeOperation = 'source-over';
 
@@ -1836,7 +1832,7 @@
         tick: '#a98c56',
         numeral: '#e6d7b4', numShadow: 'rgba(0,0,0,0.7)',
         edgeDark: 'rgba(0,0,0,0.5)',
-        blue: '#7fa3cf', blueD: '#0d1016',
+        blue: '#7fa3cf', blueHi: '#bcd8f6', blueD: '#0d1016',
         belt: 'rgba(127,163,207,0.20)', beltHi: 'rgba(127,163,207,0.28)',
         beltLo: 'rgba(127,163,207,0.12)', beltLit: 'rgba(127,163,207,0.40)',
         discHi: 'rgba(127,163,207,0.20)', disc: 'rgba(127,163,207,0.10)',
@@ -1862,7 +1858,7 @@
         tick: '#8a7350',
         numeral: '#4a3b22', numShadow: 'rgba(252,249,240,0.92)',
         edgeDark: 'rgba(90,74,48,0.34)',
-        blue: '#3d5f8c', blueD: '#2a3f5c',
+        blue: '#3d5f8c', blueHi: '#6f9ad0', blueD: '#2a3f5c',
         belt: 'rgba(61,95,140,0.15)', beltHi: 'rgba(61,95,140,0.22)',
         beltLo: 'rgba(61,95,140,0.08)', beltLit: 'rgba(61,95,140,0.30)',
         discHi: 'rgba(61,95,140,0.16)', disc: 'rgba(61,95,140,0.08)',
@@ -1915,7 +1911,7 @@
     noisePat = ctx.createPattern(n, 'repeat');
   }
 
-  /* ---------- 四角星 ---------- */
+  /* ---------- 四角星（银河里的亮星，蓝色系） ---------- */
   function sparkAt(x, y, R, o) {
     var w = R * 0.15;
     ctx.beginPath();
@@ -1925,11 +1921,11 @@
     ctx.quadraticCurveTo(x - w, y + w, x - R, y);
     ctx.quadraticCurveTo(x - w, y - w, x, y - R);
     ctx.closePath();
-    ctx.fillStyle = COL.gold;
+    ctx.fillStyle = COL.blue;
     ctx.globalAlpha = o;
     ctx.fill();
     ctx.beginPath(); ctx.arc(x, y, R * 0.22, 0, TAU);
-    ctx.fillStyle = COL.goldHi;
+    ctx.fillStyle = COL.blueHi;
     ctx.fill();
     ctx.globalAlpha = 1;
   }
@@ -2242,7 +2238,7 @@
       starDots.push({
         a: a, r: r * (1 + g2 * sr),
         s: 0.6 + Math.random() * 1.4, o: 0.36 + Math.random() * 0.46,
-        c: Math.random() < 0.15
+        c: Math.random() < 0.90
       });
     }
     // 旋臂上的亮结（年轻星团）：让四条臂各自能被认出来
@@ -2261,7 +2257,7 @@
             r: rK * (1 + (Math.random() - 0.5) * 2 * srK),
             s: 1.0 + Math.random() * 1.2,
             o: 0.55 + Math.random() * 0.35,
-            c: Math.random() < 0.2
+            c: Math.random() < 0.90
           });
         }
       }
@@ -2270,7 +2266,7 @@
     for (i = 0; i < 96; i++) {
       a = Math.random() * TAU;
       r = 62 + Math.pow(Math.random(), 1.4) * 60;
-      starDots.push({ a: a, r: r, s: 0.7 + Math.random() * 1.5, o: 0.4 + Math.random() * 0.4, c: Math.random() < 0.14 });
+      starDots.push({ a: a, r: r, s: 0.7 + Math.random() * 1.5, o: 0.4 + Math.random() * 0.4, c: Math.random() < 0.90 });
     }
     // 弥散晕
     for (i = 0; i < 70; i++) {
