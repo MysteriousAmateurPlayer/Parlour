@@ -1756,69 +1756,77 @@
 
   var COL = null;
   function readColors() {
+    /* 古典地图 / 星图的配色：纸色为底、棕墨为线、群青作淡水彩、赭金点缀。
+       不再有珐琅实心块与金属光泽渐变 —— 蓝与金只作为「墨色的一种」，
+       和站内其他页面的铜版画质感统一。 */
     if (document.documentElement.getAttribute('data-theme') === 'dark') {
       COL = {
-        field: '#0a1423', plate: '#162a47', plateLo: '#060d18',
-        gold: '#c9a86a', goldHi: '#f6e9c2', goldLo: '#7d6430',
-        tick: '#b99a58',
-        numeral: '#efdcaa', numShadow: 'rgba(0,0,0,0.75)',
-        edgeDark: 'rgba(0,0,0,0.62)',
-        blue: '#2c5286', blueD: '#0c1c33',
-        belt: '#16304f', beltHi: '#20456f', beltLo: '#0b1a2e', beltLit: 'rgba(150,190,240,0.42)',
-        discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138', discHot: '#4a7cb8',
-        glow: 'rgba(246,233,194,0.34)', glowSoft: 'rgba(246,233,194,0.16)',
-        coreGlow: 'rgba(246,233,194,0.16)', coreGlowSoft: 'rgba(190,215,250,0.07)',
-        bhCore: '#04060a', bhRing: '#fffdf6', bhRingSoft: 'rgba(255,250,232,0.7)',
-        bhIn: 'rgba(255,253,246,0.97)', bhMid: 'rgba(226,180,92,0.78)',
-        bhOut: 'rgba(140,100,40,0.30)', bhGlow: 'rgba(255,228,164,0.30)',
-        bhHot: 'rgba(255,255,250,0.95)', bhHotSoft: 'rgba(255,216,146,0.42)',
-        bhGlowSoft: 'rgba(200,220,250,0.09)',
-        shadow: 'rgba(0,0,0,0.55)', hilite: 'rgba(255,246,214,0.45)',
-        vignette: 'rgba(0,0,0,0.38)', sheen: 'rgba(190,215,255,0.10)',
-        filigree: 'rgba(200,168,106,0.10)',
-        moon: '#f2e7c8', moonHi: '#fffaea', moonLo: '#d6c398',
-        mare: 'rgba(146,128,94,0.28)', mareSoft: 'rgba(146,128,94,0.12)',
-        crater: 'rgba(96,86,58,0.22)', craterHi: 'rgba(255,248,224,0.30)'
+        field: '#131519', plate: '#1a1d23', plateLo: '#0e1014',
+        gold: '#c2a066', goldHi: '#e8d3a0', goldLo: '#7d6438',
+        tick: '#a98c56',
+        numeral: '#e6d7b4', numShadow: 'rgba(0,0,0,0.7)',
+        edgeDark: 'rgba(0,0,0,0.5)',
+        blue: '#7fa3cf', blueD: '#0d1016',
+        belt: 'rgba(127,163,207,0.20)', beltHi: 'rgba(127,163,207,0.28)',
+        beltLo: 'rgba(127,163,207,0.12)', beltLit: 'rgba(127,163,207,0.40)',
+        discHi: 'rgba(127,163,207,0.20)', disc: 'rgba(127,163,207,0.10)',
+        discLo: 'rgba(127,163,207,0.03)', discHot: 'rgba(127,163,207,0.34)',
+        glow: 'rgba(194,160,102,0.30)', glowSoft: 'rgba(194,160,102,0.14)',
+        coreGlow: 'rgba(194,160,102,0.16)', coreGlowSoft: 'rgba(127,163,207,0.08)',
+        bhCore: '#0b0d12', bhRing: '#d8c294', bhRingSoft: 'rgba(216,194,148,0.55)',
+        bhIn: 'rgba(200,174,120,0.62)', bhMid: 'rgba(194,160,102,0.34)',
+        bhOut: 'rgba(194,160,102,0.13)', bhGlow: 'rgba(194,160,102,0.20)',
+        bhHot: 'rgba(232,211,160,0.85)', bhHotSoft: 'rgba(194,160,102,0.34)',
+        bhGlowSoft: 'rgba(127,163,207,0.08)',
+        shadow: 'rgba(0,0,0,0.45)', hilite: 'rgba(232,211,160,0.42)',
+        vignette: 'rgba(0,0,0,0.34)', sheen: 'rgba(200,220,250,0.08)',
+        filigree: 'rgba(194,160,102,0.10)',
+        moon: '#efe6cf', moonHi: '#fdf9ee', moonLo: '#d3c4a2',
+        mare: 'rgba(150,132,96,0.30)', mareSoft: 'rgba(150,132,96,0.13)',
+        crater: 'rgba(150,132,96,0.26)', craterHi: 'rgba(253,249,238,0.34)'
       };
     } else {
       COL = {
-        field: '#dfd3b4', plate: '#faf4e2', plateLo: '#cdb98d',
-        gold: '#8f6f2f', goldHi: '#e8d29a', goldLo: '#54411a',
-        tick: '#8a6d3b',
-        numeral: '#5b4519', numShadow: 'rgba(255,253,246,0.95)',
-        edgeDark: 'rgba(120,96,52,0.42)',
-        blue: '#1f3a63', blueD: '#0f2138',
-        belt: '#26456f', beltHi: '#37619a', beltLo: '#172d4d', beltLit: 'rgba(170,205,248,0.55)',
-        discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138', discHot: '#4a7cb8',
-        glow: 'rgba(255,250,232,0.7)', glowSoft: 'rgba(255,250,232,0.34)',
-        coreGlow: 'rgba(255,246,214,0.20)', coreGlowSoft: 'rgba(200,220,250,0.08)',
-        bhCore: '#04060a', bhRing: '#fffaf0', bhRingSoft: 'rgba(255,246,220,0.62)',
-        bhIn: 'rgba(255,252,240,0.95)', bhMid: 'rgba(234,190,104,0.8)',
-        bhOut: 'rgba(150,110,45,0.32)', bhGlow: 'rgba(255,226,160,0.26)',
-        bhHot: 'rgba(255,254,248,0.92)', bhHotSoft: 'rgba(246,206,132,0.38)',
-        bhGlowSoft: 'rgba(190,215,250,0.08)',
-        shadow: 'rgba(70,52,24,0.28)', hilite: 'rgba(255,252,240,0.9)',
-        vignette: 'rgba(110,86,42,0.22)', sheen: 'rgba(255,255,255,0.34)',
-        filigree: 'rgba(180,150,90,0.12)',
-        moon: '#f7eed6', moonHi: '#fffdf6', moonLo: '#dfcfa2',
-        mare: 'rgba(154,134,98,0.24)', mareSoft: 'rgba(154,134,98,0.10)',
-        crater: 'rgba(150,128,86,0.20)', craterHi: 'rgba(255,252,240,0.6)'
+        field: '#ece3d0', plate: '#faf6ec', plateLo: '#e4d9c0',
+        gold: '#8a6a34', goldHi: '#c9a961', goldLo: '#5c4820',
+        tick: '#8a7350',
+        numeral: '#4a3b22', numShadow: 'rgba(252,249,240,0.92)',
+        edgeDark: 'rgba(90,74,48,0.34)',
+        blue: '#3d5f8c', blueD: '#2a3f5c',
+        belt: 'rgba(61,95,140,0.15)', beltHi: 'rgba(61,95,140,0.22)',
+        beltLo: 'rgba(61,95,140,0.08)', beltLit: 'rgba(61,95,140,0.30)',
+        discHi: 'rgba(61,95,140,0.16)', disc: 'rgba(61,95,140,0.08)',
+        discLo: 'rgba(61,95,140,0.02)', discHot: 'rgba(61,95,140,0.26)',
+        glow: 'rgba(138,106,52,0.22)', glowSoft: 'rgba(138,106,52,0.10)',
+        coreGlow: 'rgba(138,106,52,0.12)', coreGlowSoft: 'rgba(61,95,140,0.05)',
+        bhCore: '#2a2118', bhRing: '#6b5228', bhRingSoft: 'rgba(107,82,40,0.45)',
+        bhIn: 'rgba(90,74,48,0.42)', bhMid: 'rgba(90,74,48,0.16)',
+        bhOut: 'rgba(90,74,48,0.07)', bhGlow: 'rgba(138,106,52,0.10)',
+        bhHot: 'rgba(74,59,34,0.62)', bhHotSoft: 'rgba(138,106,52,0.18)',
+        bhGlowSoft: 'rgba(138,106,52,0.04)',
+        shadow: 'rgba(90,74,48,0.16)', hilite: 'rgba(255,253,246,0.85)',
+        vignette: 'rgba(120,98,58,0.13)', sheen: 'rgba(255,255,255,0.20)',
+        filigree: 'rgba(138,106,52,0.10)',
+        moon: '#f4eddb', moonHi: '#fdfaf2', moonLo: '#ded2b4',
+        mare: 'rgba(122,104,72,0.22)', mareSoft: 'rgba(122,104,72,0.09)',
+        crater: 'rgba(122,104,72,0.24)', craterHi: 'rgba(253,250,242,0.6)'
       };
     }
   }
 
+  /* 铜版画不用金属光泽：给线条一点点深浅变化就够，不再是亮金/暗金交替 */
   var goldGrad = null;
   function buildGrads() {
     var g = ctx.createLinearGradient(CX - R * 0.95, CY - R * 0.95, CX + R * 0.95, CY + R * 0.95);
-    g.addColorStop(0.00, COL.goldLo);
-    g.addColorStop(0.18, COL.gold);
-    g.addColorStop(0.36, COL.goldHi);
-    g.addColorStop(0.54, COL.gold);
-    g.addColorStop(0.72, COL.goldLo);
-    g.addColorStop(0.88, COL.goldHi);
-    g.addColorStop(1.00, COL.goldLo);
+    g.addColorStop(0.00, COL.gold);
+    g.addColorStop(0.30, COL.goldLo);
+    g.addColorStop(0.58, COL.gold);
+    g.addColorStop(0.84, COL.goldLo);
+    g.addColorStop(1.00, COL.gold);
     goldGrad = g;
   }
+
+  /* 细平行排线：铜版画的看家本领，用来代替渐变色块做明暗 */
 
   /* ---------- 做旧噪点 ---------- */
   var noisePat = null;
@@ -1905,35 +1913,47 @@
       ctx.globalAlpha = 1;
     }
 
-    // 吸积盘辉光（椭圆，随呼吸微微明暗）
+    // 吸积盘：铜版画式的同心椭圆排线 + 极淡的水彩，而不是发光的实心渐变
+    function diskLines(from, to) {
+      for (var k = 0; k <= 10; k++) {
+        var rr = RIN + (ROUT - RIN) * (k / 10);
+        ctx.beginPath();
+        ctx.arc(0, 0, rr, from, to);
+        ctx.strokeStyle = COL.bhRing;
+        ctx.globalAlpha = 0.34 - k * 0.022;
+        ctx.lineWidth = (k === 0 || k === 10) ? 0.9 : 0.4;
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+    function diskWash(from, to, al) {
+      ctx.beginPath();
+      ctx.arc(0, 0, ROUT, from, to);
+      ctx.arc(0, 0, RIN, to, from, true);
+      ctx.closePath();
+      ctx.fillStyle = COL.bhMid;
+      ctx.globalAlpha = al;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // 盘外一层极淡的暖晕（呼吸）
     diskFrame();
-    var gl = ctx.createRadialGradient(0, 0, RH * 0.5, 0, 0, ROUT * 1.35);
+    var gl = ctx.createRadialGradient(0, 0, RH * 0.6, 0, 0, ROUT * 1.3);
     gl.addColorStop(0, COL.bhGlow);
-    gl.addColorStop(0.42, COL.bhGlowSoft);
+    gl.addColorStop(0.45, COL.bhGlowSoft);
     gl.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.beginPath(); ctx.arc(0, 0, ROUT * 1.35, 0, TAU);
+    ctx.beginPath(); ctx.arc(0, 0, ROUT * 1.3, 0, TAU);
     ctx.globalAlpha = pulse;
     ctx.fillStyle = gl;
     ctx.fill();
     ctx.globalAlpha = 1;
     ctx.restore();
 
-    var dg = ctx.createRadialGradient(0, 0, RIN, 0, 0, ROUT);
-    dg.addColorStop(0.00, COL.bhIn);
-    dg.addColorStop(0.14, COL.bhMid);
-    dg.addColorStop(0.58, COL.bhOut);
-    dg.addColorStop(1.00, 'rgba(0,0,0,0)');
-
     // 盘的后半（在黑洞之后）+ 位于后半的热斑
     diskFrame();
-    ctx.beginPath();
-    ctx.arc(0, 0, ROUT, Math.PI, TAU);
-    ctx.arc(0, 0, RIN, TAU, Math.PI, true);
-    ctx.closePath();
-    ctx.fillStyle = dg;
-    ctx.globalAlpha = 0.8;
-    ctx.fill();
-    ctx.globalAlpha = 1;
+    diskWash(Math.PI, TAU, 0.45);
+    diskLines(Math.PI, TAU);
     drawSpots(true);
     ctx.restore();
 
@@ -1942,51 +1962,43 @@
     ctx.fillStyle = COL.bhCore;
     ctx.fill();
 
-    // 光子环
-    ctx.beginPath(); ctx.arc(0, 0, RH + 2.6, 0, TAU);
-    ctx.lineWidth = 3.4;
+    // 光子环：双线细描
+    ctx.beginPath(); ctx.arc(0, 0, RH + 2.4, 0, TAU);
+    ctx.lineWidth = 1.6;
     ctx.strokeStyle = COL.bhRing;
     ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, RH + 1.2, 0, TAU);
-    ctx.lineWidth = 1.2;
-    ctx.globalAlpha = 0.8;
-    ctx.strokeStyle = COL.bhIn;
+    ctx.beginPath(); ctx.arc(0, 0, RH + 5.4, 0, TAU);
+    ctx.lineWidth = 0.7;
+    ctx.globalAlpha = 0.7;
     ctx.stroke();
     ctx.globalAlpha = 1;
-    ctx.beginPath(); ctx.arc(0, 0, RH + 8, 0, TAU);
-    ctx.lineWidth = 1.4;
-    ctx.globalAlpha = 0.6;
+    ctx.beginPath(); ctx.arc(0, 0, RH + 8.6, 0, TAU);
+    ctx.lineWidth = 0.6;
+    ctx.globalAlpha = 0.5;
     ctx.strokeStyle = COL.bhRingSoft;
     ctx.stroke();
     ctx.globalAlpha = 1;
 
     // 盘的前半（从黑洞前面穿过）+ 位于前半的热斑
     diskFrame();
-    ctx.beginPath();
-    ctx.arc(0, 0, ROUT, 0, Math.PI);
-    ctx.arc(0, 0, RIN, Math.PI, 0, true);
-    ctx.closePath();
-    ctx.fillStyle = dg;
-    ctx.fill();
+    diskWash(0, Math.PI, 0.85);
+    diskLines(0, Math.PI);
     drawSpots(false);
     ctx.restore();
 
     ctx.restore();
   }
 
-  /* ---------- 浮雕圆环：暗边 + 金属线 + 内侧高光 ---------- */
+  /* ---------- 双细线圆环：古典地图的边框画法（取代金属浮雕） ---------- */
   function bevelRing(r, w, strong) {
-    ctx.beginPath(); ctx.arc(CX, CY, r + (strong ? 1.3 : 0.9), 0, TAU);
-    ctx.lineWidth = w + (strong ? 2.6 : 1.8);
-    ctx.strokeStyle = COL.edgeDark; ctx.stroke();
+    var gap = strong ? 3.4 : 2.4;
     ctx.beginPath(); ctx.arc(CX, CY, r, 0, TAU);
-    ctx.lineWidth = w;
-    ctx.strokeStyle = strong ? goldGrad : COL.gold;
+    ctx.lineWidth = strong ? 0.9 : 0.55;
+    ctx.strokeStyle = COL.gold;
     ctx.stroke();
-    ctx.beginPath(); ctx.arc(CX, CY, r - w * 0.5 - 0.5, 0, TAU);
-    ctx.lineWidth = Math.max(0.3, w * 0.34);
-    ctx.strokeStyle = COL.hilite;
-    ctx.globalAlpha = strong ? 0.6 : 0.38;
+    ctx.beginPath(); ctx.arc(CX, CY, r - gap, 0, TAU);
+    ctx.lineWidth = strong ? 0.5 : 0.34;
+    ctx.globalAlpha = 0.75;
     ctx.stroke();
     ctx.globalAlpha = 1;
   }
@@ -1997,27 +2009,26 @@
       var a = i * TAU / n;
       var x = CX + Math.cos(a) * r, y = CY + Math.sin(a) * r;
       ctx.beginPath(); ctx.arc(x, y, size, 0, TAU);
-      ctx.fillStyle = COL.gold; ctx.globalAlpha = 0.8; ctx.fill();
-      ctx.beginPath(); ctx.arc(x - size * 0.3, y - size * 0.3, size * 0.46, 0, TAU);
-      ctx.fillStyle = COL.goldHi; ctx.globalAlpha = 0.85; ctx.fill();
+      ctx.fillStyle = COL.gold; ctx.globalAlpha = 0.55; ctx.fill();
     }
     ctx.globalAlpha = 1;
   }
 
-  /* ---------- 实心金属环带 ---------- */
+  /* ---------- 双线环带 + 淡彩：取代原来的实心金属环 ---------- */
   function goldBand(r0, r1) {
     ctx.beginPath();
     ctx.arc(CX, CY, r1, 0, TAU);
     ctx.arc(CX, CY, r0, 0, TAU, true);
-    ctx.fillStyle = goldGrad;
+    ctx.fillStyle = COL.gold; ctx.globalAlpha = 0.09;
     ctx.fill();
-    ctx.strokeStyle = COL.goldLo;
-    ctx.lineWidth = 0.7;
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.55;
     ctx.beginPath(); ctx.arc(CX, CY, r1, 0, TAU); ctx.stroke();
     ctx.beginPath(); ctx.arc(CX, CY, r0, 0, TAU); ctx.stroke();
-    ctx.beginPath(); ctx.arc(CX, CY, (r0 + r1) / 2 + (r1 - r0) * 0.22, 0, TAU);
-    ctx.strokeStyle = COL.hilite; ctx.globalAlpha = 0.55; ctx.lineWidth = (r1 - r0) * 0.2;
-    ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.globalAlpha = 0.55;
+    ctx.lineWidth = 0.32;
+    ctx.beginPath(); ctx.arc(CX, CY, (r0 + r1) / 2, 0, TAU); ctx.stroke();
+    ctx.globalAlpha = 1;
   }
 
   var ROMAN = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
@@ -2229,19 +2240,18 @@
     var edges = [Ro, Ro - 10, Ri + 10, Ri];
     for (var e = 0; e < edges.length; e++) {
       ctx.beginPath(); ctx.arc(CX, CY, edges[e], 0, TAU);
-      ctx.strokeStyle = goldGrad;
-      ctx.lineWidth = (e === 0 || e === 3) ? 1.0 : 0.5;
+      ctx.strokeStyle = COL.gold;
+      ctx.lineWidth = (e === 0 || e === 3) ? 0.9 : 0.4;
+      ctx.globalAlpha = (e === 1 || e === 2) ? 0.6 : 1;
       ctx.stroke();
     }
-    ctx.beginPath(); ctx.arc(CX, CY, Ri + 1.4, 0, TAU);
-    ctx.strokeStyle = COL.hilite; ctx.globalAlpha = 0.55; ctx.lineWidth = 0.4; ctx.stroke();
     ctx.globalAlpha = 1;
 
     var Rm = (Ri + Ro) / 2;
     var rot = T * 0.05;
-    ctx.globalAlpha = 0.9;
-    ctx.strokeStyle = goldGrad;
-    ctx.lineWidth = 0.45;
+    ctx.globalAlpha = 0.7;
+    ctx.strokeStyle = COL.gold;
+    ctx.lineWidth = 0.4;
     for (var w = 0; w < 3; w++) {
       var baseR = Rm + (w - 1) * 10;
       var phase = w * TAU / 3;
@@ -2330,17 +2340,13 @@
 
   /* ---------- ④ 星图表盘 ---------- */
   function drawDial(frame, sunLon) {
-    // 盘面：投影与穹顶金属底一次画完（少一次整盘填充）
+    // 盘面：纸色，投影只留一点点（不再是抬起感很强的金属盘）
     ctx.save();
     ctx.shadowColor = COL.shadow;
-    ctx.shadowBlur = 20;
-    ctx.shadowOffsetY = 6;
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 3;
     ctx.beginPath(); ctx.arc(CX, CY, R_DIAL, 0, TAU);
-    var rg = ctx.createRadialGradient(CX - R_DIAL * 0.32, CY - R_DIAL * 0.34, R_DIAL * 0.04, CX, CY, R_DIAL * 1.04);
-    rg.addColorStop(0, COL.plate);
-    rg.addColorStop(0.4, COL.plate);
-    rg.addColorStop(1, COL.plateLo);
-    ctx.fillStyle = rg;
+    ctx.fillStyle = COL.plate;
     ctx.fill();
     ctx.restore();
 
@@ -2354,25 +2360,25 @@
       ctx.fillRect(CX - R_DIAL, CY - R_DIAL, R_DIAL * 2, R_DIAL * 2);
     }
 
-    // ── 玑镂纹：内区细同心纹
+    // ── 内区细同心纹（玑镂 → 铜版画的同心排线）
     ctx.strokeStyle = COL.gold;
-    ctx.lineWidth = 0.32;
-    ctx.globalAlpha = 0.15;
+    ctx.lineWidth = 0.3;
+    ctx.globalAlpha = 0.13;
     for (var rr2 = 26; rr2 < 176; rr2 += 4) {
       ctx.beginPath(); ctx.arc(CX, CY, rr2, 0, TAU); ctx.stroke();
     }
     ctx.globalAlpha = 1;
 
-    // ── 铁轨式分钟刻度（railway track）
+    // ── 铁轨式分钟刻度：双线 + 短格，老地图的边框画法
     ctx.strokeStyle = COL.gold;
-    ctx.globalAlpha = 0.5; ctx.lineWidth = 0.4;
+    ctx.globalAlpha = 0.55; ctx.lineWidth = 0.4;
     ctx.beginPath(); ctx.arc(CX, CY, 345, 0, TAU); ctx.stroke();
     ctx.beginPath(); ctx.arc(CX, CY, 350, 0, TAU); ctx.stroke();
     for (var m2 = 0; m2 < 60; m2++) {
       var ma2 = m2 * TAU / 60;
       var big = (m2 % 5 === 0);
       ctx.globalAlpha = big ? 0.7 : 0.32;
-      ctx.lineWidth = big ? 0.8 : 0.3;
+      ctx.lineWidth = big ? 0.7 : 0.28;
       ctx.beginPath();
       ctx.moveTo(CX + Math.cos(ma2) * (big ? 340 : 344), CY + Math.sin(ma2) * (big ? 340 : 344));
       ctx.lineTo(CX + Math.cos(ma2) * 350, CY + Math.sin(ma2) * 350);
@@ -2392,29 +2398,25 @@
     }
     ctx.globalAlpha = 1;
 
-    // ══ 蓝色黄道圈：太阳的周年轨道。
-    //    固定不动（不随天球视旋转），分十二宫，太阳所在那一宫整格点亮 —— 这样
-    //    金太阳的位置就是「日躔」，一眼能读出太阳现在在哪一宫。
+    // ══ 黄道圈：太阳的周年轨道。固定不动，分十二宫，太阳所在那一宫整格上淡淡的水彩 ——
+    //    这一圈就是「日躔」，金太阳落在哪一格、哪一格亮，一眼可读。
     ctx.save();
     ctx.translate(CX, CY);
 
-    // 当前宫位高亮：先铺底，再压蓝底，最后再淡淡叠一层，确保在蓝底上看得出来
     var secA0 = -Math.PI / 2 + Math.floor(sunLon / 30) * Math.PI / 6;
 
+    // 整圈极淡的群青水彩
     ctx.beginPath();
     ctx.arc(0, 0, R_BELT_OUT, 0, TAU);
     ctx.arc(0, 0, R_BELT_IN, 0, TAU, true);
-    var bg2 = ctx.createRadialGradient(0, 0, R_BELT_IN, 0, 0, R_BELT_OUT);
-    bg2.addColorStop(0, COL.beltLo);
-    bg2.addColorStop(0.5, COL.belt);
-    bg2.addColorStop(1, COL.beltHi);
-    ctx.fillStyle = bg2;
+    ctx.fillStyle = COL.belt;
     ctx.fill();
     ctx.globalAlpha = 0.5;
     ensureNoise();
     if (noisePat) { ctx.fillStyle = noisePat; ctx.fill(); }
     ctx.globalAlpha = 1;
 
+    // 太阳所在那一宫：洗得更重一点
     ctx.beginPath();
     ctx.arc(0, 0, R_BELT_OUT - 1.5, secA0, secA0 + Math.PI / 6);
     ctx.arc(0, 0, R_BELT_IN + 1.5, secA0 + Math.PI / 6, secA0, true);
@@ -2422,16 +2424,39 @@
     ctx.fillStyle = COL.beltLit;
     ctx.fill();
 
-    ctx.beginPath(); ctx.arc(0, 0, R_BELT_OUT, 0, TAU);
-    ctx.strokeStyle = goldGrad; ctx.lineWidth = 1.1; ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, R_BELT_IN, 0, TAU);
-    ctx.lineWidth = 1.1; ctx.stroke();
+    // 环带里的细密排线（铜版画的影调）
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, R_BELT_OUT - 2, 0, TAU);
+    ctx.arc(0, 0, R_BELT_IN + 2, 0, TAU, true);
+    ctx.clip();
+    ctx.strokeStyle = COL.blue;
+    ctx.globalAlpha = 0.20;
+    ctx.lineWidth = 0.3;
+    for (var hb = 0; hb < 288; hb++) {
+      var hba = hb * TAU / 288;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(hba) * R_BELT_IN, Math.sin(hba) * R_BELT_IN);
+      ctx.lineTo(Math.cos(hba) * R_BELT_OUT, Math.sin(hba) * R_BELT_OUT);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
 
-    // 刻度：每 30° 一宫的宫界线
+    // 双细线收边
+    ctx.strokeStyle = COL.gold;
+    ctx.beginPath(); ctx.arc(0, 0, R_BELT_OUT, 0, TAU); ctx.lineWidth = 0.85; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R_BELT_OUT - 4, 0, TAU); ctx.lineWidth = 0.35; ctx.globalAlpha = 0.7; ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(0, 0, R_BELT_IN, 0, TAU); ctx.lineWidth = 0.85; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R_BELT_IN + 4, 0, TAU); ctx.lineWidth = 0.35; ctx.globalAlpha = 0.7; ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // 宫界线
     for (var t2 = 0; t2 < 12; t2++) {
       var ta = -Math.PI / 2 + t2 * Math.PI / 6;
-      ctx.globalAlpha = 0.4;
-      ctx.lineWidth = 0.6;
+      ctx.globalAlpha = 0.45;
+      ctx.lineWidth = 0.5;
       ctx.strokeStyle = COL.gold;
       ctx.beginPath();
       ctx.moveTo(Math.cos(ta) * R_BELT_IN, Math.sin(ta) * R_BELT_IN);
@@ -2440,18 +2465,17 @@
     }
     ctx.globalAlpha = 1;
 
-    // 二分二至：四个节气位加菱形饰
+    // 二分二至：四个节气位加线描菱形
     for (var sq = 0; sq < 4; sq++) {
       var sa2 = -Math.PI / 2 + sq * Math.PI / 2;
       ctx.save();
       ctx.rotate(sa2);
       ctx.translate(0, 315);
       ctx.beginPath();
-      ctx.moveTo(0, -5.5); ctx.lineTo(4.5, 0); ctx.lineTo(0, 5.5); ctx.lineTo(-4.5, 0);
+      ctx.moveTo(0, -5); ctx.lineTo(4, 0); ctx.lineTo(0, 5); ctx.lineTo(-4, 0);
       ctx.closePath();
-      ctx.fillStyle = COL.goldHi;
-      ctx.globalAlpha = 0.9;
-      ctx.fill();
+      ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.7; ctx.globalAlpha = 0.9;
+      ctx.stroke();
       ctx.globalAlpha = 1;
       ctx.restore();
     }
@@ -2487,27 +2511,27 @@
     for (var q4 = 0; q4 < 16; q4++) {
       var qa2 = q4 * TAU / 16;
       ctx.beginPath();
-      ctx.moveTo(ex + Math.cos(qa2) * 9, ey + Math.sin(qa2) * 9);
-      ctx.lineTo(ex + Math.cos(qa2) * (q4 % 2 ? 12 : 15), ey + Math.sin(qa2) * (q4 % 2 ? 12 : 15));
-      ctx.lineWidth = 0.9; ctx.strokeStyle = COL.goldHi; ctx.globalAlpha = 0.9; ctx.stroke();
+      ctx.moveTo(ex + Math.cos(qa2) * 8, ey + Math.sin(qa2) * 8);
+      ctx.lineTo(ex + Math.cos(qa2) * (q4 % 2 ? 11 : 14), ey + Math.sin(qa2) * (q4 % 2 ? 11 : 14));
+      ctx.lineWidth = 0.7; ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.9; ctx.stroke();
     }
     ctx.globalAlpha = 1;
-    ctx.beginPath(); ctx.arc(ex, ey, 7.5, 0, TAU);
-    var sg = ctx.createRadialGradient(ex - 3, ey - 3, 1, ex, ey, 9);
-    sg.addColorStop(0, COL.goldHi);
-    sg.addColorStop(0.7, COL.gold);
-    sg.addColorStop(1, COL.goldLo);
-    ctx.fillStyle = sg; ctx.fill();
-    ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.6; ctx.stroke();
+    // 太阳：双圈线描 + 淡赭心（不再是金属球）
+    ctx.beginPath(); ctx.arc(ex, ey, 7, 0, TAU);
+    ctx.fillStyle = COL.gold; ctx.globalAlpha = 0.16; ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.beginPath(); ctx.arc(ex, ey, 3.2, 0, TAU);
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.5; ctx.stroke();
     ctx.restore();
     ctx.restore();
 
-    // ══ 银河：圆形星点排成两条旋臂 + 核球 + 晕，另有少量随机四角星
+    // ══ 银河：圆形星点排成四条旋臂 + 核球 + 晕，另有少量随机四角星
     ctx.save();
     ctx.translate(CX, CY);
     ctx.rotate(frame * 1.0);
 
-    // 核球柔光
+    // 核球：极淡的赭色晕
     var cg = ctx.createRadialGradient(0, 0, 2, 0, 0, 118);
     cg.addColorStop(0, COL.coreGlow);
     cg.addColorStop(0.42, COL.coreGlowSoft);
@@ -2541,7 +2565,7 @@
     ctx.globalAlpha = 1;
     ctx.restore();
 
-    // 边缘内晕
+    // 纸面的暗角（很轻）
     var vg = ctx.createRadialGradient(CX, CY, R_DIAL * 0.5, CX, CY, R_DIAL);
     vg.addColorStop(0, 'rgba(0,0,0,0)');
     vg.addColorStop(0.7, 'rgba(0,0,0,0)');
@@ -2549,21 +2573,11 @@
     ctx.fillStyle = vg;
     ctx.fillRect(CX - R_DIAL, CY - R_DIAL, R_DIAL * 2, R_DIAL * 2);
 
-    // 金属斜向反光（sheen）
-    var sh = ctx.createLinearGradient(CX - R_DIAL, CY + R_DIAL, CX + R_DIAL, CY - R_DIAL);
-    sh.addColorStop(0.00, 'rgba(255,255,255,0)');
-    sh.addColorStop(0.30, 'rgba(255,255,255,0)');
-    sh.addColorStop(0.44, COL.sheen);
-    sh.addColorStop(0.56, 'rgba(255,255,255,0)');
-    sh.addColorStop(1.00, 'rgba(255,255,255,0)');
-    ctx.fillStyle = sh;
-    ctx.fillRect(CX - R_DIAL, CY - R_DIAL, R_DIAL * 2, R_DIAL * 2);
-
-    // 银心黑洞：画在最后，免得被反光与暗角洗白
+    // 银心黑洞：画在最后
     drawBlackHole(T);
     ctx.restore();
 
-    bevelRing(R_DIAL, 1.8, true);
+    bevelRing(R_DIAL, 1.2, true);
   }
 
   /* ---------- ⑤ 月相 ---------- */
@@ -2571,13 +2585,20 @@
     var f = (1 - Math.cos(phase * TAU)) / 2;   // 被照亮比例 0=朔 1=望
     var k = Math.abs(1 - 2 * f);               // 明暗界线半轴系数
 
+    // 暗面：纸色 + 倾斜排线（古典星图里的月亮都是这么画的）
     ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU);
-    var dg = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r);
-    dg.addColorStop(0, COL.blue); dg.addColorStop(1, COL.blueD);
-    ctx.fillStyle = dg; ctx.fill();
-    ctx.beginPath(); ctx.arc(0, 0, r * 0.97, 0, TAU);
-    ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.3; ctx.lineWidth = r * 0.015; ctx.stroke();
+    ctx.fillStyle = COL.plate; ctx.fill();
+    ctx.save();
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.clip();
+    ctx.strokeStyle = COL.mare; ctx.globalAlpha = 0.5; ctx.lineWidth = r * 0.012;
+    for (var hx = -r; hx <= r; hx += r * 0.075) {
+      ctx.beginPath();
+      ctx.moveTo(hx, -r);
+      ctx.lineTo(hx + r * 0.5, r);
+      ctx.stroke();
+    }
     ctx.globalAlpha = 1;
+    ctx.restore();
 
     // 亮面：+x 方向朝向表心（太阳方向）
     ctx.save();
@@ -2587,14 +2608,9 @@
     ctx.ellipse(0, 0, Math.max(0.0001, r * k), r, 0, Math.PI / 2, -Math.PI / 2, f < 0.5);
     ctx.closePath();
     ctx.clip();
-    var lg = ctx.createRadialGradient(r * 0.18, -r * 0.12, r * 0.04, 0, 0, r * 1.04);
-    lg.addColorStop(0, COL.moonHi);
-    lg.addColorStop(0.5, COL.moon);
-    lg.addColorStop(0.86, COL.moon);
-    lg.addColorStop(1, COL.moonLo);
-    ctx.fillStyle = lg;
+    ctx.fillStyle = COL.moon;
     ctx.fillRect(-r, -r, r * 2, r * 2);
-    // 月海（柔和边缘）
+    // 月海：淡淡的水彩
     for (var m = 0; m < maria.length; m++) {
       var mm = maria[m];
       ctx.save();
@@ -2609,25 +2625,25 @@
       ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
       ctx.restore();
     }
-    // 环形山
+    // 环形山：小圆圈 + 一段阴影弧（线描）
     for (var i = 0; i < craters.length; i++) {
       var c = craters[i];
       var px = c.x * r, py = c.y * r, pr = c.r * r;
-      var cg = ctx.createRadialGradient(px - pr * 0.3, py - pr * 0.3, pr * 0.1, px, py, pr);
-      cg.addColorStop(0, COL.crater);
-      cg.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.beginPath(); ctx.arc(px, py, pr, 0, TAU);
-      ctx.fillStyle = cg; ctx.fill();
-      ctx.beginPath(); ctx.arc(px, py, pr * 0.9, Math.PI * 1.06, Math.PI * 1.94);
-      ctx.strokeStyle = COL.craterHi; ctx.lineWidth = r * 0.008; ctx.stroke();
+      ctx.strokeStyle = COL.crater; ctx.lineWidth = r * 0.01; ctx.stroke();
+      if (pr > r * 0.05) {
+        ctx.beginPath(); ctx.arc(px, py, pr * 0.58, Math.PI * 1.05, Math.PI * 1.95);
+        ctx.strokeStyle = COL.craterHi; ctx.lineWidth = r * 0.007; ctx.stroke();
+      }
     }
     ctx.restore();
 
+    // 月缘：双细线
     ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU);
-    ctx.lineWidth = r * 0.03; ctx.strokeStyle = goldGrad; ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, r - r * 0.024, 0, TAU);
-    ctx.lineWidth = r * 0.008; ctx.strokeStyle = COL.hilite;
-    ctx.globalAlpha = 0.5; ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.lineWidth = r * 0.02; ctx.strokeStyle = COL.gold; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, r - r * 0.03, 0, TAU);
+    ctx.lineWidth = r * 0.008; ctx.strokeStyle = COL.gold;
+    ctx.globalAlpha = 0.6; ctx.stroke(); ctx.globalAlpha = 1;
   }
 
   function drawMoonDisc(mx, my, ang, spin, phase, sunDir, moonSign) {
@@ -2647,16 +2663,9 @@
     ctx.rotate(spin);   // 盘面自转（含十二宫环与刻纹）
 
     ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC, 0, TAU);
-    var mg = ctx.createLinearGradient(-R_MOON_DISC, -R_MOON_DISC, R_MOON_DISC, R_MOON_DISC);
-    mg.addColorStop(0.00, COL.goldLo);
-    mg.addColorStop(0.20, COL.gold);
-    mg.addColorStop(0.38, COL.goldHi);
-    mg.addColorStop(0.56, COL.gold);
-    mg.addColorStop(0.74, COL.goldLo);
-    mg.addColorStop(0.90, COL.goldHi);
-    mg.addColorStop(1.00, COL.goldLo);
-    ctx.fillStyle = mg; ctx.fill();
+    ctx.fillStyle = COL.plate; ctx.fill();
 
+    // 盘面里一圈淡群青水彩（原来的蓝珐琅）
     ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 15, 0, TAU);
     var eg = ctx.createRadialGradient(-R_MOON_DISC * 0.3, -R_MOON_DISC * 0.3, R_MOON_DISC * 0.06, 0, 0, R_MOON_DISC);
     eg.addColorStop(0, COL.discHi);
@@ -2672,6 +2681,12 @@
     }
     ctx.restore();
 
+    // 外缘：双细线（取代金属圈）
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC, 0, TAU);
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 1.0; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 4, 0, TAU);
+    ctx.lineWidth = 0.5; ctx.globalAlpha = 0.75; ctx.stroke(); ctx.globalAlpha = 1;
+
     // 外圈刻纹（让自转看得见）
     for (var i = 0; i < 96; i++) {
       var a = i * TAU / 96;
@@ -2679,20 +2694,20 @@
       ctx.beginPath();
       ctx.moveTo(Math.cos(a) * (R_MOON_DISC - 13), Math.sin(a) * (R_MOON_DISC - 13));
       ctx.lineTo(Math.cos(a) * (R_MOON_DISC - (long ? 3 : 8)), Math.sin(a) * (R_MOON_DISC - (long ? 3 : 8)));
-      ctx.strokeStyle = long ? COL.goldHi : COL.gold;
-      ctx.globalAlpha = long ? 0.9 : 0.5;
-      ctx.lineWidth = long ? 1.1 : 0.45;
+      ctx.strokeStyle = COL.gold;
+      ctx.globalAlpha = long ? 0.85 : 0.42;
+      ctx.lineWidth = long ? 0.9 : 0.35;
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
     ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 13, 0, TAU);
-    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.6; ctx.stroke();
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.5; ctx.stroke();
 
-    // 十二宫环底纹
+    // 十二宫环底线
     ctx.beginPath(); ctx.arc(0, 0, R_ZOD_DISC + 18, 0, TAU);
-    ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.5; ctx.lineWidth = 0.55; ctx.stroke();
+    ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.5; ctx.lineWidth = 0.5; ctx.stroke();
     ctx.beginPath(); ctx.arc(0, 0, R_ZOD_DISC - 16, 0, TAU);
-    ctx.globalAlpha = 0.35; ctx.lineWidth = 0.4; ctx.stroke();
+    ctx.globalAlpha = 0.32; ctx.lineWidth = 0.35; ctx.stroke();
     ctx.globalAlpha = 1;
 
     // 十二宫徽章（月亮所在那一宫高亮）
@@ -2706,40 +2721,20 @@
       ctx.save();
       ctx.rotate(za + Math.PI / 2);
 
-      if (hot) {   // 光晕：一眼看出月亮在哪一宫
-        var gl = ctx.createRadialGradient(0, 0, MR * 0.7, 0, 0, MR + 20);
-        gl.addColorStop(0, COL.glow);
-        gl.addColorStop(0.55, COL.glowSoft);
-        gl.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.beginPath(); ctx.arc(0, 0, MR + 20, 0, TAU);
-        ctx.fillStyle = gl; ctx.fill();
-        ctx.beginPath(); ctx.arc(0, 0, MR + 2.4, 0, TAU);
-        ctx.strokeStyle = COL.goldHi; ctx.lineWidth = 2.2; ctx.stroke();
-      }
-
+      // 徽章：墨线圆 + 极淡的群青洗（高亮那枚洗得更重、线更粗）
       ctx.beginPath(); ctx.arc(0, 0, MR, 0, TAU);
-      var rg2 = ctx.createRadialGradient(-6, -7, 2, 0, 0, MR + 1);
-      rg2.addColorStop(0, COL.goldHi);
-      rg2.addColorStop(0.42, COL.gold);
-      rg2.addColorStop(0.78, COL.goldLo);
-      rg2.addColorStop(1, COL.gold);
-      ctx.fillStyle = rg2; ctx.fill();
-
-      ctx.beginPath(); ctx.arc(0, 0, MR - 3.1, 0, TAU);
-      if (hot) {
-        var rg4 = ctx.createRadialGradient(-4, -6, 2, 0, 0, MR);
-        rg4.addColorStop(0, COL.discHot);
-        rg4.addColorStop(1, COL.discHi);
-        ctx.fillStyle = rg4;
-      } else {
-        var rg3 = ctx.createRadialGradient(-4, -6, 2, 0, 0, MR);
-        rg3.addColorStop(0, COL.discHi);
-        rg3.addColorStop(0.7, COL.disc);
-        rg3.addColorStop(1, COL.discLo);
-        ctx.fillStyle = rg3;
-      }
+      ctx.fillStyle = COL.plate; ctx.fill();
+      ctx.fillStyle = hot ? COL.discHot : COL.disc;
       ctx.fill();
-      ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.7; ctx.stroke();
+      ctx.strokeStyle = COL.gold;
+      ctx.lineWidth = hot ? 1.5 : 0.7;
+      ctx.globalAlpha = hot ? 1 : 0.85;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      if (hot) {
+        ctx.beginPath(); ctx.arc(0, 0, MR + 3.2, 0, TAU);
+        ctx.lineWidth = 0.6; ctx.globalAlpha = 0.7; ctx.stroke(); ctx.globalAlpha = 1;
+      }
 
       ctx.save();
       ctx.scale(0.25, 0.25);
@@ -2766,7 +2761,9 @@
 
     // 内圈挡圈
     ctx.beginPath(); ctx.arc(0, 0, R_MOON + 16, 0, TAU);
-    ctx.strokeStyle = goldGrad; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.7; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON + 19, 0, TAU);
+    ctx.globalAlpha = 0.6; ctx.lineWidth = 0.4; ctx.stroke(); ctx.globalAlpha = 1;
 
     ctx.restore();   // 结束自转
 
@@ -2774,8 +2771,8 @@
     ctx.save();
     ctx.rotate(sunDir);
     ctx.beginPath(); ctx.arc(0, 0, R_MOON + 13, 0, TAU);
-    ctx.fillStyle = COL.blueD; ctx.fill();
-    ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.fillStyle = COL.plate; ctx.fill();
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.6; ctx.stroke();
     drawMoon(R_MOON, phase);
     ctx.restore();
 
@@ -2794,18 +2791,18 @@
     ctx.lineTo(CX - ca * tail - px * wb * 0.26, CY - sa * tail - py * wb * 0.26);
     ctx.lineTo(sx - px * wb * 0.5, sy - py * wb * 0.5);
     ctx.closePath();
-    ctx.fillStyle = goldGrad;
+    ctx.fillStyle = COL.plate;
     ctx.fill();
-    ctx.lineWidth = 1.0;
-    ctx.strokeStyle = COL.goldLo;
+    ctx.lineWidth = 0.85;
+    ctx.strokeStyle = COL.gold;
     ctx.stroke();
+    // 中脊线（铜版画的手指常用一根中线暗示体量）
     ctx.beginPath();
-    ctx.moveTo(CX + ca * len * 0.95, CY + sa * len * 0.95);
-    ctx.lineTo(sx + px * wb * 0.16, sy + py * wb * 0.16);
-    ctx.lineTo(CX - ca * tail * 0.85, CY - sa * tail * 0.85);
-    ctx.strokeStyle = COL.hilite;
-    ctx.globalAlpha = 0.55;
-    ctx.lineWidth = 1.0;
+    ctx.moveTo(CX + ca * len * 0.96, CY + sa * len * 0.96);
+    ctx.lineTo(CX - ca * tail * 0.9, CY - sa * tail * 0.9);
+    ctx.strokeStyle = COL.gold;
+    ctx.globalAlpha = 0.45;
+    ctx.lineWidth = 0.35;
     ctx.stroke();
     ctx.globalAlpha = 1;
     // 尖端矛形
@@ -2815,15 +2812,13 @@
     ctx.lineTo(CX + ca * (len - 22), CY + sa * (len - 22));
     ctx.lineTo(CX + ca * len - px * wb * 0.42, CY + sa * len - py * wb * 0.42);
     ctx.closePath();
-    ctx.fillStyle = goldGrad; ctx.fill();
-    ctx.lineWidth = 0.8; ctx.strokeStyle = COL.goldLo; ctx.stroke();
+    ctx.fillStyle = COL.gold; ctx.globalAlpha = 0.22; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.lineWidth = 0.8; ctx.strokeStyle = COL.gold; ctx.stroke();
     // 尾部配重环
     ctx.beginPath();
-    ctx.arc(CX - ca * tail * 0.72, CY - sa * tail * 0.72, wb * 0.34, 0, TAU);
-    ctx.fillStyle = COL.goldLo; ctx.fill();
-    ctx.beginPath();
-    ctx.arc(CX - ca * tail * 0.72, CY - sa * tail * 0.72, wb * 0.34, 0, TAU);
-    ctx.strokeStyle = COL.goldHi; ctx.lineWidth = 0.6; ctx.stroke();
+    ctx.arc(CX - ca * tail * 0.72, CY - sa * tail * 0.72, wb * 0.3, 0, TAU);
+    ctx.fillStyle = COL.gold; ctx.globalAlpha = 0.2; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.6; ctx.stroke();
   }
 
   function drawHands(h, m, s) {
@@ -2835,35 +2830,26 @@
     drawHand(aH, 150, 34, 22);
     drawHand(aM, 252, 46, 12);
 
+    // 秒针：一根细墨线 + 小圈配重
     ctx.beginPath();
     ctx.moveTo(CX - Math.cos(aS) * 50, CY - Math.sin(aS) * 50);
     ctx.lineTo(CX + Math.cos(aS) * 316, CY + Math.sin(aS) * 316);
-    ctx.strokeStyle = COL.goldLo;
-    ctx.lineWidth = 2.4;
+    ctx.strokeStyle = COL.gold;
+    ctx.globalAlpha = 0.85;
+    ctx.lineWidth = 0.7;
     ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(CX - Math.cos(aS) * 48, CY - Math.sin(aS) * 48);
-    ctx.lineTo(CX + Math.cos(aS) * 314, CY + Math.sin(aS) * 314);
-    ctx.strokeStyle = COL.goldHi;
-    ctx.lineWidth = 0.9;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(CX - Math.cos(aS) * 50, CY - Math.sin(aS) * 50, 6, 0, TAU);
-    ctx.fillStyle = goldGrad; ctx.fill();
-    ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.6; ctx.stroke();
-
-    // 中心轴（缩小，把中心让给银心黑洞）
-    ctx.beginPath(); ctx.arc(CX, CY, 10.5, 0, TAU);
-    ctx.fillStyle = goldGrad; ctx.fill();
-    ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.9; ctx.stroke();
-    ctx.beginPath(); ctx.arc(CX, CY, 8.2, 0, TAU);
-    ctx.strokeStyle = COL.hilite; ctx.globalAlpha = 0.5; ctx.lineWidth = 0.5; ctx.stroke();
     ctx.globalAlpha = 1;
-    ctx.beginPath(); ctx.arc(CX, CY, 5.6, 0, TAU);
-    ctx.fillStyle = COL.blue; ctx.fill();
-    ctx.strokeStyle = COL.goldHi; ctx.lineWidth = 0.5; ctx.stroke();
-    ctx.beginPath(); ctx.arc(CX, CY, 2.2, 0, TAU);
-    ctx.fillStyle = COL.goldHi; ctx.fill();
+    ctx.beginPath();
+    ctx.arc(CX - Math.cos(aS) * 50, CY - Math.sin(aS) * 50, 5.5, 0, TAU);
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.7; ctx.stroke();
+
+    // 中心轴：双圈线描
+    ctx.beginPath(); ctx.arc(CX, CY, 10, 0, TAU);
+    ctx.fillStyle = COL.plate; ctx.fill();
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.85; ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, 5, 0, TAU);
+    ctx.fillStyle = COL.gold; ctx.globalAlpha = 0.35; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.5; ctx.stroke();
   }
 
   /* ---------- 布局：表盘中心落在「视口垂直正中 × 屏宽黄金分割」 ---------- */
