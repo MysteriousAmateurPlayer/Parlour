@@ -1533,7 +1533,7 @@
   new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 })();
 
-/* ==========================================================================
+﻿/* ==========================================================================
    天文表盘时钟（随性笔记页）：canvas 软件渲染的蓝金豪华天文钟。
    读出真实时间（时/分/秒针）+ 天象：太阳黄经驱动日躔位置，朔望月驱动月相。
    结构（由外到内）：
@@ -1571,7 +1571,10 @@
   var SPIN_PERIOD = 300;       // 月相盘自转周期（秒）
   var ORBIT_PERIOD = 420;      // 月相盘公转周期（秒，演示速率）
   var STAR_PERIOD = 480;       // 星点流动周期（秒，演示速率）
-  var GAL_A = 18, GAL_B = 0.62;   // 银河两条对数旋臂：r = A·e^(Bθ)
+  var GAL_A = 30;                          // 银河旋臂：r = A·e^(Bθ)
+  var GAL_PITCH = 12 * Math.PI / 180;      // 旋臂倾角（pitch angle）≈ 12°，银河实测值
+  var GAL_B = Math.tan(GAL_PITCH);         // 对数螺线系数 = tan(倾角)
+  var GAL_ARMS = 4;                        // 银河是四条主旋臂
 
   var FONT = '"Palatino Linotype","Book Antiqua",Palatino,Constantia,Cambria,Georgia,"Times New Roman",serif';
 
@@ -1588,8 +1591,7 @@
         belt: '#16304f', beltHi: '#20456f', beltLo: '#0b1a2e', beltLit: 'rgba(150,190,240,0.42)',
         discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138', discHot: '#4a7cb8',
         glow: 'rgba(246,233,194,0.34)', glowSoft: 'rgba(246,233,194,0.16)',
-        coreGlow: 'rgba(246,233,194,0.20)', coreGlowSoft: 'rgba(190,215,250,0.09)',
-        armHaze: 'rgba(170,205,250,0.10)', armHi: 'rgba(200,225,255,0.13)',
+        coreGlow: 'rgba(246,233,194,0.16)', coreGlowSoft: 'rgba(190,215,250,0.07)',
         shadow: 'rgba(0,0,0,0.55)', hilite: 'rgba(255,246,214,0.45)',
         vignette: 'rgba(0,0,0,0.38)', sheen: 'rgba(190,215,255,0.10)',
         filigree: 'rgba(200,168,106,0.10)',
@@ -1608,8 +1610,7 @@
         belt: '#26456f', beltHi: '#37619a', beltLo: '#172d4d', beltLit: 'rgba(170,205,248,0.55)',
         discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138', discHot: '#4a7cb8',
         glow: 'rgba(255,250,232,0.7)', glowSoft: 'rgba(255,250,232,0.34)',
-        coreGlow: 'rgba(255,246,214,0.34)', coreGlowSoft: 'rgba(200,220,250,0.14)',
-        armHaze: 'rgba(214,190,140,0.17)', armHi: 'rgba(232,212,164,0.20)',
+        coreGlow: 'rgba(255,246,214,0.20)', coreGlowSoft: 'rgba(200,220,250,0.08)',
         shadow: 'rgba(70,52,24,0.28)', hilite: 'rgba(255,252,240,0.9)',
         vignette: 'rgba(110,86,42,0.22)', sheen: 'rgba(255,255,255,0.34)',
         filigree: 'rgba(180,150,90,0.12)',
@@ -1831,30 +1832,52 @@
   var starDots = [], sparkStars = [], craters = [], maria = [];
   (function initData() {
     var i, a, r, th;
-    // 两条对数旋臂（按弧长均匀取样，外圈才不会稀疏）
+    // 四条对数旋臂（倾角 12°，按弧长均匀取样，外圈才不会稀疏）
     var A0 = GAL_A, B = GAL_B;
-    var rmin = 24, rmax = 284;
-    for (i = 0; i < 900; i++) {
-      var arm = i % 2;
-      r = rmin + Math.pow(Math.random(), 1.35) * (rmax - rmin);
+    var rmin = 100, rmax = 288;
+    var th0 = Math.log(rmin / GAL_A) / GAL_B;
+    var th1 = Math.log(rmax / GAL_A) / GAL_B;
+    for (i = 0; i < 1500; i++) {
+      var arm = i % GAL_ARMS;
+      r = rmin + Math.pow(Math.random(), 1.25) * (rmax - rmin);
       th = Math.log(r / GAL_A) / GAL_B;
-      a = th + arm * Math.PI + (Math.random() - 0.5) * 0.19;
+      // 近高斯散布：多数星点贴着旋臂中线，少量散开 —— 臂才清晰又松散
+      var g1 = (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+      var g2 = (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+      a = th + arm * TAU / GAL_ARMS + g1 * 0.13;
       starDots.push({
-        a: a, r: r * (0.95 + Math.random() * 0.1),
-        s: 0.8 + Math.random() * 1.9, o: 0.5 + Math.random() * 0.5,
+        a: a, r: r * (1 + g2 * 0.06),
+        s: 0.6 + Math.random() * 1.4, o: 0.36 + Math.random() * 0.46,
         c: Math.random() < 0.15
       });
     }
+    // 旋臂上的亮结（年轻星团）：让四条臂各自能被认出来
+    for (var kk = 0; kk < GAL_ARMS; kk++) {
+      for (var nb = 0; nb < 26; nb++) {
+        var thK = th0 + (nb / 25) * (th1 - th0) + (Math.random() - 0.5) * 0.06;
+        var rK = GAL_A * Math.exp(GAL_B * thK);
+        var aK = thK + kk * TAU / GAL_ARMS;
+        for (var mb = 0; mb < 6; mb++) {
+          starDots.push({
+            a: aK + (Math.random() - 0.5) * 0.06,
+            r: rK * (1 + (Math.random() - 0.5) * 0.085),
+            s: 1.0 + Math.random() * 1.2,
+            o: 0.55 + Math.random() * 0.35,
+            c: Math.random() < 0.2
+          });
+        }
+      }
+    }
     // 核球
-    for (i = 0; i < 190; i++) {
+    for (i = 0; i < 320; i++) {
       a = Math.random() * TAU;
-      r = Math.pow(Math.random(), 1.9) * 72;
+      r = Math.pow(Math.random(), 1.8) * 104;
       starDots.push({ a: a, r: r, s: 0.7 + Math.random() * 1.6, o: 0.55 + Math.random() * 0.45, c: Math.random() < 0.12 });
     }
     // 弥散晕
-    for (i = 0; i < 60; i++) {
+    for (i = 0; i < 70; i++) {
       a = Math.random() * TAU;
-      r = 46 + Math.sqrt(Math.random()) * 240;
+      r = 60 + Math.sqrt(Math.random()) * 232;
       starDots.push({ a: a, r: r, s: 0.5 + Math.random() * 0.9, o: 0.2 + Math.random() * 0.3 });
     }
     // 少量随机四角星
@@ -1990,15 +2013,11 @@
 
   /* ---------- ④ 星图表盘 ---------- */
   function drawDial(frame, sunLon) {
-    // 盘面：先落投影（抬起感），再铺金属穹顶
+    // 盘面：投影与穹顶金属底一次画完（少一次整盘填充）
     ctx.save();
     ctx.shadowColor = COL.shadow;
     ctx.shadowBlur = 20;
     ctx.shadowOffsetY = 6;
-    ctx.beginPath(); ctx.arc(CX, CY, R_DIAL, 0, TAU);
-    ctx.fillStyle = COL.plate; ctx.fill();
-    ctx.restore();
-
     ctx.beginPath(); ctx.arc(CX, CY, R_DIAL, 0, TAU);
     var rg = ctx.createRadialGradient(CX - R_DIAL * 0.32, CY - R_DIAL * 0.34, R_DIAL * 0.04, CX, CY, R_DIAL * 1.04);
     rg.addColorStop(0, COL.plate);
@@ -2006,6 +2025,7 @@
     rg.addColorStop(1, COL.plateLo);
     ctx.fillStyle = rg;
     ctx.fill();
+    ctx.restore();
 
     ctx.save();
     ctx.beginPath(); ctx.arc(CX, CY, R_DIAL, 0, TAU);
@@ -2171,40 +2191,30 @@
     ctx.rotate(frame * 1.0);
 
     // 核球柔光
-    var cg = ctx.createRadialGradient(0, 0, 2, 0, 0, 132);
+    var cg = ctx.createRadialGradient(0, 0, 2, 0, 0, 118);
     cg.addColorStop(0, COL.coreGlow);
-    cg.addColorStop(0.4, COL.coreGlowSoft);
+    cg.addColorStop(0.42, COL.coreGlowSoft);
     cg.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.beginPath(); ctx.arc(0, 0, 132, 0, TAU);
+    ctx.beginPath(); ctx.arc(0, 0, 118, 0, TAU);
     ctx.fillStyle = cg; ctx.fill();
 
-    // 旋臂霾光（先铺一层朦胧的“银河”，星点再压上去）
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    for (var arm2 = 0; arm2 < 2; arm2++) {
-      for (var pass = 0; pass < 2; pass++) {
-        ctx.beginPath();
-        for (var q5 = 0; q5 <= 64; q5++) {
-          var th5 = 0.16 + (q5 / 64) * 4.3;
-          var rr5 = GAL_A * Math.exp(GAL_B * th5);
-          var aa5 = th5 + arm2 * Math.PI;
-          var px5 = Math.cos(aa5) * rr5, py5 = Math.sin(aa5) * rr5;
-          if (q5 === 0) ctx.moveTo(px5, py5); else ctx.lineTo(px5, py5);
-        }
-        ctx.strokeStyle = pass ? COL.armHi : COL.armHaze;
-        ctx.lineWidth = pass ? 15 : 42;
-        ctx.stroke();
-      }
-    }
-
+    // 星点按「颜色 + 透明度档」合并成少数几条路径再一次性填充，避免上千次 fill
+    var groups = {}, gk;
     for (var s = 0; s < starDots.length; s++) {
       var sd = starDots[s];
       var sx = Math.cos(sd.a) * sd.r, sy = Math.sin(sd.a) * sd.r;
-      ctx.beginPath(); ctx.arc(sx, sy, sd.s, 0, TAU);
-      ctx.fillStyle = sd.c ? COL.blue : COL.gold;
-      ctx.globalAlpha = sd.o;
-      ctx.fill();
+      var bucket = Math.max(0, Math.min(4, Math.round(sd.o * 5 - 0.5)));
+      gk = (sd.c ? 'b' : 'g') + bucket;
+      var pth = groups[gk] || (groups[gk] = new Path2D());
+      pth.moveTo(sx + sd.s, sy);
+      pth.arc(sx, sy, sd.s, 0, TAU);
     }
+    for (gk in groups) {
+      ctx.globalAlpha = (parseInt(gk.slice(1), 10) + 0.5) / 5;
+      ctx.fillStyle = (gk.charAt(0) === 'b') ? COL.blue : COL.gold;
+      ctx.fill(groups[gk]);
+    }
+    ctx.globalAlpha = 1;
 
     // 四角星
     for (var k = 0; k < sparkStars.length; k++) {
@@ -2627,14 +2637,27 @@
   }
 
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var T = 0;
+  var T = 0, rafId = 0, running = false;
+
   function loop(now) {
     T = now / 1000;
     render(T);
-    requestAnimationFrame(loop);
+    rafId = requestAnimationFrame(loop);
   }
+  function startClock() {
+    if (running || reduce) return;
+    running = true;
+    rafId = requestAnimationFrame(loop);
+  }
+  function stopClock() {
+    if (!running) return;
+    running = false;
+    cancelAnimationFrame(rafId);
+  }
+
   computeLayout();
   render(0);
+
   if (reduce) {
     // 静态一帧：等布局/字体稳定后再补两次，避免首次测量时机太早
     window.addEventListener('load', function () { computeLayout(); render(0); });
@@ -2644,7 +2667,8 @@
     }
     return;
   }
-  requestAnimationFrame(loop);
+
+  startClock();
   window.addEventListener('resize', function () { computeLayout(); render(T); }, { passive: true });
   window.addEventListener('load', function () { computeLayout(); render(T); });
   if (document.fonts && document.fonts.ready) {
@@ -2652,4 +2676,13 @@
   }
   new MutationObserver(function () { render(T); })
     .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  // 滚出视口就停掉动画，别在看不见的地方白烧 CPU
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) startClock(); else stopClock();
+      }
+    }, { threshold: 0 }).observe(cv);
+  }
 })();
