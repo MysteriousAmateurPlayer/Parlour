@@ -1533,7 +1533,7 @@
   new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 })();
 
-﻿﻿/* ==========================================================================
+﻿﻿﻿/* ==========================================================================
    天文表盘时钟（随性笔记页）：canvas 软件渲染的蓝金豪华天文钟。
    读出真实时间（时/分/秒针）+ 天象：太阳黄经驱动日躔位置，朔望月驱动月相。
    结构（由外到内）：
@@ -2374,8 +2374,9 @@
       pth.moveTo(sx + sd.s, sy);
       pth.arc(sx, sy, sd.s, 0, TAU);
     }
+    // 旋臂星点整体调浅 25%（原来是 (bucket+0.5)/5，太亮压过了盘面）
     for (gk in groups) {
-      ctx.globalAlpha = (parseInt(gk.slice(1), 10) + 0.5) / 5;
+      ctx.globalAlpha = ((parseInt(gk.slice(1), 10) + 0.5) / 5) * 0.75;
       ctx.fillStyle = (gk.charAt(0) === 'b') ? COL.blue : COL.gold;
       ctx.fill(groups[gk]);
     }
@@ -2384,7 +2385,7 @@
     // 四角星
     for (var k = 0; k < sparkStars.length; k++) {
       var sp = sparkStars[k];
-      sparkAt(Math.cos(sp.a) * sp.r, Math.sin(sp.a) * sp.r, sp.s, sp.o);
+      sparkAt(Math.cos(sp.a) * sp.r, Math.sin(sp.a) * sp.r, sp.s, sp.o * 0.75);
     }
     ctx.globalAlpha = 1;
     ctx.restore();
