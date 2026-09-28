@@ -1564,10 +1564,10 @@
   var R_BELT_IN = 300;         // 蓝色黄道带内缘
   var R_ZOD_BELT = 312;        // 十二宫标识所在半径
   var R_ECL = 330;             // 日躔（太阳）所在半径
-  var R_MOON_DISC = 194;       // 月相盘半径（外沿正好压到阿拉伯数字环 378）
-  var R_MOON_ORBIT = 194;      // 月相盘公转半径
-  var R_ZOD_DISC = 146;        // 十二宫环（位于月相盘上）
-  var R_MOON = 94;             // 月亮圆半径
+  var R_MOON_DISC = 148;       // 月相盘半径（外沿 148+240 = 388，正好压到阿拉伯数字环）
+  var R_MOON_ORBIT = 240;      // 月相盘公转半径（内沿 240-148 = 92，给银心黑洞让出净空）
+  var R_ZOD_DISC = 108;        // 十二宫环（位于月相盘上）
+  var R_MOON = 70;             // 月亮圆半径
   var SPIN_PERIOD = 300;       // 月相盘自转周期（秒）
   var ORBIT_PERIOD = 420;      // 月相盘公转周期（秒，演示速率）
   var STAR_PERIOD = 480;       // 星点流动周期（秒，演示速率）
@@ -1592,6 +1592,10 @@
         discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138', discHot: '#4a7cb8',
         glow: 'rgba(246,233,194,0.34)', glowSoft: 'rgba(246,233,194,0.16)',
         coreGlow: 'rgba(246,233,194,0.16)', coreGlowSoft: 'rgba(190,215,250,0.07)',
+        bhCore: '#04060a', bhRing: '#fffdf6', bhRingSoft: 'rgba(255,250,232,0.7)',
+        bhIn: 'rgba(255,253,246,0.97)', bhMid: 'rgba(226,180,92,0.78)',
+        bhOut: 'rgba(140,100,40,0.30)', bhGlow: 'rgba(255,228,164,0.30)',
+        bhGlowSoft: 'rgba(200,220,250,0.09)',
         shadow: 'rgba(0,0,0,0.55)', hilite: 'rgba(255,246,214,0.45)',
         vignette: 'rgba(0,0,0,0.38)', sheen: 'rgba(190,215,255,0.10)',
         filigree: 'rgba(200,168,106,0.10)',
@@ -1611,6 +1615,10 @@
         discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138', discHot: '#4a7cb8',
         glow: 'rgba(255,250,232,0.7)', glowSoft: 'rgba(255,250,232,0.34)',
         coreGlow: 'rgba(255,246,214,0.20)', coreGlowSoft: 'rgba(200,220,250,0.08)',
+        bhCore: '#04060a', bhRing: '#fffaf0', bhRingSoft: 'rgba(255,246,220,0.62)',
+        bhIn: 'rgba(255,252,240,0.95)', bhMid: 'rgba(234,190,104,0.8)',
+        bhOut: 'rgba(150,110,45,0.32)', bhGlow: 'rgba(255,226,160,0.26)',
+        bhGlowSoft: 'rgba(190,215,250,0.08)',
         shadow: 'rgba(70,52,24,0.28)', hilite: 'rgba(255,252,240,0.9)',
         vignette: 'rgba(110,86,42,0.22)', sheen: 'rgba(255,255,255,0.34)',
         filigree: 'rgba(180,150,90,0.12)',
@@ -1668,6 +1676,93 @@
     ctx.fillStyle = COL.goldHi;
     ctx.fill();
     ctx.globalAlpha = 1;
+  }
+
+  /* ---------- 银心黑洞：事件视界 + 光子环 + 倾斜吸积盘 ---------- */
+  function drawBlackHole() {
+    var RH = 26;                    // 事件视界（纯黑圆）
+    var RIN = 44, ROUT = 90;        // 吸积盘内外缘
+    var RK = 0.34;                  // 椭圆扁度 = 视线倾角的 cos
+    var TILT = -0.34;               // 盘面倾角
+
+    ctx.save();
+    ctx.translate(CX, CY);
+
+    function diskRing() {
+      ctx.beginPath();
+      ctx.arc(0, 0, ROUT, 0, TAU);
+      ctx.arc(0, 0, RIN, 0, TAU, true);
+      ctx.closePath();
+    }
+    function diskFrame() {
+      ctx.save();
+      ctx.rotate(TILT);
+      ctx.scale(1, RK);
+    }
+
+    // 盘的辉光（椭圆）
+    diskFrame();
+    var gl = ctx.createRadialGradient(0, 0, RH * 0.5, 0, 0, ROUT * 1.35);
+    gl.addColorStop(0, COL.bhGlow);
+    gl.addColorStop(0.42, COL.bhGlowSoft);
+    gl.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(0, 0, ROUT * 1.35, 0, TAU);
+    ctx.fillStyle = gl;
+    ctx.fill();
+    ctx.restore();
+
+    var dg = ctx.createRadialGradient(0, 0, RIN, 0, 0, ROUT);
+    dg.addColorStop(0.00, COL.bhIn);
+    dg.addColorStop(0.14, COL.bhMid);
+    dg.addColorStop(0.58, COL.bhOut);
+    dg.addColorStop(1.00, 'rgba(0,0,0,0)');
+
+    // 盘的后半（在黑洞之后）
+    diskFrame();
+    ctx.beginPath();
+    ctx.arc(0, 0, ROUT, Math.PI, TAU);
+    ctx.arc(0, 0, RIN, TAU, Math.PI, true);
+    ctx.closePath();
+    ctx.fillStyle = dg;
+    ctx.globalAlpha = 0.8;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // 事件视界：正圆（引力透镜下即使盘是斜的，视界影子仍是圆的）
+    ctx.beginPath(); ctx.arc(0, 0, RH, 0, TAU);
+    ctx.fillStyle = COL.bhCore;
+    ctx.fill();
+
+    // 光子环
+    ctx.beginPath(); ctx.arc(0, 0, RH + 2.6, 0, TAU);
+    ctx.lineWidth = 3.4;
+    ctx.strokeStyle = COL.bhRing;
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, RH + 1.2, 0, TAU);
+    ctx.lineWidth = 1.2;
+    ctx.globalAlpha = 0.8;
+    ctx.strokeStyle = COL.bhIn;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(0, 0, RH + 8, 0, TAU);
+    ctx.lineWidth = 1.4;
+    ctx.globalAlpha = 0.6;
+    ctx.strokeStyle = COL.bhRingSoft;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // 盘的前半（从黑洞前面穿过）
+    diskFrame();
+    ctx.beginPath();
+    ctx.arc(0, 0, ROUT, 0, Math.PI);
+    ctx.arc(0, 0, RIN, Math.PI, 0, true);
+    ctx.closePath();
+    ctx.fillStyle = dg;
+    ctx.fill();
+    ctx.restore();
+
+    ctx.restore();
   }
 
   /* ---------- 浮雕圆环：暗边 + 金属线 + 内侧高光 ---------- */
@@ -1837,16 +1932,17 @@
     var rmin = 100, rmax = 288;
     var th0 = Math.log(rmin / GAL_A) / GAL_B;
     var th1 = Math.log(rmax / GAL_A) / GAL_B;
-    for (i = 0; i < 1500; i++) {
+    for (i = 0; i < 2000; i++) {
       var arm = i % GAL_ARMS;
       r = rmin + Math.pow(Math.random(), 1.25) * (rmax - rmin);
       th = Math.log(r / GAL_A) / GAL_B;
       // 近高斯散布：多数星点贴着旋臂中线，少量散开 —— 臂才清晰又松散
+      // 散布系数比上一版放大 1.35 倍 = 旋臂加粗 35%
       var g1 = (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
       var g2 = (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
-      a = th + arm * TAU / GAL_ARMS + g1 * 0.13;
+      a = th + arm * TAU / GAL_ARMS + g1 * 0.176;
       starDots.push({
-        a: a, r: r * (1 + g2 * 0.06),
+        a: a, r: r * (1 + g2 * 0.081),
         s: 0.6 + Math.random() * 1.4, o: 0.36 + Math.random() * 0.46,
         c: Math.random() < 0.15
       });
@@ -1854,13 +1950,13 @@
     // 旋臂上的亮结（年轻星团）：让四条臂各自能被认出来
     for (var kk = 0; kk < GAL_ARMS; kk++) {
       for (var nb = 0; nb < 26; nb++) {
-        var thK = th0 + (nb / 25) * (th1 - th0) + (Math.random() - 0.5) * 0.06;
+        var thK = th0 + (nb / 25) * (th1 - th0) + (Math.random() - 0.5) * 0.081;
         var rK = GAL_A * Math.exp(GAL_B * thK);
         var aK = thK + kk * TAU / GAL_ARMS;
         for (var mb = 0; mb < 6; mb++) {
           starDots.push({
-            a: aK + (Math.random() - 0.5) * 0.06,
-            r: rK * (1 + (Math.random() - 0.5) * 0.085),
+            a: aK + (Math.random() - 0.5) * 0.081,
+            r: rK * (1 + (Math.random() - 0.5) * 0.115),
             s: 1.0 + Math.random() * 1.2,
             o: 0.55 + Math.random() * 0.35,
             c: Math.random() < 0.2
@@ -1868,11 +1964,11 @@
         }
       }
     }
-    // 核球
-    for (i = 0; i < 320; i++) {
+    // 核区星团：只留黑洞外围薄薄一圈，中心让给银心黑洞
+    for (i = 0; i < 96; i++) {
       a = Math.random() * TAU;
-      r = Math.pow(Math.random(), 1.8) * 104;
-      starDots.push({ a: a, r: r, s: 0.7 + Math.random() * 1.6, o: 0.55 + Math.random() * 0.45, c: Math.random() < 0.12 });
+      r = 62 + Math.pow(Math.random(), 1.4) * 60;
+      starDots.push({ a: a, r: r, s: 0.7 + Math.random() * 1.5, o: 0.4 + Math.random() * 0.4, c: Math.random() < 0.14 });
     }
     // 弥散晕
     for (i = 0; i < 70; i++) {
@@ -2241,6 +2337,9 @@
     sh.addColorStop(1.00, 'rgba(255,255,255,0)');
     ctx.fillStyle = sh;
     ctx.fillRect(CX - R_DIAL, CY - R_DIAL, R_DIAL * 2, R_DIAL * 2);
+
+    // 银心黑洞：画在最后，免得被反光与暗角洗白
+    drawBlackHole();
     ctx.restore();
 
     bevelRing(R_DIAL, 1.8, true);
@@ -2369,14 +2468,14 @@
     ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.6; ctx.stroke();
 
     // 十二宫环底纹
-    ctx.beginPath(); ctx.arc(0, 0, R_ZOD_DISC, 0, TAU);
+    ctx.beginPath(); ctx.arc(0, 0, R_ZOD_DISC + 18, 0, TAU);
     ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.5; ctx.lineWidth = 0.55; ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, R_ZOD_DISC - 24, 0, TAU);
+    ctx.beginPath(); ctx.arc(0, 0, R_ZOD_DISC - 16, 0, TAU);
     ctx.globalAlpha = 0.35; ctx.lineWidth = 0.4; ctx.stroke();
     ctx.globalAlpha = 1;
 
     // 十二宫徽章（月亮所在那一宫高亮）
-    var MR = 21;
+    var MR = 15;
     for (var z = 0; z < 12; z++) {
       var za = -Math.PI / 2 + z * TAU / 12;
       var zx = Math.cos(za) * R_ZOD_DISC, zy = Math.sin(za) * R_ZOD_DISC;
@@ -2422,7 +2521,7 @@
       ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.7; ctx.stroke();
 
       ctx.save();
-      ctx.scale(0.34, 0.34);
+      ctx.scale(0.25, 0.25);
       ctx.lineWidth = 5.6;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -2532,16 +2631,17 @@
     ctx.fillStyle = goldGrad; ctx.fill();
     ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.6; ctx.stroke();
 
-    ctx.beginPath(); ctx.arc(CX, CY, 16, 0, TAU);
+    // 中心轴（缩小，把中心让给银心黑洞）
+    ctx.beginPath(); ctx.arc(CX, CY, 10.5, 0, TAU);
     ctx.fillStyle = goldGrad; ctx.fill();
     ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.9; ctx.stroke();
-    ctx.beginPath(); ctx.arc(CX, CY, 13, 0, TAU);
-    ctx.strokeStyle = COL.hilite; ctx.globalAlpha = 0.5; ctx.lineWidth = 0.6; ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, 8.2, 0, TAU);
+    ctx.strokeStyle = COL.hilite; ctx.globalAlpha = 0.5; ctx.lineWidth = 0.5; ctx.stroke();
     ctx.globalAlpha = 1;
-    ctx.beginPath(); ctx.arc(CX, CY, 9, 0, TAU);
+    ctx.beginPath(); ctx.arc(CX, CY, 5.6, 0, TAU);
     ctx.fillStyle = COL.blue; ctx.fill();
-    ctx.strokeStyle = COL.goldHi; ctx.lineWidth = 0.6; ctx.stroke();
-    ctx.beginPath(); ctx.arc(CX, CY, 3.2, 0, TAU);
+    ctx.strokeStyle = COL.goldHi; ctx.lineWidth = 0.5; ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, 2.2, 0, TAU);
     ctx.fillStyle = COL.goldHi; ctx.fill();
   }
 
