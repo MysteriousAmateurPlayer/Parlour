@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    MAP · 站点交互脚本
    1. 明暗主题切换（记忆到 localStorage）
    2. 移动端导航
@@ -360,17 +360,16 @@
   new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 })();
 
-
 /* ==========================================================================
-   首页极光：铺在太阳星轨椭圆**之上**的那片空天里（绝不进入椭圆范围）。
-   · 极光是"会垂下来的光帘"：底边贴着星轨椭圆的上弧（留一点缝），
-     顶边是一条缓慢起伏的波浪 → 帘幕的褶皱感
-   · 帘内再画密集的竖直光丝（rays），强弱随机并缓慢漂移
-   · 三色叠加：青（缥色）→ 淡金 → 淡紫，与站内纸色/金色同一族
-   · canvas 软件绘制；无 CSS 3D、无 backdrop-filter，避免合成层闪烁
+   夜间极光：只出现在**首屏之下的地球四周星野**里（天上真正的极光就在极区上空）。
+   · 日间模式完全不出现；切到夜间才慢慢淡入
+   · 每一道极光有独立的一生：淡入 → 帘幕抖动发光 → 淡出，然后换一个随机位置重来
+   · 位置随机撒在地球外圈的星野里，并避开「太阳 / 星轨」所在的上方区域
+   · 画法沿用低分辨率离屏 + 放大插值：天然柔化，不会有硬边
+   · 配色照真实极光：底缘粉红 → 亮绿主帘 → 白绿核心 → 上缘淡蓝紫
    ========================================================================== */
 (function () {
-  var cv = document.querySelector('.hero__aurora');
+  var cv = document.querySelector('.globe-aurora');
   if (!cv || !cv.getContext) return;
   var ctx = cv.getContext('2d');
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -394,39 +393,28 @@
       return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')';
     }
     var m2 = /^rgba?\(([^)]+)\)$/.exec(c);
-    if (m2) { var p = m2[1].split(','); return 'rgba(' + p[0].trim() + ',' + p[1].trim() + ',' + p[2].trim() + ',' + a + ')'; }
-    return 'rgba(120,200,180,' + a + ')';
+    if (m2) { var p2 = m2[1].split(','); return 'rgba(' + p2[0].trim() + ',' + p2[1].trim() + ',' + p2[2].trim() + ',' + a + ')'; }
+    return 'rgba(120,240,170,' + a + ')';
   }
 
-  var W = 0, H = 0, sunX = 0, sunY = 0, rx = 0, ry = 0;
-  var COL = ['#79c9b4', '#dcb268', '#9c86c8'], A_BASE = 0.34;
+  var W = 0, H = 0, gcx = 0, gcy = 0, gr = 0;
+  var TAU = Math.PI * 2;
+  var COL = ['#7cf5a8', '#ec6f9c', '#7fb3f0', '#eafff2'];
+  var dark = false;
 
-  // 极光用「低分辨率离屏 + 放大双线性插值」来画：
-  // 低分辨率下随便画，放大后天然变成柔和渐变 —— 不会有硬边、也不会有折点
-  var SS = 6;
+  var SS = 5;
   var off = document.createElement('canvas');
   var octx = off.getContext('2d');
-  var plumes = [];
-  (function () {
-    for (var i = 0; i < 84; i++) {
-      plumes.push({
-        u: (i + 0.5) / 84 + (Math.random() - 0.5) * 0.014,
-        h: 44 + Math.random() * 116,          // 竖直半轴
-        w: 15 + Math.random() * 32,           // 水平半轴
-        hue: Math.floor(Math.random() * 3),
-        a: 0.13 + Math.random() * 0.26,       // 单枚光斑的亮度（整体压得很低）
-        ph: Math.random() * 6.28,
-        sp: 0.13 + Math.random() * 0.3
-      });
-    }
-  })();
+
+  var bands = [];
+  var nextSpawn = 0;                 // 下一次生成的时间戳（秒）
 
   function readColors() {
-    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    COL[0] = cssColor('--aurora-1', dark ? '#7ee0c0' : '#79c9b4');
-    COL[1] = cssColor('--aurora-2', dark ? '#eccb8a' : '#dcb268');
-    COL[2] = cssColor('--aurora-3', dark ? '#a88ee2' : '#9c86c8');
-    A_BASE = dark ? 1.25 : 0.85;
+    dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    COL[0] = cssColor('--aurora-1', '#7cf5a8');
+    COL[1] = cssColor('--aurora-2', '#ec6f9c');
+    COL[2] = cssColor('--aurora-3', '#7fb3f0');
+    COL[3] = cssColor('--aurora-4', '#eafff2');
   }
 
   function resize() {
@@ -439,30 +427,62 @@
     off.width = Math.max(2, Math.round(W / SS));
     off.height = Math.max(2, Math.round(H / SS));
 
-    var sun = document.querySelector('.hero__sun-layer') || document.querySelector('.hero__sun-wrap');
-    var sr = sun ? sun.getBoundingClientRect() : null;
-    sunX = sr ? (sr.left + sr.width / 2 - r.left) : W / 2;
-    sunY = sr ? (sr.top + sr.height / 2 - r.top) : H * 0.5;
-
-    rx = W * 0.44; ry = rx * 0.29;
-    var ring = document.querySelector('.hero__star-ring');
-    if (ring) {
-      var o = (ring.getAttribute('data-outer') || '').split(',').map(Number);
-      var vb = (ring.getAttribute('viewBox') || '0 0 1636 596').split(/\s+/).map(Number);
-      var rr = ring.getBoundingClientRect();
-      if (o.length === 2 && vb.length === 4 && vb[2] && vb[3] && rr.width) {
-        var k = rr.width / vb[2];
-        rx = o[0] * k;
-        ry = o[1] * k;
+    // 地球在舞台里的圆心与半径（SVG viewBox 1500×1300，圆 cx=750 cy=640 r=430）
+    var svg = document.querySelector('.globe-svg');
+    gcx = W * 0.5; gcy = H * 0.492; gr = W * 0.2824;
+    if (svg) {
+      var sr = svg.getBoundingClientRect();
+      var sc = Math.min(sr.width / 1500, sr.height / 1300);
+      if (sc > 0) {
+        gcx = (sr.left - r.left) + (sr.width - 1500 * sc) / 2 + 750 * sc;
+        gcy = (sr.top - r.top) + (sr.height - 1300 * sc) / 2 + 640 * sc;
+        gr = 430 * sc;
       }
     }
   }
 
-  // 星轨椭圆上弧在某 x 处的 y
-  function arcY(x) {
-    var d = (x - sunX) / Math.max(1, rx);
-    d = Math.max(-1, Math.min(1, d));
-    return sunY - ry * Math.sqrt(Math.max(0, 1 - d * d));
+  function pick() {
+    for (var i = 0; i < 60; i++) {
+      var x = W * (0.07 + Math.random() * 0.86);
+      var y = 150 + Math.random() * (H * 0.83);
+      var dx = x - gcx, dy = (y - gcy) * 1.28;          // 天空比地球宽，判定也压扁一点
+      if (Math.sqrt(dx * dx + dy * dy) < gr * 1.04) continue;   // 不落在地球身上
+      return { x: x, y: y };
+    }
+    return null;
+  }
+
+  function spawn(t) {
+    var s = pick();
+    if (!s) return;
+    var w = W * (0.15 + Math.random() * 0.15);
+    var h = H * (0.17 + Math.random() * 0.13);
+    if (s.y - h < 26) s.y = h + 26;                     // 帘幕完整落在画布内（星轨在上缘之上）
+    bands.push({
+      x: s.x, y: s.y,
+      w: w,
+      h: h,
+      t0: t,
+      fin: 4 + Math.random() * 3,
+      hold: 11 + Math.random() * 15,
+      fout: 5 + Math.random() * 4,
+      seed: Math.random() * 100,
+      k1: 0.0016 + Math.random() * 0.0014,
+      k2: 0.0055 + Math.random() * 0.004,
+      drift: (Math.random() - 0.5) * 0.02,
+      rays: 34 + Math.floor(Math.random() * 16)
+    });
+    var b = bands[bands.length - 1];
+    b.life = b.fin + b.hold + b.fout;
+    nextSpawn = t + 4 + Math.random() * 8;
+  }
+
+  function envelope(b, t) {
+    var e = t - b.t0;
+    if (e < 0 || e > b.life) return -1;
+    if (e < b.fin) return e / b.fin;
+    if (e < b.fin + b.hold) return 1;
+    return 1 - (e - b.fin - b.hold) / b.fout;
   }
 
   function draw(t) {
@@ -470,60 +490,110 @@
     ctx.clearRect(0, 0, cv.width, cv.height);
     if (!W || !H) return;
 
-    // ---- 在低分辨率离屏上作画（用全尺寸坐标，靠 transform 缩小）----
+    if (!dark) { bands.length = 0; return; }          // 日间：完全没有极光
+
+    // 生命周期管理
+    for (var i = bands.length - 1; i >= 0; i--) {
+      if (t - bands[i].t0 > bands[i].life) bands.splice(i, 1);
+    }
+    if (bands.length < 3 && t > nextSpawn) spawn(t);
+    if (!bands.length) return;
+
     octx.setTransform(1, 0, 0, 1, 0, 0);
     octx.clearRect(0, 0, off.width, off.height);
     octx.setTransform(1 / SS, 0, 0, 1 / SS, 0, 0);
     octx.globalCompositeOperation = 'lighter';
 
-    var GAP = 10;
-    for (var i = 0; i < plumes.length; i++) {
-      var pl = plumes[i];
-      var x = pl.u * (W + 120) - 60;
-      var base = arcY(x) - GAP;
-      if (base < 8) continue;
-      var breathe = 0.55 + 0.45 * Math.sin(t * pl.sp + pl.ph);
-      var hy = pl.h * (0.8 + 0.4 * Math.sin(t * pl.sp * 0.7 + pl.ph * 1.7));
-      if (hy < 12) hy = 12;
-      var hx = pl.w * (0.8 + 0.35 * Math.sin(t * pl.sp * 0.5 + pl.ph * 2.3));
-      var a = pl.a * A_BASE * (0.5 + 0.5 * breathe);
-      if (a <= 0.004) continue;
+    for (var b2 = 0; b2 < bands.length; b2++) {
+      var bd = bands[b2];
+      var env = envelope(bd, t);
+      if (env <= 0) continue;
+      env = env * env * (3 - 2 * env);                // 平滑的淡入淡出
+      var sway = Math.sin(t * 0.11 + bd.seed) * 0.5 + 0.5;
+      var cx0 = bd.x + (t - bd.t0) * bd.drift * bd.w;
 
-      // 光斑：椭圆形的竖向光柱，上端与下端都渐隐到 0 → 没有硬边
-      octx.save();
-      octx.translate(x, base - hy);
-      octx.scale(hx / hy, 1);
-      var g = octx.createLinearGradient(0, hy, 0, -hy);
-      g.addColorStop(0.00, toRgba(COL[pl.hue], 0));
-      g.addColorStop(0.16, toRgba(COL[pl.hue], a));
-      g.addColorStop(0.52, toRgba(COL[pl.hue], a * 0.55));
-      g.addColorStop(0.82, toRgba(COL[pl.hue], a * 0.16));
-      g.addColorStop(1.00, toRgba(COL[pl.hue], 0));
+      // 帘幕整体：一层很淡的底光，主要亮度交给下面的光柱
+      var gAll = octx.createLinearGradient(0, bd.y, 0, bd.y - bd.h);
+      gAll.addColorStop(0.00, toRgba(COL[1], 0.00));
+      gAll.addColorStop(0.06, toRgba(COL[1], 0.10 * env));   // 底缘一点粉红
+      gAll.addColorStop(0.17, toRgba(COL[0], 0.17 * env));
+      gAll.addColorStop(0.44, toRgba(COL[0], 0.09 * env));
+      gAll.addColorStop(0.74, toRgba(COL[2], 0.035 * env));
+      gAll.addColorStop(1.00, toRgba(COL[2], 0.00));
       octx.beginPath();
-      octx.arc(0, 0, hy, 0, Math.PI * 2);
-      octx.fillStyle = g;
+      octx.ellipse(cx0, bd.y - bd.h * 0.38, bd.w * 0.5, bd.h * 0.44, 0, 0, TAU);
+      octx.fillStyle = gAll;
       octx.fill();
-      octx.restore();
+
+      // 竖直光柱（极光帘的褶皱）：底边参差、高度不一，才不像一个发光的胶囊
+      var n = bd.rays;
+      for (var r2 = 0; r2 < n; r2++) {
+        var u = (r2 + 0.5) / n;
+        var rx = cx0 + (u - 0.5) * bd.w;
+        var wob = Math.sin(u * 7.2 + bd.seed + t * 0.32) * 0.5 + 0.5;
+        var jit = Math.sin(u * 23.7 + bd.seed * 2.1) * 0.5 + Math.sin(u * 5.3 - bd.seed) * 0.5;
+        var yB = bd.y + jit * bd.h * 0.12;                       // 底边不齐
+        var hh = bd.h * (0.30 + 0.78 * wob) * (0.62 + 0.38 * Math.sin(u * 3.1 - bd.seed * 1.3 + t * 0.19));
+        var al = (0.26 + 0.62 * wob) * env * (0.5 + 0.5 * Math.abs(Math.sin(r2 * 2.3 + t * 0.7)));
+        if (al <= 0.01 || hh <= 4) continue;
+        var gr2 = octx.createLinearGradient(0, yB, 0, yB - hh);
+        gr2.addColorStop(0.00, toRgba(COL[1], 0.00));
+        gr2.addColorStop(0.09, toRgba(COL[0], al * 0.95));
+        gr2.addColorStop(0.34, toRgba(COL[0], al * 0.52));
+        gr2.addColorStop(0.72, toRgba(COL[2], al * 0.16));
+        gr2.addColorStop(1.00, toRgba(COL[2], 0.00));
+        octx.beginPath();
+        octx.ellipse(rx, yB - hh * 0.5, bd.w / n * 0.68, hh * 0.5, 0, 0, TAU);
+        octx.fillStyle = gr2;
+        octx.fill();
+      }
+
+      // 底缘那条白绿亮线
+      octx.beginPath();
+      octx.ellipse(cx0, bd.y + Math.sin(t * 0.21 + bd.seed) * bd.h * 0.03,
+                   bd.w * 0.42, bd.h * 0.028, 0, 0, TAU);
+      octx.fillStyle = toRgba(COL[3], 0.20 * env * (0.7 + 0.3 * sway));
+      octx.fill();
     }
     octx.globalCompositeOperation = 'source-over';
 
-    // ---- 放大插值贴回主画布：这一步把低分辨率的"糊"变成柔和的渐变 ----
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = true;
     if ('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(off, 0, 0, W, H);
   }
 
-
+  var T0 = (window.performance && performance.now ? performance.now() : Date.now()) / 1000;
   var T = 0, raf = 0;
   readColors();
   resize();
+
+  if (reduce) {
+    // 减少动效：只画两幅静止的极光，不做生命周期变化
+    function still() {
+      bands.length = 0;
+      if (!dark) { draw(0); return; }
+      spawn(6);
+      spawn(6);
+      draw(16);
+    }
+    still();
+    window.addEventListener('resize', function () { resize(); still(); }, { passive: true });
+    new MutationObserver(function () { readColors(); still(); })
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return;
+  }
+
   draw(0);
   window.addEventListener('resize', function () { resize(); draw(T); }, { passive: true });
   new MutationObserver(function () { readColors(); draw(T); })
     .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-  if (reduce) return;
-  function frame(now) { T = now / 1000; draw(T); raf = requestAnimationFrame(frame); }
+
+  function frame(now) {
+    T = (now / 1000) - T0;
+    draw(T);
+    raf = requestAnimationFrame(frame);
+  }
   raf = requestAnimationFrame(frame);
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (es) {

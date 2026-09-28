@@ -88,10 +88,11 @@
   --flow-spark: var(--accent);
   --globe-coast: color-mix(in srgb, var(--ink) 24%, transparent);   /* 地理层要淡，让位给拼图 */
   --ring-line: color-mix(in srgb, var(--ink) 20%, transparent);
-  /* 极光三色（日间：缥青 / 淡金 / 淡紫，与纸色同一族，只做薄薄一层纱） */
-  --aurora-1: #79c9b4;
-  --aurora-2: #dcb268;
-  --aurora-3: #9c86c8;
+  /* 极光四色：底缘粉红 / 主帘亮绿 / 上缘蓝紫 / 核心白绿（日间用不到，夜间才画） */
+  --aurora-1: #5fe08c;
+  --aurora-2: #d9628c;
+  --aurora-3: #6f9fe0;
+  --aurora-4: #d8ffe8;
   --chart-line: color-mix(in srgb, var(--ink) 28%, transparent);
   --globe-fill: color-mix(in srgb, var(--accent) 4%, transparent);
   --globe-line: color-mix(in srgb, var(--ink) 15%, transparent);
@@ -134,10 +135,11 @@
   --sun-edge: rgba(222, 186, 116, 0.4);
   --sun-edge-inner: rgba(222, 186, 116, 0.2);
 
-  /* 极光三色（夜间更亮更饱和） */
-  --aurora-1: #7ee0c0;
-  --aurora-2: #eccb8a;
-  --aurora-3: #a88ee2;
+  /* 极光四色（夜间：照真实极光的绿 + 底缘粉红 + 上缘蓝紫 + 白绿核心） */
+  --aurora-1: #7cf5a8;
+  --aurora-2: #ec6f9c;
+  --aurora-3: #7fb3f0;
+  --aurora-4: #eafff2;
 
   --code-bg: #1f2126;
   --code-border: #2e3238;
@@ -416,8 +418,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .hero__inner { position: relative; z-index: 1; }
 
-/* 极光：整幅盖在首屏上，但只在星轨椭圆上弧以上落笔（几何由 JS 裁切） */
-.hero__aurora {
+/* 极光：整幅盖在地球舞台上，画在星空与地球之下（日间由 JS 直接不画） */
+.globe-aurora {
   position: absolute;
   inset: 0;
   width: 100%;
