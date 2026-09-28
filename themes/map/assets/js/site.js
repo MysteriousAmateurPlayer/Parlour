@@ -361,248 +361,6 @@
 })();
 
 /* ==========================================================================
-   夜间极光：只出现在**首屏之下的地球四周星野**里（天上真正的极光就在极区上空）。
-   · 日间模式完全不出现；切到夜间才慢慢淡入
-   · 每一道极光有独立的一生：淡入 → 帘幕抖动发光 → 淡出，然后换一个随机位置重来
-   · 位置随机撒在地球外圈的星野里，并避开「太阳 / 星轨」所在的上方区域
-   · 画法沿用低分辨率离屏 + 放大插值：天然柔化，不会有硬边
-   · 配色照真实极光：底缘粉红 → 亮绿主帘 → 白绿核心 → 上缘淡蓝紫
-   ========================================================================== */
-(function () {
-  var cv = document.querySelector('.globe-aurora');
-  if (!cv || !cv.getContext) return;
-  var ctx = cv.getContext('2d');
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var dpr = Math.min(2, window.devicePixelRatio || 1);
-
-  var probe = document.createElement('span');
-  probe.setAttribute('aria-hidden', 'true');
-  probe.style.cssText = 'position:absolute;left:-9999px;top:0;width:0;height:0';
-  document.body.appendChild(probe);
-  function cssColor(name, fallback) {
-    var v = '';
-    try { probe.style.color = ''; probe.style.color = 'var(' + name + ')'; v = getComputedStyle(probe).color; } catch (e) {}
-    return (!v || v === 'rgba(0, 0, 0, 0)') ? fallback : v;
-  }
-  function toRgba(c, a) {
-    c = (c || '').trim();
-    var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(c);
-    if (m) {
-      var h = m[1];
-      if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
-      return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')';
-    }
-    var m2 = /^rgba?\(([^)]+)\)$/.exec(c);
-    if (m2) { var p2 = m2[1].split(','); return 'rgba(' + p2[0].trim() + ',' + p2[1].trim() + ',' + p2[2].trim() + ',' + a + ')'; }
-    return 'rgba(120,240,170,' + a + ')';
-  }
-
-  var W = 0, H = 0, gcx = 0, gcy = 0, gr = 0;
-  var TAU = Math.PI * 2;
-  var COL = ['#7cf5a8', '#ec6f9c', '#7fb3f0', '#eafff2'];
-  var dark = false;
-
-  var SS = 2;
-  var off = document.createElement('canvas');
-  var octx = off.getContext('2d');
-
-  var bands = [];
-  var nextSpawn = 0;                 // 下一次生成的时间戳（秒）
-
-  function readColors() {
-    dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    COL[0] = cssColor('--aurora-1', '#7cf5a8');
-    COL[1] = cssColor('--aurora-2', '#ec6f9c');
-    COL[2] = cssColor('--aurora-3', '#7fb3f0');
-    COL[3] = cssColor('--aurora-4', '#eafff2');
-  }
-
-  function resize() {
-    var host = cv.parentNode;
-    var r = host.getBoundingClientRect();
-    W = Math.max(1, r.width);
-    H = Math.max(1, r.height);
-    cv.width = Math.round(W * dpr);
-    cv.height = Math.round(H * dpr);
-    off.width = Math.max(2, Math.round(W / SS));
-    off.height = Math.max(2, Math.round(H / SS));
-
-    // 地球在舞台里的圆心与半径（SVG viewBox 1500×1300，圆 cx=750 cy=640 r=430）
-    var svg = document.querySelector('.globe-svg');
-    gcx = W * 0.5; gcy = H * 0.492; gr = W * 0.2824;
-    if (svg) {
-      var sr = svg.getBoundingClientRect();
-      var sc = Math.min(sr.width / 1500, sr.height / 1300);
-      if (sc > 0) {
-        gcx = (sr.left - r.left) + (sr.width - 1500 * sc) / 2 + 750 * sc;
-        gcy = (sr.top - r.top) + (sr.height - 1300 * sc) / 2 + 640 * sc;
-        gr = 430 * sc;
-      }
-    }
-  }
-
-  function pick() {
-    // 极坐标：以地心为原点。th = 方位角，r0 = 离地心的距离
-    for (var i = 0; i < 60; i++) {
-      var th = -Math.PI / 2 + (Math.random() - 0.5) * TAU;    // 任意方位
-      var r0 = gr * (1.02 + Math.random() * 0.55);
-      var x = gcx + Math.cos(th) * r0;
-      var y = gcy + Math.sin(th) * r0;
-      if (y < 150 || y > H - 40) continue;                     // 不靠近上方的太阳与星轨
-      if (x < W * 0.05 || x > W * 0.95) continue;
-      return { th: th, r0: r0 };
-    }
-    return null;
-  }
-
-  function spawn(t) {
-    var s = pick();
-    if (!s) return;
-    bands.push({
-      th: s.th,
-      r0: s.r0,
-      w: gr * (0.36 + Math.random() * 0.40),      // 切向宽度（弧长）
-      len: gr * (0.26 + Math.random() * 0.30),    // 沿半径向外的长度
-      t0: t,
-      fin: 4 + Math.random() * 3,
-      hold: 11 + Math.random() * 15,
-      fout: 5 + Math.random() * 4,
-      seed: Math.random() * 100,
-      spin: (Math.random() - 0.5) * 0.012,        // 沿方位角缓慢漂移
-      rays: 26 + Math.floor(Math.random() * 12)
-    });
-    var b = bands[bands.length - 1];
-    b.life = b.fin + b.hold + b.fout;
-    nextSpawn = t + 4 + Math.random() * 8;
-  }
-
-  function envelope(b, t) {
-    var e = t - b.t0;
-    if (e < 0 || e > b.life) return -1;
-    if (e < b.fin) return e / b.fin;
-    if (e < b.fin + b.hold) return 1;
-    return 1 - (e - b.fin - b.hold) / b.fout;
-  }
-
-  function draw(t) {
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, cv.width, cv.height);
-    if (!W || !H) return;
-
-    if (!dark) { bands.length = 0; return; }          // 日间：完全没有极光
-
-    // 生命周期管理
-    for (var i = bands.length - 1; i >= 0; i--) {
-      if (t - bands[i].t0 > bands[i].life) bands.splice(i, 1);
-    }
-    if (bands.length < 3 && t > nextSpawn) spawn(t);
-    if (!bands.length) return;
-
-    octx.setTransform(1, 0, 0, 1, 0, 0);
-    octx.clearRect(0, 0, off.width, off.height);
-    octx.setTransform(1 / SS, 0, 0, 1 / SS, 0, 0);
-    octx.globalCompositeOperation = 'lighter';
-
-    for (var b2 = 0; b2 < bands.length; b2++) {
-      var bd = bands[b2];
-      var env = envelope(bd, t);
-      if (env <= 0) continue;
-      env = env * env * (3 - 2 * env);                // 平滑的淡入淡出
-      var sway = Math.sin(t * 0.11 + bd.seed) * 0.5 + 0.5;
-      var th = bd.th + (t - bd.t0) * bd.spin;         // 沿方位角缓慢漂移
-
-      // 换到以地心为原点的极坐标局部系：
-      // 局部 +x = 背离地球（极光向天上长），局部 +y = 切向（帘幕的宽度方向）
-      octx.save();
-      octx.translate(gcx, gcy);
-      octx.rotate(th);
-      octx.translate(bd.r0, 0);
-
-      var n = bd.rays;
-      var halfW = bd.w * 0.5;
-      for (var r2 = 0; r2 < n; r2++) {
-        var u = (r2 + 0.5) / n;
-        var yy = (u - 0.5) * bd.w;
-        var wob = Math.sin(u * 7.2 + bd.seed + t * 0.32) * 0.5 + 0.5;
-        var jit = Math.sin(u * 23.7 + bd.seed * 2.1) * 0.5 + Math.sin(u * 5.3 - bd.seed) * 0.5;
-        var x0 = jit * bd.len * 0.10;                            // 底边参差
-        var hh = bd.len * (0.30 + 0.78 * wob) * (0.62 + 0.38 * Math.sin(u * 3.1 - bd.seed * 1.3 + t * 0.19));
-        var al = (0.30 + 0.62 * wob) * env * (0.5 + 0.5 * Math.abs(Math.sin(r2 * 2.3 + t * 0.7)));
-        if (al <= 0.012 || hh <= 4) continue;
-        var g2 = octx.createLinearGradient(x0, 0, x0 + hh, 0);
-        g2.addColorStop(0.00, toRgba(COL[1], 0.00));
-        g2.addColorStop(0.10, toRgba(COL[0], al * 0.95));        // 靠地球一侧是亮绿
-        g2.addColorStop(0.36, toRgba(COL[0], al * 0.50));
-        g2.addColorStop(0.74, toRgba(COL[2], al * 0.15));
-        g2.addColorStop(1.00, toRgba(COL[2], 0.00));
-        octx.beginPath();
-        octx.ellipse(x0 + hh * 0.5, yy, hh * 0.5, bd.w / n * 0.58, 0, 0, TAU);
-        octx.fillStyle = g2;
-        octx.fill();
-      }
-
-      // 贴着地球一侧的那道白绿亮弧
-      octx.beginPath();
-      octx.ellipse(Math.sin(t * 0.21 + bd.seed) * bd.len * 0.03,
-                   Math.sin(t * 0.17 + bd.seed * 1.7) * bd.w * 0.04,
-                   bd.len * 0.055, halfW * 0.82, 0, 0, TAU);
-      octx.fillStyle = toRgba(COL[3], 0.16 * env * (0.7 + 0.3 * sway));
-      octx.fill();
-
-      octx.restore();
-    }
-    octx.globalCompositeOperation = 'source-over';
-
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.imageSmoothingEnabled = true;
-    if ('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(off, 0, 0, W, H);
-  }
-
-  var T0 = (window.performance && performance.now ? performance.now() : Date.now()) / 1000;
-  var T = 0, raf = 0;
-  readColors();
-  resize();
-
-  if (reduce) {
-    // 减少动效：只画两幅静止的极光，不做生命周期变化
-    function still() {
-      bands.length = 0;
-      if (!dark) { draw(0); return; }
-      spawn(6);
-      spawn(6);
-      draw(16);
-    }
-    still();
-    window.addEventListener('resize', function () { resize(); still(); }, { passive: true });
-    new MutationObserver(function () { readColors(); still(); })
-      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-    return;
-  }
-
-  draw(0);
-  window.addEventListener('resize', function () { resize(); draw(T); }, { passive: true });
-  new MutationObserver(function () { readColors(); draw(T); })
-    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-
-  function frame(now) {
-    T = (now / 1000) - T0;
-    draw(T);
-    raf = requestAnimationFrame(frame);
-  }
-  raf = requestAnimationFrame(frame);
-  if ('IntersectionObserver' in window) {
-    new IntersectionObserver(function (es) {
-      es.forEach(function (e) {
-        if (e.isIntersecting && !raf) { raf = requestAnimationFrame(frame); }
-        else if (!e.isIntersecting && raf) { cancelAnimationFrame(raf); raf = 0; }
-      });
-    }, { threshold: 0 }).observe(cv);
-  }
-})();
-
-
-/* ==========================================================================
    花带上的流场星特效：粒子沿"星之波浪"的切线流动，带个体速度差与闪烁。
    与页面主色的流场同一套语言，但更轻更小，只作花带的呼吸感。
    ========================================================================== */
@@ -1775,7 +1533,7 @@
   new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 })();
 
-﻿/* ==========================================================================
+﻿﻿/* ==========================================================================
    天文表盘时钟（随性笔记页）：canvas 软件渲染的蓝金豪华天文钟。
    读出真实时间（时/分/秒针）+ 天象：太阳黄经驱动日躔位置，朔望月驱动月相。
    结构（由外到内）：
@@ -1841,7 +1599,7 @@
         coreGlow: 'rgba(194,160,102,0.16)', coreGlowSoft: 'rgba(127,163,207,0.08)',
         bhCore: '#0b0d12', bhRing: '#d8c294', bhRingSoft: 'rgba(216,194,148,0.55)',
         bhIn: 'rgba(200,174,120,0.62)', bhMid: 'rgba(194,160,102,0.34)',
-        bhOut: 'rgba(194,160,102,0.13)', bhGlow: 'rgba(194,160,102,0.20)',
+        bhOut: 'rgba(194,160,102,0.13)', bhGlow: 'rgba(194,160,102,0.13)',
         bhHot: 'rgba(232,211,160,0.85)', bhHotSoft: 'rgba(194,160,102,0.34)',
         bhGlowSoft: 'rgba(127,163,207,0.08)',
         shadow: 'rgba(0,0,0,0.45)', hilite: 'rgba(232,211,160,0.42)',
@@ -1867,7 +1625,7 @@
         coreGlow: 'rgba(138,106,52,0.12)', coreGlowSoft: 'rgba(61,95,140,0.05)',
         bhCore: '#2a2118', bhRing: '#6b5228', bhRingSoft: 'rgba(107,82,40,0.45)',
         bhIn: 'rgba(90,74,48,0.42)', bhMid: 'rgba(90,74,48,0.16)',
-        bhOut: 'rgba(90,74,48,0.07)', bhGlow: 'rgba(138,106,52,0.10)',
+        bhOut: 'rgba(90,74,48,0.07)', bhGlow: 'rgba(138,106,52,0.055)',
         bhHot: 'rgba(74,59,34,0.62)', bhHotSoft: 'rgba(138,106,52,0.18)',
         bhGlowSoft: 'rgba(138,106,52,0.04)',
         shadow: 'rgba(90,74,48,0.16)', hilite: 'rgba(255,253,246,0.85)',
@@ -1966,7 +1724,7 @@
         if ((Math.sin(ag) < 0) !== back) continue;
         var x = Math.cos(ag) * sp.r, y = Math.sin(ag) * sp.r;
         // 迎向观察者的一侧更亮（相对论性集束的示意）
-        var beam = 0.45 + 0.55 * Math.max(0, Math.cos(ag - 0.6));
+        var beam = 0.72 + 0.28 * Math.max(0, Math.cos(ag - 0.6));   // 集束只做轻微示意
         var g2 = ctx.createRadialGradient(x, y, 0, x, y, sp.s * 3.2);
         g2.addColorStop(0, COL.bhHot);
         g2.addColorStop(0.42, COL.bhHotSoft);
@@ -2005,11 +1763,11 @@
 
     // 盘外一层极淡的暖晕（呼吸）
     diskFrame();
-    var gl = ctx.createRadialGradient(0, 0, RH * 0.6, 0, 0, ROUT * 1.3);
+    var gl = ctx.createRadialGradient(0, 0, RH * 0.6, 0, 0, ROUT * 1.12);
     gl.addColorStop(0, COL.bhGlow);
     gl.addColorStop(0.45, COL.bhGlowSoft);
     gl.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.beginPath(); ctx.arc(0, 0, ROUT * 1.3, 0, TAU);
+    ctx.beginPath(); ctx.arc(0, 0, ROUT * 1.12, 0, TAU);
     ctx.globalAlpha = pulse;
     ctx.fillStyle = gl;
     ctx.fill();
@@ -2018,7 +1776,7 @@
 
     // 盘的后半（在黑洞之后）+ 位于后半的热斑
     diskFrame();
-    diskWash(Math.PI, TAU, 0.45);
+    diskWash(Math.PI, TAU, 0.62);
     diskLines(Math.PI, TAU);
     drawSpots(true);
     ctx.restore();
@@ -2047,7 +1805,7 @@
 
     // 盘的前半（从黑洞前面穿过）+ 位于前半的热斑
     diskFrame();
-    diskWash(0, Math.PI, 0.85);
+    diskWash(0, Math.PI, 0.62);
     diskLines(0, Math.PI);
     drawSpots(false);
     ctx.restore();

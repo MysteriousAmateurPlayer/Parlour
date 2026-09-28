@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    MAP · 主题样式
    目录
      01 设计令牌（明暗两套配色）
@@ -88,11 +88,6 @@
   --flow-spark: var(--accent);
   --globe-coast: color-mix(in srgb, var(--ink) 24%, transparent);   /* 地理层要淡，让位给拼图 */
   --ring-line: color-mix(in srgb, var(--ink) 20%, transparent);
-  /* 极光四色：底缘粉红 / 主帘亮绿 / 上缘蓝紫 / 核心白绿（日间用不到，夜间才画） */
-  --aurora-1: #5fe08c;
-  --aurora-2: #d9628c;
-  --aurora-3: #6f9fe0;
-  --aurora-4: #d8ffe8;
   --chart-line: color-mix(in srgb, var(--ink) 28%, transparent);
   --globe-fill: color-mix(in srgb, var(--accent) 4%, transparent);
   --globe-line: color-mix(in srgb, var(--ink) 15%, transparent);
@@ -135,11 +130,6 @@
   --sun-edge: rgba(222, 186, 116, 0.4);
   --sun-edge-inner: rgba(222, 186, 116, 0.2);
 
-  /* 极光四色（夜间：照真实极光的绿 + 底缘粉红 + 上缘蓝紫 + 白绿核心） */
-  --aurora-1: #7cf5a8;
-  --aurora-2: #ec6f9c;
-  --aurora-3: #7fb3f0;
-  --aurora-4: #eafff2;
 
   --code-bg: #1f2126;
   --code-border: #2e3238;
@@ -417,16 +407,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* 背景：一圈极淡的同心光晕，像被灯照着的纸 */
 
 .hero__inner { position: relative; z-index: 1; }
-
-/* 极光：整幅盖在地球舞台上，画在星空与地球之下（日间由 JS 直接不画） */
-.globe-aurora {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
 
 /* 首屏粒子流场：分前后两层，构成绕星盘的 3D 流
    —— 背面那层在太阳之下（被太阳遮住），正面那层在太阳之上 */
@@ -875,6 +855,26 @@ button, input, select, textarea { font: inherit; color: inherit; }
   stroke-width: 1.1;
   stroke-linecap: round;
 }
+/* 特长主芒：更细更长，只勾线 + 极淡填充，负责"恢弘" */
+.sun-ray--long path {
+  fill: color-mix(in srgb, var(--accent) 16%, transparent);
+  stroke: color-mix(in srgb, var(--accent) 48%, transparent);
+  stroke-width: 0.7;
+  stroke-linejoin: round;
+}
+
+/* 太阳的仪器化细节：同心圈 / 放射车花 / 刻度环 / 珠链 / 方位饰 */
+.sun-ring circle { fill: none; stroke: color-mix(in srgb, var(--accent) 34%, transparent); stroke-width: 0.9; }
+.sun-ring--inner circle { stroke-width: 0.55; stroke: color-mix(in srgb, var(--accent) 32%, transparent); }
+.sun-carve ellipse { fill: none; stroke: color-mix(in srgb, var(--accent) 27%, transparent); stroke-width: 0.55; }
+.sun-scale circle { fill: none; stroke: color-mix(in srgb, var(--accent) 54%, transparent); }
+.sun-beads { fill: none; stroke: color-mix(in srgb, var(--accent) 60%, transparent); stroke-linecap: round; }
+.sun-mark path, .sun-mark circle {
+  fill: color-mix(in srgb, var(--accent) 30%, transparent);
+  stroke: color-mix(in srgb, var(--accent) 52%, transparent);
+  stroke-width: 0.7;
+  stroke-linejoin: round;
+}
 
 /* 星轨底下的椭圆光晕：让整条星轨像浮在一层薄光里，更有仪式感 */
 .hero__ring-layer::before {
@@ -1038,7 +1038,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
     color-mix(in srgb, var(--accent) 7%, transparent) 80%,
     transparent 100%);
 }
-/* 黄道环带：一条很扁的斜椭圆，走到地球背后就被地球挡住 */
+/* 黄道环带：一条很扁的斜椭圆。上下两半分别由「背面层」与「前景层」各画一次，
+   颜色与粗细完全一致，只是被裁成上下两半 —— 这样正背面深浅一致，
+   又保留了「上半在地球背后、下半压在地球前面」的立体感。 */
 .globe-decor__band {
   position: absolute;
   left: 50%;
@@ -1047,9 +1049,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   aspect-ratio: 1000 / 430;
   transform: translate(-50%, -50%) rotate(-9deg);
   border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--ring-line) 90%, transparent);
-  border-top-color: color-mix(in srgb, var(--accent) 24%, transparent);
-  border-bottom-color: color-mix(in srgb, var(--ring-line) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+  clip-path: inset(-40% -40% 50% -40%);          /* 只画上半 */
 }
 /* 天球环：贴着地球外缘的一圈虚线 */
 .globe-decor__ring {
@@ -1067,12 +1068,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* 前景层：环带下半段露在地球前面 → 立体环绕的感觉 */
 .globe-decor--front { z-index: 2; }
 .globe-decor--front .globe-decor__band {
-  clip-path: inset(55% -40% -40% -40%);
-  border-top-color: transparent;
-  border-left-color: color-mix(in srgb, var(--accent) 34%, transparent);
-  border-right-color: color-mix(in srgb, var(--accent) 34%, transparent);
-  border-bottom-color: color-mix(in srgb, var(--accent) 40%, transparent);
-  opacity: 1;
+  clip-path: inset(50% -40% -40% -40%);          /* 只画下半，与背面层正好互补 */
 }
 
 /* 人造卫星：轨道本身是一个被压扁的正圆（scaleY），

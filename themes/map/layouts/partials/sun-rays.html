@@ -1,15 +1,83 @@
-{{- /* 古典太阳的光芒：16 根锥形长芒（实心，从盘边向外收成尖）+ 16 根火焰形短芒（只有描边）交替。
-       盘面本身用 CSS 画（见 .sun-disc），这里只负责光芒。
-       颜色走 CSS 变量（--accent 的浓淡），明暗主题自动切换。 */ -}}
+{{- /* 古典太阳：一颗"仪器化"的太阳，结构分九层（由内到外）
+       ① 盘边双细线   ② 盘内同心细圈   ③ 放射车花（24 + 12 枚花瓣形）
+       ④ 三档刻度环（72 细 / 24 中 / 12 长，用 dasharray 精确等分）
+       ⑤ 珠链环       ⑥ 四正位菱形饰 + 四隅三点饰
+       ⑦ 8 根特长主芒 ⑧ 16 根锥形中芒 ⑨ 16 根火焰短芒
+       盘面本身仍用 CSS 画（见 .sun-disc），这里只负责盘边与光芒。
+       颜色统一走 --accent / --sun-edge 的浓淡，明暗主题自动切换。
+       viewBox 里盘面半径 = 332（.hero__sun-rays 的尺寸就是按这个比例给的）。 */ -}}
 <svg class="hero__sun-rays" viewBox="-500 -500 1000 1000" width="520" height="520" aria-hidden="true" focusable="false">
-  <g class="sun-ray sun-ray--spike">
-    {{- range $i := seq 0 15 }}
-    <path d="M-3.4 -334 L0 -372 L3.4 -334 Z" transform="rotate({{ mul $i 22.5 }})"/>
+
+  {{/* ③ 放射车花：24 枚长花瓣 + 12 枚短花瓣，全部指向圆心 */}}
+  <g class="sun-carve">
+    {{- range $i := seq 0 23 }}
+    <ellipse cx="0" cy="-202" rx="1.25" ry="62" transform="rotate({{ mul $i 15 }})"/>
+    {{- end }}
+    {{- range $i := seq 0 11 }}
+    <ellipse cx="0" cy="-150" rx="1" ry="44" transform="rotate({{ add (mul $i 30) 15 }})"/>
     {{- end }}
   </g>
+
+  {{/* ② 盘内同心细圈 */}}
+  <g class="sun-ring sun-ring--inner">
+    <circle r="292"/>
+    <circle r="286"/>
+    <circle r="264"/>
+    <circle r="200"/>
+  </g>
+
+  {{/* ④ 三档刻度环（同一半径、不同粗细 = 不同长度） */}}
+  <g class="sun-scale">
+    <circle r="303" stroke-width="7"  stroke-dasharray="1.6 24.84" transform="rotate(-90)"/>
+    <circle r="303" stroke-width="12" stroke-dasharray="2.2 77.13" transform="rotate(-90)"/>
+    <circle r="303" stroke-width="17" stroke-dasharray="3 155.65" transform="rotate(-90)"/>
+  </g>
+
+  {{/* ① 盘边双细线 */}}
+  <g class="sun-ring sun-ring--edge">
+    <circle r="325"/>
+    <circle r="332"/>
+  </g>
+
+  {{/* ⑤ 珠链环：48 颗小珠 */}}
+  <circle class="sun-beads" r="344" stroke-width="3.2" stroke-dasharray="0.1 44.9" transform="rotate(-90)"/>
+
+  {{/* ⑥ 四正位：菱形 + 两侧短划 */}}
+  <g class="sun-mark">
+    {{- range $i := seq 0 3 }}
+    <g transform="rotate({{ mul $i 90 }})">
+      <path d="M0 -330 L4.6 -320 L0 -310 L-4.6 -320 Z"/>
+      <path d="M-13 -316 V-324 M13 -316 V-324"/>
+    </g>
+    {{- end }}
+    {{/* 四隅：三点 */}}
+    {{- range $i := seq 0 3 }}
+    <g transform="rotate({{ add (mul $i 90) 45 }})">
+      <circle cx="0" cy="-314" r="1.9"/>
+      <circle cx="-5.6" cy="-311" r="1.3"/>
+      <circle cx="5.6" cy="-311" r="1.3"/>
+    </g>
+    {{- end }}
+  </g>
+
+  {{/* ⑦ 8 根特长主芒（比其余长出近一倍，撑起气势） */}}
+  <g class="sun-ray sun-ray--long">
+    {{- range $i := seq 0 7 }}
+    <path d="M-2.2 -340 L0 -468 L2.2 -340 Z" transform="rotate({{ add (mul $i 45) 22.5 }})"/>
+    {{- end }}
+  </g>
+
+  {{/* ⑧ 16 根锥形中芒 */}}
+  <g class="sun-ray sun-ray--spike">
+    {{- range $i := seq 0 15 }}
+    <path d="M-3.4 -334 L0 -386 L3.4 -334 Z" transform="rotate({{ mul $i 22.5 }})"/>
+    {{- end }}
+  </g>
+
+  {{/* ⑨ 16 根火焰短芒（只有描边） */}}
   <g class="sun-ray sun-ray--flame">
     {{- range $i := seq 0 15 }}
-    <path d="M0 -334 C5 -345 5 -357 0 -368 C-5 -357 -5 -345 0 -334 Z"
+    <path d="M0 -336 C5.5 -348 5.5 -362 0 -374 C-5.5 -362 -5.5 -348 0 -336 Z"
           transform="rotate({{ add (mul $i 22.5) 11.25 }})"/>
     {{- end }}
   </g>
