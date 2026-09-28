@@ -1,4 +1,4 @@
-{{- /* 地球仪区块。
+﻿{{- /* 地球仪区块。
        · 它就是首屏下缘露出的那一半地球：区块用负外边距往上顶，往下拉屏幕才会"露出完整的地球"
        · 画布上是一颗很大的地球：球面有真实的海岸线（七大洲轮廓）+ 拼图式板块片区
        · 配色全是网页本来的纸色 + 棕/朱砂线稿（镂空星图质感），不做夜空反色
@@ -85,7 +85,7 @@
             {{/* 那颗"不一样的星星"：形态是五角星，位置由 JS 每次随机挑一颗星点落脚，
                  大小与它落脚的那颗星完全一致 —— 刻意不放大，好让它藏在星野里。 */}}
             <a class="secrets-star" href="{{ $secretsUrl }}" data-secrets-open aria-label="另一个维度的入口" transform="translate(-9999,-9999)">
-              <circle class="secrets-star__hit" r="26"/>
+              <circle class="secrets-star__hit" r="40"/>
               <use class="secrets-star__core" href="#star5" opacity="0.6"/>
             </a>
           <use href="#star4" transform="translate(669,-428) scale(0.27)" style="opacity:0.55"/>

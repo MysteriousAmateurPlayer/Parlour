@@ -12,19 +12,31 @@
   var S = window.MapSecrets;
 
   /* ==========================================================================
-     入口星：每次进页面都随机挑一颗星座星点落脚。
-     · 形态是五角星（其他星都是四角），大小、亮度、颜色跟落脚的那颗完全一致，
-       所以它藏在星野里，不特意看是发现不了的。
-     · 落点排除地球圆盘内（那儿被遮罩挡住了，点不到）。
+     入口星：每次进页面都随机挑**星座上**的一颗星，把它**换掉**（不是盖一颗上去）。
+     · 只从 .sky-set（星座连线上的星）里挑 —— 散落的背景星由 site.js 的状态机
+       控制闪烁，换上去会出现「周围在闪、它一动不动」的破绽。
+     · 星座都在 .sky-always 里（与散落星的 .sky-drift 是兄弟节点，漂移动画不同步），
+       所以选中之后要把入口星**搬进**那颗星所在的组，否则位置会对不上。
+     · 形态是五角星（其他星都是四角），朝向与亮度沿用被换下的那颗，
+       尺寸只放大一点点（×1.5，上限 0.85），好找一些但仍不扎眼。
+     · 落点排除地球圆盘内（被遮罩挡住就看不见）与星野画布外。
      ========================================================================== */
   (function () {
     var star = document.querySelector('.secrets-star');
     if (!star || !star.parentNode) return;
-    var drift = star.parentNode;
+    var root = star.parentNode.parentNode;   // .sky-turn：星座(.sky-always)与散落星(.sky-drift)的父级
     var core = star.querySelector('.secrets-star__core');
+    var GROW = 1.5, GROW_MAX = 0.85;      // 相对宿主星放大一点点，并封顶
 
     function place() {
-      var all = drift.querySelectorAll('use');
+      var sets = root.querySelectorAll('.sky-set');
+      var all = [];
+      for (var k = 0; k < sets.length; k++) {
+        var season = sets[k].closest ? sets[k].closest('.sky-season') : null;
+        if (season && !season.classList.contains('is-active')) continue;   // 看不见的季节组跳过
+        var us = sets[k].querySelectorAll('use');
+        for (var q = 0; q < us.length; q++) all.push(us[q]);
+      }
       var pool = [];
       for (var i = 0; i < all.length; i++) {
         var u = all[i];
@@ -42,16 +54,22 @@
         if (s < 0.3) continue;                                  // 太小的星点看不出形状、也点不着
         var mr = /rotate\(\s*(-?[\d.]+)/.exec(tf);
         pool.push({
-          x: x, y: y, s: s,
+          el: u, x: x, y: y, s: s,
           r: mr ? mr[1] : '',
           o: u.style.opacity || u.getAttribute('opacity') || ''
         });
       }
       if (!pool.length) return false;
       var p = pool[Math.floor(Math.random() * pool.length)];
+
+      p.el.style.visibility = 'hidden';                            // 把原来那颗换下来，而不是盖上去
+      if (p.el.parentNode && p.el.parentNode !== star.parentNode) {
+        p.el.parentNode.insertBefore(star, p.el.nextSibling);       // 搬进星座组，与宿主同组同动画
+      }
       star.setAttribute('transform', 'translate(' + p.x + ',' + p.y + ')');
       if (core) {
-        core.setAttribute('transform', (p.r ? 'rotate(' + p.r + ') ' : '') + 'scale(' + p.s + ')');
+        var gs = Math.min(p.s * GROW, GROW_MAX);                    // 稍微放大一丢丢
+        core.setAttribute('transform', (p.r ? 'rotate(' + p.r + ') ' : '') + 'scale(' + gs.toFixed(3) + ')');
         if (p.o) core.style.opacity = p.o;
       }
       return true;
