@@ -1,5 +1,5 @@
-User-agent: *
+﻿User-agent: *
 Allow: /
-Disallow: /vault/
+Disallow: /secrets/
 
 Sitemap: {{ "sitemap.xml" | absURL }}

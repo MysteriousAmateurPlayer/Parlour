@@ -44,7 +44,7 @@
 | 数学分享 | `/math/` | 带目录的长文，KaTeX 公式、定理框、证明框 |
 | 园艺记录 | `/garden/` | 按年份分组的年表 |
 | 烹饪食谱 | `/kitchen/` | 食材分组 + 步骤卡片 + schema.org 结构化数据 |
-| 里版 | `/vault/` | 解谜门禁，答对才显示里面内容 |
+| 里版 | `/secrets/` | 解谜门禁，答对才显示里面内容 |
 
 首页第一屏是**高悬的太阳**（姓名与简介就在太阳盘面上，古典的锥形 + 火焰光芒），太阳外围绕着一圈星星（星轨）；下缘露出**很大的地球的上沿**。往下拉，同一颗地球完整展开成**可旋转的地球仪**：球面有真实海岸线（七大洲轮廓）+ 柔和渐变的拼图式片区，片区里是各板块的图标，点击进入（空位留给以后新增的板块）。整体保持纸色 + 棕色线稿的星图质感；再往下是 关于我 → 板块卡片 → 最近的记录。里版入口是星野里那颗**只多一颗小卫星**的星星，点击弹出问答。
 
@@ -145,7 +145,7 @@ content/
   _index.md                首页（文案主要在 data/home.yaml）
   about/_index.md          自我介绍（layout: profile）
   fanworks/ math/ garden/ kitchen/
-  vault/                   里版（private: true）
+  secrets/                   里版（private: true）
 data/
   home.yaml                首页全部文案：主视觉、关于我、最近记录
   sections.yaml            五个版块的标题 / 编号 / 主色 / 图标 / 介绍
@@ -174,7 +174,7 @@ powershell -ExecutionPolicy Bypass -File scripts\new.ps1 math    "费马小定�
 powershell -ExecutionPolicy Bypass -File scripts\new.ps1 kitchen "葱油拌面"
 powershell -ExecutionPolicy Bypass -File scripts\new.ps1 fanworks "新短篇：夏天的最后一天"
 powershell -ExecutionPolicy Bypass -File scripts\new.ps1 garden  "九月：换盆记录"
-powershell -ExecutionPolicy Bypass -File scripts\new.ps1 vault   "新的废案"
+powershell -ExecutionPolicy Bypass -File scripts\new.ps1 secrets   "新的废案"
 ```
 
 会用 `archetypes/` 里对应板块的模板生成文件，`draft: true`，写完把 `draft` 改成 `false` 就会正式出现。
@@ -285,11 +285,11 @@ KaTeX 已经放在 `themes/map/static/vendor/katex/`，**不需要联网**。
 
 ### 它现在怎么工作
 
-1. 访客打开 `/vault/`，看到的是一张门禁卡片：一道题 + 一个输入框。
+1. 访客打开 `/secrets/`，看到的是一张门禁卡片：一道题 + 一个输入框。
 2. 输入的答案在浏览器里做 SHA-256，与页面上的哈希比对。
-3. 答对后，底下原本隐藏的内容（`data-vault-content`）显示出来，并在 `sessionStorage` 里记一个标记——同一个标签页内不再重复提问。
+3. 答对后，底下原本隐藏的内容（`data-secrets-content`）显示出来，并在 `sessionStorage` 里记一个标记——同一个标签页内不再重复提问。
 4. 答案本身**不会**出现在 HTML 里，只出现它的哈希。
-5. `/vault/` 及其中所有文章都带 `noindex`，不进 sitemap，`robots.txt` 也屏蔽了它。
+5. `/secrets/` 及其中所有文章都带 `noindex`，不进 sitemap，`robots.txt` 也屏蔽了它。
 
 默认答案就是网站主人的名字（三个大写字母，页面上到处都是提示）。
 
@@ -300,8 +300,8 @@ powershell -ExecutionPolicy Bypass -File scripts\hash-answer.ps1 "你的新答�
 # 输出一行 64 位十六进制哈希
 ```
 
-把这串哈希填到 `hugo.toml` 的 `params.vault.answerHash`（全局），
-或 `content/vault/_index.md` 的 `gate.hash`（只覆盖里版首页）。
+把这串哈希填到 `hugo.toml` 的 `params.secrets.answerHash`（全局），
+或 `content/secrets/_index.md` 的 `gate.hash`（只覆盖里版首页）。
 题目、提示、输入框占位符也都在同一个 `gate:` 段里改。
 
 > 哈希的规范化方式与前端一致：去掉所有空白字符 → 转大写 → UTF-8 → SHA-256。
@@ -310,21 +310,21 @@ powershell -ExecutionPolicy Bypass -File scripts\hash-answer.ps1 "你的新答�
 ### ⚠️ 这是软门禁，不是保险柜
 
 静态网站的 HTML 是公开的。门禁只能挡住"随手点进来的人"和搜索引擎，
-**挡不住查看网页源码的人**——`/vault/xxx/` 这些地址只要被猜到或被抓取，内容就能直接读到。
+**挡不住查看网页源码的人**——`/secrets/xxx/` 这些地址只要被猜到或被抓取，内容就能直接读到。
 所以里版适合放"还没准备好公开、但漏出去也不致命"的东西（废案、草稿、设定笔记）。
 
 ### 想要真正保密，三选一
 
 1. **不发布**：里版内容只留在本地仓库，或放到另一个私有仓库/分支，构建时排除。
-   （在 `hugo.toml` 里加 `ignoreFiles = ["content/vault/.*"]` 之类，配合删掉 vault 的导航入口。）
+   （在 `hugo.toml` 里加 `ignoreFiles = ["content/secrets/.*"]` 之类，配合删掉 secrets 的导航入口。）
 2. **构建时加密**：用 [staticrypt](https://github.com/robinmoisson/staticrypt) 之类的工具
-   把 `public/vault/**` 用口令加密成一段 AES 密文，访问者必须输入口令才能解密。
+   把 `public/secrets/**` 用口令加密成一段 AES 密文，访问者必须输入口令才能解密。
    这一步可以放在 `scripts/build.ps1` 之后跑，口令不会进仓库：
    ```powershell
-   npx staticrypt public/vault/index.html -p "你的口令" -d public/vault --recursive
+   npx staticrypt public/secrets/index.html -p "你的口令" -d public/secrets --recursive
    ```
 3. **放到需要鉴权的托管上**：Cloudflare Access、Netlify Identity、Vercel 密码保护，
-   或者干脆用一台能配 HTTP Basic Auth 的服务器托管 `/vault/`。
+   或者干脆用一台能配 HTTP Basic Auth 的服务器托管 `/secrets/`。
 
 第三种最安全也最省事；第二种体验最接近"解谜"。
 

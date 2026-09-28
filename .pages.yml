@@ -210,10 +210,10 @@ content:
         type: boolean
         default: true
   # ---------------- 里版 ----------------
-  - name: vault
+  - name: secrets
     label: "里版"
     type: collection
-    path: content/vault
+    path: content/secrets
     exclude: [_index.md]
     format: yaml-frontmatter
     filename:

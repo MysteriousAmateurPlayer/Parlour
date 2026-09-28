@@ -18,7 +18,7 @@ const COMMON_POST_PARAMS = new Set([
   'title', 'date', 'description', 'tags', 'draft', 'cover', 'toc', 'math', 'private', 'author', 'weight', 'noindex'
 ]);
 // 属于「板块首页 / 单页」而不是文章正文的字段 —— 写作台有意不覆盖（在 content/<板块>/_index.md 里）
-const PAGE_LEVEL_ONLY = new Set(['gate', 'vaultGate', 'layout', 'subtitle', 'portrait', 'portraitFallback', 'paragraphs', 'facts', 'hero', 'latest', 'primary', 'secondary', 'blurb', 'accent', 'icon', 'numeral', 'en', 'nav', 'home', 'count', 'kicker', 'tagline', 'since', 'ogImage', 'appearance', 'vault']);
+const PAGE_LEVEL_ONLY = new Set(['gate', 'secretsGate', 'layout', 'subtitle', 'portrait', 'portraitFallback', 'paragraphs', 'facts', 'hero', 'latest', 'primary', 'secondary', 'blurb', 'accent', 'icon', 'numeral', 'en', 'nav', 'home', 'count', 'kicker', 'tagline', 'since', 'ogImage', 'appearance', 'secrets']);
 
 function walk(dir, acc = []) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {

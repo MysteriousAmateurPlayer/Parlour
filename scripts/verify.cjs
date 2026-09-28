@@ -57,7 +57,7 @@ check('首页卡片标题与配置一致', cardTitles.join('|') === homeSections
 
 // 导航项现在带板块图标，标题包在 <span> 里；首页那一项是纯文字。
 // 注意：必须先把每个 <a> 块切出来再取文字，否则正则会跨到下一条导航里去。
-const navTitles = [...homeNorm.matchAll(/<a class="nav__link[^"]*"[^>]*>([\s\S]*?)<\/a>/g)]
+const navTitles = [...homeNorm.matchAll(/<a class="nav__link(?! nav__link--secrets)[^"]*"[^>]*>([\s\S]*?)<\/a>/g)]
   .map((m) => {
     const sp = m[1].match(/<span>([^<]+)<\/span>/);
     return (sp ? sp[1] : m[1].replace(/<[^>]*>/g, '')).trim();
@@ -81,7 +81,7 @@ check('地球仪数据可解析', globeSections >= 0, globeSections < 0 ? 'JSON 
 const globeEligible = list.filter((s) => s.home && String(s.globe) !== 'false').length;
 check('地球仪覆盖全部该上拼图的板块', globeSections === globeEligible, `${globeSections} / ${globeEligible}`);
 check('地球仪留了空位给以后的板块', globeCapacity > homeSections.length, `capacity=${globeCapacity}`);
-check('星野里有里版入口那颗特殊的星星', home.includes('vault-star'));
+check('星野里有里版入口那颗特殊的星星', home.includes('secrets-star'));
 
 // ---------- 样式 ----------
 const cssFiles = fs.readdirSync(path.join(PUB, 'css'));
@@ -144,14 +144,14 @@ if (srcExists('content/fanworks')) check('同人标签筛选', fs.existsSync(pat
 check('标签总览页', read('tags/index.html').includes('term-chip'));
 
 // ---------- 里版（如果还在） ----------
-const vaultCfg = sections.vault;
-if (vaultCfg && srcExists('content/vault/_index.md')) {
-  const vault = read('vault/index.html');
-  check('里版有门禁与答案哈希', vault.includes('data-vault-gate') && /data-hash="[0-9a-f]{64}"/.test(vault));
-  check('里版内容默认隐藏', vault.includes('data-vault-content hidden'));
-  check('里版 noindex', vault.includes('content="noindex, nofollow, noarchive"'));
-  check('sitemap 排除里版', !read('sitemap.xml').includes('/vault/'));
-  check('robots 屏蔽里版', read('robots.txt').includes('Disallow: /vault/'));
+const secretsCfg = sections.secrets;
+if (secretsCfg && srcExists('content/secrets/_index.md')) {
+  const secrets = read('secrets/index.html');
+  check('里版有门禁与答案哈希', secrets.includes('data-secrets-gate') && /data-hash="[0-9a-f]{64}"/.test(secrets));
+  check('里版内容默认隐藏', secrets.includes('data-secrets-content hidden'));
+  check('里版 noindex', secrets.includes('content="noindex, nofollow, noarchive"'));
+  check('sitemap 排除里版', !read('sitemap.xml').includes('/secrets/'));
+  check('robots 屏蔽里版', read('robots.txt').includes('Disallow: /secrets/'));
 } else {
   check('里版相关', null, '（未启用里版，跳过）');
 }

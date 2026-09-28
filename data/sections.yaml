@@ -50,12 +50,12 @@ kitchen:
   weight: 50
   nav: true
   home: true
-vault:
-  title: "里版"
-  en: "Vault"
+secrets:
+  title: "另一个维度"
+  en: "Another Dimension"
   numeral: "零"
   accent: "#4a4a55"
-  icon: "lock"
+  icon: "orbit"
   blurb: "心灵枷锁的另一侧"
   weight: 90
   nav: false

@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    MAP · 主题样式
    目录
      01 设计令牌（明暗两套配色）
@@ -220,7 +220,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .band { padding-block: clamp(3.5rem, 8vw, 6.5rem); }
 .band + .band { border-top: 1px solid var(--line); }
 .band--about { background: var(--bg-soft); }
-.band--vault { padding-block: clamp(2.5rem, 5vw, 4rem); }
+.band--secrets { padding-block: clamp(2.5rem, 5vw, 4rem); }
 
 .empty {
   padding-block: 3rem;
@@ -384,7 +384,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-family: var(--font-sans);
   letter-spacing: 0.08em;
 }
-.mobile-nav__link--vault { color: var(--accent); border-bottom: 0; }
+.mobile-nav__link--secrets { color: var(--accent); border-bottom: 0; }
 
 /* --------------------------------------------------------------------------
    05 首页：主视觉
@@ -1157,12 +1157,91 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 /* 那颗"稍微不一样"的星星：里版入口（只多一颗小卫星） */
-.vault-star { color: var(--globe-star); cursor: pointer; transition: color 0.3s var(--ease); }
-.vault-star__hit { fill: none; stroke: none; pointer-events: all; }
-.vault-star__core { fill: color-mix(in srgb, var(--globe-star) 55%, transparent); stroke: currentColor; stroke-width: 1; stroke-linejoin: round; }
-.vault-star:hover, .vault-star:focus-visible { color: var(--accent); }
-.vault-star:focus-visible { outline: none; }
-.vault-star:focus-visible .vault-star__core { stroke-width: 1.6; }
+.secrets-star { color: var(--globe-star); cursor: pointer; transition: color 0.3s var(--ease); }
+.secrets-star__hit { fill: none; stroke: none; pointer-events: all; }
+.secrets-star__core { fill: color-mix(in srgb, var(--globe-star) 55%, transparent); stroke: currentColor; stroke-width: 1; stroke-linejoin: round; }
+.secrets-star:hover, .secrets-star:focus-visible { color: var(--accent); }
+.secrets-star:focus-visible { outline: none; }
+.secrets-star:focus-visible .secrets-star__core { stroke-width: 1.6; }
+
+/* --------------------------------------------------------------------------
+   另一个维度：两道锁（选日期 + 星图点灯）
+   -------------------------------------------------------------------------- */
+/* hidden 属性要压得住组件自己的 display */
+.nav__link[hidden], .mobile-nav__link[hidden], .gate__form[hidden], .gate__step[hidden] { display: none; }
+
+/* 页脚那句传说 */
+.site-footer__legend {
+  margin: 1.4rem 0 0;
+  font-family: var(--font-serif);
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-align: center;
+  color: var(--ink-mute);
+}
+
+.gate__go { margin-top: 1.3rem; }
+
+/* 第一道锁：年 + 月 + 日 */
+.gate__form--date {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.gate__year {
+  font-family: var(--font-serif);
+  letter-spacing: 0.1em;
+  color: var(--ink-mute);
+}
+.gate__select {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--bg) 62%, transparent);
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.gate__select:focus { outline: none; border-color: var(--accent); }
+.gate__fails {
+  margin: 0.7rem 0 0;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-mute);
+  min-height: 1em;
+}
+.gate__fails--out { color: var(--accent); }
+
+/* 第二道锁：星图点灯 */
+.star-puzzle {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 4), 1fr);
+  gap: 0.55rem;
+  width: min(15rem, 62vw);
+  margin: 1.2rem auto 0.5rem;
+}
+.star-puzzle__cell {
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.22s var(--ease), box-shadow 0.22s var(--ease), border-color 0.22s var(--ease);
+}
+.star-puzzle__cell:hover { border-color: var(--accent); }
+.star-puzzle__cell.is-on {
+  background: radial-gradient(circle at 36% 32%,
+    var(--accent-ink, var(--accent)) 0%,
+    var(--accent) 72%);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px -2px color-mix(in srgb, var(--accent) 75%, transparent);
+}
 
 /* 地球本体：镂空线稿，只有一层很淡的底 */
 .globe__sphere {
@@ -1973,12 +2052,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* --------------------------------------------------------------------------
    12 里版与解谜入口
    -------------------------------------------------------------------------- */
-.vault { min-height: calc(100vh - var(--header-h)); }
+.secrets { min-height: calc(100vh - var(--header-h)); }
 
 /* ---- 里版问答弹窗（点首页场景里的星星/彩虹/潮汐时出现） ---- */
 body.is-modal-open { overflow: hidden; }
 
-.vault-modal {
+.secrets-modal {
   position: fixed;
   inset: 0;
   z-index: 90;
@@ -1986,14 +2065,14 @@ body.is-modal-open { overflow: hidden; }
   place-items: center;
   padding: clamp(1rem, 4vw, 2rem);
 }
-.vault-modal__backdrop {
+.secrets-modal__backdrop {
   position: absolute;
   inset: 0;
   background: color-mix(in srgb, var(--ink) 42%, transparent);
   backdrop-filter: blur(3px);
   animation: modalFade 0.3s var(--ease);
 }
-.vault-modal__card {
+.secrets-modal__card {
   position: relative;
   width: min(30rem, 100%);
   max-height: 88vh;
@@ -2005,16 +2084,16 @@ body.is-modal-open { overflow: hidden; }
   text-align: center;
   animation: modalRise 0.36s var(--ease);
 }
-.vault-modal__card::after {
+.secrets-modal__card::after {
   content: "";
   position: absolute;
   inset: 0.55rem;
   border: 1px solid var(--line);
   pointer-events: none;
 }
-.vault-modal__card.is-shaking { animation: shake 0.45s var(--ease); }
+.secrets-modal__card.is-shaking { animation: shake 0.45s var(--ease); }
 
-.vault-modal__close {
+.secrets-modal__close {
   position: absolute;
   top: 0.55rem;
   right: 0.55rem;
@@ -2030,14 +2109,14 @@ body.is-modal-open { overflow: hidden; }
   cursor: pointer;
   transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
 }
-.vault-modal__close:hover { color: var(--accent); border-color: var(--line); }
+.secrets-modal__close:hover { color: var(--accent); border-color: var(--line); }
 
-.vault-modal__blurb {
+.secrets-modal__blurb {
   margin-top: 0.9rem;
   font-size: var(--step--1);
   color: var(--ink-mute);
 }
-.vault-modal__alt {
+.secrets-modal__alt {
   margin-top: 1.35rem;
   padding-top: 1rem;
   border-top: 1px solid var(--line);
@@ -2046,7 +2125,7 @@ body.is-modal-open { overflow: hidden; }
   letter-spacing: 0.06em;
   color: var(--ink-mute);
 }
-.vault-modal__alt a { color: var(--accent-ink); border-bottom: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+.secrets-modal__alt a { color: var(--accent-ink); border-bottom: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
 
 @keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes modalRise {
@@ -2147,7 +2226,7 @@ body.is-modal-open { overflow: hidden; }
   80% { transform: translateX(3px); }
 }
 
-.vault-banner {
+.secrets-banner {
   display: flex;
   align-items: center;
   gap: 0.85rem;
@@ -2160,9 +2239,9 @@ body.is-modal-open { overflow: hidden; }
   letter-spacing: 0.08em;
   color: var(--ink-soft);
 }
-.vault-banner__icon { color: var(--accent); }
-.vault-banner p { flex: 1; margin: 0; }
-.article--vault .article__crumbs { color: var(--accent); }
+.secrets-banner__icon { color: var(--accent); }
+.secrets-banner p { flex: 1; margin: 0; }
+.article--secrets .article__crumbs { color: var(--accent); }
 
 /* --------------------------------------------------------------------------
    13 页脚与 404
@@ -2224,8 +2303,8 @@ body.is-modal-open { overflow: hidden; }
 }
 .site-footer__bottom a { color: var(--ink-soft); }
 .site-footer__bottom a:hover { color: var(--accent); }
-.site-footer__vault { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--ink-mute); }
-.site-footer__vault:hover { color: var(--accent); }
+.site-footer__secrets { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--ink-mute); }
+.site-footer__secrets:hover { color: var(--accent); }
 
 .band--404 { display: grid; place-items: center; min-height: calc(100vh - var(--header-h) - 12rem); }
 .error-page { text-align: center; }
@@ -2308,7 +2387,7 @@ body.is-modal-open { overflow: hidden; }
 }
 
 @media print {
-  .site-header, .site-footer, .scroll-hint, .hero__actions, .band--vault, .article-foot { display: none; }
+  .site-header, .site-footer, .scroll-hint, .hero__actions, .band--secrets, .article-foot { display: none; }
   body { background: #fff; color: #000; }
   .prose { max-width: none; }
 }

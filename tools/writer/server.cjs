@@ -73,7 +73,7 @@ const SPECIAL_FIELDS = {
     { key: 'cover', label: '成品图（可留空）', type: 'image' },
     COMMON.draft, COMMON.filename
   ],
-  vault: () => [
+  secrets: () => [
     COMMON.title, COMMON.date, COMMON.description, COMMON.tags, COMMON.series,
     COMMON.toc,
     { key: 'private', label: '不被搜索引擎收录（请保持勾选）', type: 'bool', default: true },

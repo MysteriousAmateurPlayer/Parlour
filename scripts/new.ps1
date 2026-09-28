@@ -5,13 +5,13 @@
 #   pwsh scripts/new.ps1 kitchen "葱油拌面"
 #   pwsh scripts/new.ps1 fanworks "新短篇"
 #   pwsh scripts/new.ps1 garden "九月：换盆记录"
-#   pwsh scripts/new.ps1 vault "新的废案"
+#   pwsh scripts/new.ps1 secrets "新的废案"
 #
 # 文件名会自动用「-」连接；板块对应 archetypes/ 下的同名模板。
 
 param(
   [Parameter(Mandatory = $true, Position = 0)]
-  [ValidateSet('fanworks', 'math', 'garden', 'kitchen', 'vault')]
+  [ValidateSet('fanworks', 'math', 'garden', 'kitchen', 'secrets')]
   [string]$Section,
 
   [Parameter(Mandatory = $true, Position = 1)]

@@ -115,7 +115,7 @@ function checkOffline() {
 /* ---------------- 在线模式：真的发请求 ---------------- */
 async function checkOnline(base) {
   const root = base.endsWith('/') ? base : base + '/';
-  const pages = ['', 'about/', 'fanworks/', 'math/', 'garden/', 'kitchen/', 'tags/', 'vault/'];
+  const pages = ['', 'about/', 'fanworks/', 'math/', 'garden/', 'kitchen/', 'tags/', 'secrets/'];
   const seen = new Map();
   const broken = [];
   let checked = 0;

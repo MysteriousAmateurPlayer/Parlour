@@ -5,15 +5,15 @@
        · 片区里放的是各板块的图标（不是文字）；空位留给以后的板块
        · 星野里有一颗"稍微不一样"的星星 —— 里版入口
        渲染逻辑在 assets/js/globe.js，海岸线数据在 assets/js/world-data.js */ -}}
-{{- $vault := site.GetPage "/vault" -}}
-{{- $vaultUrl := "" -}}
-{{- with $vault }}{{ $vaultUrl = .RelPermalink }}{{ end -}}
-{{- if not $vaultUrl }}{{ $vaultUrl = partial "link.html" "/vault/" }}{{ end -}}
-{{- $gate := site.Params.vault -}}
+{{- $secrets := site.GetPage "/secrets" -}}
+{{- $secretsUrl := "" -}}
+{{- with $secrets }}{{ $secretsUrl = .RelPermalink }}{{ end -}}
+{{- if not $secretsUrl }}{{ $secretsUrl = partial "link.html" "/secrets/" }}{{ end -}}
+{{- $gate := site.Params.secrets -}}
 
 {{- $sections := slice -}}
 {{- range $key, $meta := hugo.Data.sections -}}
-  {{- if and $meta.home (ne $key "vault") (ne $meta.globe false) -}}
+  {{- if and $meta.home (ne $key "secrets") (ne $meta.globe false) -}}
     {{- $sec := site.GetPage (printf "/%s" $key) -}}
     {{- $href := partial "link.html" (printf "/%s/" $key) -}}
     {{- with $sec }}{{ $href = .RelPermalink }}{{ end -}}
@@ -82,6 +82,12 @@
       <g class="sky-field" mask="url(#sky-mask)">
         <g class="sky-turn">
         <g class="sky-drift">
+            {{/* 那颗"不一样的星星"：形态是五角星，位置由 JS 每次随机挑一颗星点落脚，
+                 大小与它落脚的那颗星完全一致 —— 刻意不放大，好让它藏在星野里。 */}}
+            <a class="secrets-star" href="{{ $secretsUrl }}" data-secrets-open aria-label="另一个维度的入口" transform="translate(-9999,-9999)">
+              <circle class="secrets-star__hit" r="26"/>
+              <use class="secrets-star__core" href="#star5" opacity="0.6"/>
+            </a>
           <use href="#star4" transform="translate(669,-428) scale(0.27)" style="opacity:0.55"/>
           <use href="#star4" transform="translate(933,-423) scale(0.34)" style="opacity:0.64"/>
           <use href="#star4" transform="translate(393,-372) scale(0.28)" style="opacity:0.56"/>
@@ -668,7 +674,6 @@
             <use href="#star4" transform="translate(166.1,492.3) scale(0.38)" style="opacity:0.69"/>
             <use href="#star4" transform="translate(136.7,478.9) scale(0.34)" style="opacity:0.65"/>
             <use href="#star4" transform="translate(128.2,490.5) scale(0.42)" style="opacity:0.73"/>
-            <a class="vault-star" href="{{ $vaultUrl }}" data-vault-open aria-label="里版入口"><use href="#star5" transform="translate(155.9,551.9) scale(1.06)"/></a>
         </g>
         <g class="sky-set" data-name="牧夫座" data-cx="503" data-cy="136">
             <path class="sky-figure" d="M474.4 196.4L493.0 193.1L507.4 145.7L507.6 112.1L534.2 103.3L546.2 133.2L519.1 159.7L493.0 193.1"/>
@@ -748,7 +753,6 @@
             <use href="#star4" transform="translate(272.7,567.2) scale(0.42)" style="opacity:0.73"/>
             <use href="#star4" transform="translate(266.3,560.6) scale(0.48)" style="opacity:0.78"/>
             <use href="#star4" transform="translate(255.0,549.0) scale(0.57)" style="opacity:0.84"/>
-            <a class="vault-star" href="{{ $vaultUrl }}" data-vault-open aria-label="里版入口"><use href="#star5" transform="translate(174.0,484.8) scale(1.14)"/></a>
         </g>
         <g class="sky-set" data-name="天鹅座" data-cx="500" data-cy="137">
             <path class="sky-figure" d="M569.1 194.5L540.5 173.3L514.8 137.8L474.8 110.2"/>
@@ -843,7 +847,6 @@
             <use href="#star4" transform="translate(128.2,558.2) scale(0.48)" style="opacity:0.78"/>
             <use href="#star4" transform="translate(195.2,493.9) scale(0.37)" style="opacity:0.68"/>
             <use href="#star4" transform="translate(151.4,490.7) scale(0.35)" style="opacity:0.66"/>
-            <a class="vault-star" href="{{ $vaultUrl }}" data-vault-open aria-label="里版入口"><use href="#star5" transform="translate(275.0,474.3) scale(0.90)"/></a>
         </g>
         <g class="sky-set" data-name="仙女座" data-cx="504" data-cy="123">
             <path class="sky-figure" d="M610.4 98.7L548.9 137.8L514.3 165.5L479.2 175.8"/>
@@ -970,7 +973,6 @@
             <use href="#star4" transform="translate(222.0,568.6) scale(0.56)" style="opacity:0.83"/>
             <use href="#star4" transform="translate(234.8,625.4) scale(0.52)" style="opacity:0.80"/>
             <use href="#star4" transform="translate(213.8,563.2) scale(0.56)" style="opacity:0.84"/>
-            <a class="vault-star" href="{{ $vaultUrl }}" data-vault-open aria-label="里版入口"><use href="#star5" transform="translate(174.2,614.6) scale(1.40)"/></a>
         </g>
         <g class="sky-set" data-name="金牛座" data-cx="481" data-cy="138">
             <path class="sky-figure" d="M617.0 90.1L514.8 121.8L502.8 126.1L488.1 127.8L502.7 103.5L598.2 39.0"/>

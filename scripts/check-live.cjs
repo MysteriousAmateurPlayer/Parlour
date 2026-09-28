@@ -65,7 +65,7 @@ async function get(path, { timeout = 25000 } = {}) {
   line(home.text.includes('hero__sun-layer') && home.text.includes('sun-disc') ? 'PASS' : 'FAIL', '首页简介放在太阳上（含古典光芒）');
   line(home.text.includes('globe-band') && home.text.includes('sky-field') ? 'PASS' : 'FAIL', '首页第一屏露出地球（星图质感）');
   line(home.text.includes('globe-stage') && home.text.includes('globe-data') ? 'PASS' : 'FAIL', '首页有可旋转的地球仪');
-  line(home.text.includes('vault-star') && home.text.includes('data-vault-open') ? 'PASS' : 'WARN', '首页有里版入口（特殊星星 + 弹窗）');
+  line(home.text.includes('secrets-star') && home.text.includes('data-secrets-open') ? 'PASS' : 'WARN', '首页有里版入口（特殊星星 + 弹窗）');
 
   const H = norm(home.text);
 
@@ -111,7 +111,7 @@ async function get(path, { timeout = 25000 } = {}) {
     ['食谱列表', '/kitchen/'],
     ['一份食谱（含结构化数据）', '/kitchen/tomato-beef-brisket/'],
     ['标签总览', '/tags/'],
-    ['里版入口', '/vault/'],
+    ['里版入口', '/secrets/'],
     ['RSS 订阅', '/index.xml'],
     ['robots.txt', '/robots.txt'],
     ['sitemap.xml', '/sitemap.xml']
@@ -124,7 +124,7 @@ async function get(path, { timeout = 25000 } = {}) {
   // ---------- 5. 里版是否被排除在站点地图外 ----------
   const sm = await get('/sitemap.xml');
   if (sm.ok && sm.status === 200) {
-    line(!sm.text.includes('/vault/') ? 'PASS' : 'WARN', 'sitemap 里没有里版', sm.text.includes('/vault/') ? '建议检查 content/vault 的 private 设置' : '');
+    line(!sm.text.includes('/secrets/') ? 'PASS' : 'WARN', 'sitemap 里没有里版', sm.text.includes('/secrets/') ? '建议检查 content/secrets 的 private 设置' : '');
     const firstLoc = (sm.text.match(/<loc>([^<]+)<\/loc>/) || [])[1] || '';
     let smOrigin = '';
     try { smOrigin = new URL(firstLoc).origin; } catch (e) {}

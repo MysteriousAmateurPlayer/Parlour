@@ -49,17 +49,23 @@ summaryLength = 72
     # 首页下拉那颗可旋转的地球（球面上的拼图片区就是各板块）
     showGlobe = true
 
-  # ---- 里版 / 解谜入口 ----
-  [params.vault]
+  # ---- 另一个维度 / 解谜入口 ----
+  [params.secrets]
     enabled = true
-    # 顶部导航右侧的小锁图标是否显示
+    # 解锁之后，是否作为版块出现在页眉导航里（解锁前页眉上没有任何入口）
     showInHeader = true
-    # 关卡问题与答案的 SHA-256（小写十六进制）。
-    # 生成方法见 README「设置解谜答案」：scripts/hash-answer.ps1
-    # 下面这个默认答案是「MAP」（大小写不敏感）
-    answerHash = "4cf644d78bfc298f26ba4c170c7a1c04c3d1388e09fdd02534f23433a9a8f227"
-    question = "把网站主人的名字输入进来（三个字母）。"
-    hint = "就在页面左上角。"
+    # 入口题：年份固定，访客选「月」与「日」。答案以 SHA-256 存放，
+    # 前端把选中的「月-日」拼成 M-D 再做哈希比对 —— 源码里看不到答案。
+    # 重新生成：node -e "console.log(require('crypto').createHash('sha256').update('8-13').digest('hex'))"
+    year = 2026
+    answerHash = "cb4b2a415ad7421f32183d5d322e83439706693d0c03f3c6e8cb6d5687baf781"
+    question = "我第一次发布同人画作的日期，是 2026 年的哪一天？"
+    # 当月答错「超过」这个次数，本月就不能再试了（3 表示允许错 3 次）
+    maxFails = 3
+    hint = ""
+    # 第二道锁：星图点灯（Lights Out），点亮全部星点才放行
+    puzzle = true
+    puzzleSize = 4
 
   # ---- 二次同人创作记录页的筛选项 ----
   [params.fanworks]

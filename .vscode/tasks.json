@@ -69,7 +69,7 @@
         { "label": "数学分享", "value": "math" },
         { "label": "园艺记录", "value": "garden" },
         { "label": "烹饪食谱", "value": "kitchen" },
-        { "label": "里版（解谜后才能看）", "value": "vault" }
+        { "label": "里版（解谜后才能看）", "value": "secrets" }
       ]
     },
     {

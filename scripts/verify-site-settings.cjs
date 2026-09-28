@@ -16,7 +16,7 @@ const files = {
   home: HOME,
   socials: SOCIALS,
   about: path.join(ROOT, 'content', 'about', '_index.md'),
-  vault: path.join(ROOT, 'content', 'vault', '_index.md')
+  secrets: path.join(ROOT, 'content', 'secrets', '_index.md')
 };
 const backup = {};
 for (const [k, f] of Object.entries(files)) backup[k] = fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : null;
@@ -61,14 +61,13 @@ try {
   ok('layout: profile 被保留', /layout:\s*"?profile/.test(aboutRaw));
   ok('原有其他字段仍在', (after.extraKeys || []).length >= 1, (after.extraKeys || []).join(','));
 
-  // ---------- 里版：解谜配置必须原样保留 ----------
-  const vaultBefore = fs.readFileSync(files.vault, 'utf8');
-  const gateBefore = /gate:/.test(vaultBefore) && /question:/.test(vaultBefore);
-  const vIntro = W.readIntro('vault');
-  W.saveIntro('vault', { title: vIntro.title, description: vIntro.description, body: vIntro.body });
-  const vaultAfter = fs.readFileSync(files.vault, 'utf8');
-  ok('里版 gate 题目仍在', gateBefore && /gate:/.test(vaultAfter) && /question:/.test(vaultAfter) && /hint:/.test(vaultAfter));
-  ok('里版 private: true 仍在', /private:\s*true/.test(vaultAfter));
+  // ---------- 另一个维度：门禁开关与 private 必须原样保留 ----------
+  // （题目与答案已统一放在 hugo.toml 的 [params.secrets]，_index.md 里不再写 gate 段）
+  const vIntro = W.readIntro('secrets');
+  W.saveIntro('secrets', { title: vIntro.title, description: vIntro.description, body: vIntro.body });
+  const secretsAfter = fs.readFileSync(files.secrets, 'utf8');
+  ok('另一个维度 secretsGate 仍在', /secretsGate:\s*true/.test(secretsAfter));
+  ok('另一个维度 private: true 仍在', /private:\s*true/.test(secretsAfter));
 
   // ---------- 联系方式 ----------
   const before2 = W.readSocials();
