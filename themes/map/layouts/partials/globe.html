@@ -32,11 +32,15 @@
 
 <section class="globe-band" id="globe" aria-labelledby="globe-title">
   <div class="globe-band__stage">
-    {{/* 地球仪外面的装饰：一圈光晕 + 一条倾斜的环带（纯 CSS 平面图形，不用 3D 变换） */}}
+    {{/* 地球仪外面的装饰：一圈光晕 + 两圈人造卫星轨道（纯 CSS 平面图形，不用 3D 变换） */}}
     <span class="globe-decor" aria-hidden="true">
       <span class="globe-decor__halo"></span>
-      <span class="globe-decor__band"></span>
-      <span class="globe-decor__ring"></span>
+      <span class="globe-decor__band">
+        <i class="globe-decor__plane"><i class="globe-decor__spin"><b class="globe-decor__sat"></b></i></i>
+      </span>
+      <span class="globe-decor__ring">
+        <i class="globe-decor__plane globe-decor__plane--ring"><i class="globe-decor__spin globe-decor__spin--b"><b class="globe-decor__sat globe-decor__sat--sm"></b></i></i>
+      </span>
     </span>
     <svg class="globe-svg" viewBox="0 0 1500 1300" preserveAspectRatio="xMidYMid meet"
          role="img" aria-label="可以旋转的地球，球面上的大陆轮廓与片区是各个板块">
@@ -1057,9 +1061,11 @@
         </g>
       </g>
     </svg>
-    {{/* 前景层：环带的下半段压在地球前面，读起来就是一条绕球的立体环 */}}
+    {{/* 前景层：环带下半段露在地球前面 → 立体环绕；卫星在前半段也从地球前面掠过 */}}
     <span class="globe-decor globe-decor--front" aria-hidden="true">
-      <span class="globe-decor__band"></span>
+      <span class="globe-decor__band">
+        <i class="globe-decor__plane"><i class="globe-decor__spin globe-decor__spin--front"><b class="globe-decor__sat"></b></i></i>
+      </span>
     </span>
   </div>
 

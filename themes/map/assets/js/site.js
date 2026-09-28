@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    MAP · 站点交互脚本
    1. 明暗主题切换（记忆到 localStorage）
    2. 移动端导航
@@ -401,31 +401,32 @@
   var W = 0, H = 0, sunX = 0, sunY = 0, rx = 0, ry = 0;
   var COL = ['#79c9b4', '#dcb268', '#9c86c8'], A_BASE = 0.34;
 
-  var CURTAINS = 4, cur = [];
-  for (var ci = 0; ci < CURTAINS; ci++) {
-    cur.push({
-      hue: ci % 3,
-      base: 0.12 + ci * 0.07,            // 帘幕底边相对缝隙的抬升
-      amp: 0.55 + Math.random() * 0.5,   // 起伏幅度
-      k1: 0.0032 + Math.random() * 0.0028,
-      k2: 0.0086 + Math.random() * 0.005,
-      ph: Math.random() * 6.28,
-      ph2: Math.random() * 6.28,
-      speed: 0.11 + Math.random() * 0.13,
-      bright: 0.5 + Math.random() * 0.4
-    });
-  }
-  var rays = [];
-  for (var ri = 0; ri < 260; ri++) {
-    rays.push({ u: Math.random(), off: Math.random(), w: 0.4 + Math.random() * 1.3, hue: ri % 3 });
-  }
+  // 极光用「低分辨率离屏 + 放大双线性插值」来画：
+  // 低分辨率下随便画，放大后天然变成柔和渐变 —— 不会有硬边、也不会有折点
+  var SS = 6;
+  var off = document.createElement('canvas');
+  var octx = off.getContext('2d');
+  var plumes = [];
+  (function () {
+    for (var i = 0; i < 84; i++) {
+      plumes.push({
+        u: (i + 0.5) / 84 + (Math.random() - 0.5) * 0.014,
+        h: 44 + Math.random() * 116,          // 竖直半轴
+        w: 15 + Math.random() * 32,           // 水平半轴
+        hue: Math.floor(Math.random() * 3),
+        a: 0.13 + Math.random() * 0.26,       // 单枚光斑的亮度（整体压得很低）
+        ph: Math.random() * 6.28,
+        sp: 0.13 + Math.random() * 0.3
+      });
+    }
+  })();
 
   function readColors() {
     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
     COL[0] = cssColor('--aurora-1', dark ? '#7ee0c0' : '#79c9b4');
     COL[1] = cssColor('--aurora-2', dark ? '#eccb8a' : '#dcb268');
     COL[2] = cssColor('--aurora-3', dark ? '#a88ee2' : '#9c86c8');
-    A_BASE = dark ? 0.46 : 0.32;
+    A_BASE = dark ? 1.25 : 0.85;
   }
 
   function resize() {
@@ -435,7 +436,8 @@
     H = Math.max(1, r.height);
     cv.width = Math.round(W * dpr);
     cv.height = Math.round(H * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    off.width = Math.max(2, Math.round(W / SS));
+    off.height = Math.max(2, Math.round(H / SS));
 
     var sun = document.querySelector('.hero__sun-layer') || document.querySelector('.hero__sun-wrap');
     var sr = sun ? sun.getBoundingClientRect() : null;
@@ -462,80 +464,56 @@
     d = Math.max(-1, Math.min(1, d));
     return sunY - ry * Math.sqrt(Math.max(0, 1 - d * d));
   }
-  function curtainH(c, x, t) {
-    var b = arcY(x) - 16;
-    var h = (b - 26) * c.amp * (0.62 + 0.38 * Math.sin(x * c.k1 + c.ph + t * c.speed));
-    h *= 0.72 + 0.28 * Math.sin(x * c.k2 - c.ph2 - t * c.speed * 1.7);
-    return h > 0 ? h : 0;
-  }
-  // 帘幕底边相对星轨上弧再抬起一点，并把抬起量做成缓慢起伏 → 下缘是波浪而不是直线
-  function curtainLift(c, x, t) {
-    return 7 + 15 * (0.5 + 0.5 * Math.sin(x * c.k1 * 1.6 - c.ph + t * c.speed * 0.8));
-  }
 
   function draw(t) {
-    ctx.clearRect(0, 0, W, H);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, cv.width, cv.height);
     if (!W || !H) return;
 
-    ctx.save();
-    // 兜底裁切：只在「星轨椭圆上弧以上」作画
-    ctx.beginPath();
-    ctx.moveTo(-2, -2);
-    ctx.lineTo(W + 2, -2);
-    for (var x = W + 2; x >= -2; x -= 8) ctx.lineTo(x, arcY(x) - 4);
-    ctx.closePath();
-    ctx.clip();
-    ctx.globalCompositeOperation = 'lighter';
+    // ---- 在低分辨率离屏上作画（用全尺寸坐标，靠 transform 缩小）----
+    octx.setTransform(1, 0, 0, 1, 0, 0);
+    octx.clearRect(0, 0, off.width, off.height);
+    octx.setTransform(1 / SS, 0, 0, 1 / SS, 0, 0);
+    octx.globalCompositeOperation = 'lighter';
 
-    // 竖直渐变的上下界取整幅的极值，这样整条帘幕共用一个渐变也不会断层
-    var gTop = sunY - ry - 175;
-    var gBot = sunY + 90;
+    var GAP = 10;
+    for (var i = 0; i < plumes.length; i++) {
+      var pl = plumes[i];
+      var x = pl.u * (W + 120) - 60;
+      var base = arcY(x) - GAP;
+      if (base < 8) continue;
+      var breathe = 0.55 + 0.45 * Math.sin(t * pl.sp + pl.ph);
+      var hy = pl.h * (0.8 + 0.4 * Math.sin(t * pl.sp * 0.7 + pl.ph * 1.7));
+      if (hy < 12) hy = 12;
+      var hx = pl.w * (0.8 + 0.35 * Math.sin(t * pl.sp * 0.5 + pl.ph * 2.3));
+      var a = pl.a * A_BASE * (0.5 + 0.5 * breathe);
+      if (a <= 0.004) continue;
 
-    for (var i = 0; i < cur.length; i++) {
-      var c = cur[i];
-      var a0 = A_BASE * c.bright;
-      var g = ctx.createLinearGradient(0, gBot, 0, gTop);
-      g.addColorStop(0.00, toRgba(COL[c.hue], 0));
-      g.addColorStop(0.28, toRgba(COL[c.hue], a0 * 0.34));
-      g.addColorStop(0.58, toRgba(COL[c.hue], a0 * 0.72));
-      g.addColorStop(0.74, toRgba(COL[c.hue], a0));
-      g.addColorStop(0.90, toRgba(COL[c.hue], a0 * 0.3));
-      g.addColorStop(1.00, toRgba(COL[c.hue], 0));
-
-      ctx.beginPath();
-      for (var x2 = -2; x2 <= W + 2; x2 += 8) {
-        var yb = arcY(x2) - 16 - curtainLift(c, x2, t) - curtainH(c, x2, t) * c.base;
-        if (x2 === -2) ctx.moveTo(x2, yb); else ctx.lineTo(x2, yb);
-      }
-      for (var x3 = W + 2; x3 >= -2; x3 -= 8) {
-        var h3 = curtainH(c, x3, t);
-        var yb3 = arcY(x3) - 16 - curtainLift(c, x3, t) - h3 * c.base;
-        ctx.lineTo(x3, yb3 - Math.max(26, h3 * (1 - c.base)));
-      }
-      ctx.closePath();
-      ctx.fillStyle = g;
-      ctx.fill();
-
-      // 帘内的竖直光丝
-      ctx.lineWidth = 1.2;
-      for (var k = 0; k < rays.length; k++) {
-        var rr = rays[k];
-        if (rr.hue !== c.hue) continue;
-        var xr = rr.u * W;
-        var hr = curtainH(c, xr, t);
-        if (hr < 30) continue;
-        var ybr = arcY(xr) - 16 - curtainLift(c, xr, t) - hr * c.base;
-        var flick = 0.3 + 0.7 * Math.abs(Math.sin(xr * 0.06 + rr.off * 6.28 + t * 0.55));
-        ctx.strokeStyle = toRgba(COL[c.hue], a0 * 0.55 * flick);
-        ctx.beginPath();
-        ctx.moveTo(xr, ybr);
-        ctx.lineTo(xr + Math.sin(xr * 0.02 + t * 0.25) * 7, ybr - hr * (0.45 + rr.w * 0.35));
-        ctx.stroke();
-      }
+      // 光斑：椭圆形的竖向光柱，上端与下端都渐隐到 0 → 没有硬边
+      octx.save();
+      octx.translate(x, base - hy);
+      octx.scale(hx / hy, 1);
+      var g = octx.createLinearGradient(0, hy, 0, -hy);
+      g.addColorStop(0.00, toRgba(COL[pl.hue], 0));
+      g.addColorStop(0.16, toRgba(COL[pl.hue], a));
+      g.addColorStop(0.52, toRgba(COL[pl.hue], a * 0.55));
+      g.addColorStop(0.82, toRgba(COL[pl.hue], a * 0.16));
+      g.addColorStop(1.00, toRgba(COL[pl.hue], 0));
+      octx.beginPath();
+      octx.arc(0, 0, hy, 0, Math.PI * 2);
+      octx.fillStyle = g;
+      octx.fill();
+      octx.restore();
     }
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.restore();
+    octx.globalCompositeOperation = 'source-over';
+
+    // ---- 放大插值贴回主画布：这一步把低分辨率的"糊"变成柔和的渐变 ----
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    if ('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(off, 0, 0, W, H);
   }
+
 
   var T = 0, raf = 0;
   readColors();
