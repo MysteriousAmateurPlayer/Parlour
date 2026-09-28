@@ -88,6 +88,10 @@
   --flow-spark: var(--accent);
   --globe-coast: color-mix(in srgb, var(--ink) 24%, transparent);   /* 地理层要淡，让位给拼图 */
   --ring-line: color-mix(in srgb, var(--ink) 20%, transparent);
+  /* 极光三色（日间：缥青 / 淡金 / 淡紫，与纸色同一族，只做薄薄一层纱） */
+  --aurora-1: #79c9b4;
+  --aurora-2: #dcb268;
+  --aurora-3: #9c86c8;
   --chart-line: color-mix(in srgb, var(--ink) 28%, transparent);
   --globe-fill: color-mix(in srgb, var(--accent) 4%, transparent);
   --globe-line: color-mix(in srgb, var(--ink) 15%, transparent);
@@ -129,6 +133,11 @@
   --sun-core: rgba(217, 178, 106, 0.16);
   --sun-edge: rgba(222, 186, 116, 0.4);
   --sun-edge-inner: rgba(222, 186, 116, 0.2);
+
+  /* 极光三色（夜间更亮更饱和） */
+  --aurora-1: #7ee0c0;
+  --aurora-2: #eccb8a;
+  --aurora-3: #a88ee2;
 
   --code-bg: #1f2126;
   --code-border: #2e3238;
@@ -406,6 +415,16 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* 背景：一圈极淡的同心光晕，像被灯照着的纸 */
 
 .hero__inner { position: relative; z-index: 1; }
+
+/* 极光：整幅盖在首屏上，但只在星轨椭圆上弧以上落笔（几何由 JS 裁切） */
+.hero__aurora {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
 
 /* 首屏粒子流场：分前后两层，构成绕星盘的 3D 流
    —— 背面那层在太阳之下（被太阳遮住），正面那层在太阳之上 */
@@ -855,6 +874,38 @@ button, input, select, textarea { font: inherit; color: inherit; }
   stroke-linecap: round;
 }
 
+/* 星轨底下的椭圆光晕：让整条星轨像浮在一层薄光里，更有仪式感 */
+.hero__ring-layer::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 108%;
+  height: 168%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side ellipse at 50% 50%,
+      color-mix(in srgb, var(--accent) 7%, transparent) 0%,
+      color-mix(in srgb, var(--accent) 4%, transparent) 52%,
+      transparent 78%);
+}
+/* 星轨的上下两条"张弦"：极淡的弧线，收住这层光晕 */
+.hero__ring-layer::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 74%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  border-radius: 50%;
+  border-top: 1px solid color-mix(in srgb, var(--ring-line) 60%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--ring-line) 45%, transparent);
+}
+
 /* 太阳与地球之间的那一圈星星 */
 .hero__ring-layer {
   position: absolute;
@@ -949,6 +1000,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* 舞台比正文更宽：地球要够大才有气势 */
 .globe-band__stage {
+  position: relative;
   width: 100%;
   max-width: 90rem;
   margin-inline: auto;
@@ -956,6 +1008,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .globe-svg {
   display: block;
+  position: relative;
+  z-index: 1;
   overflow: visible;   /* 星空可溢出画布，避免旋转时四角空掉 */
   width: 100%;
   aspect-ratio: 1100 / 940;
@@ -963,6 +1017,61 @@ button, input, select, textarea { font: inherit; color: inherit; }
   cursor: grab;
 }
 .globe-svg:active, .globe-svg.is-dragging { cursor: grabbing; }
+
+/* 地球仪外的装饰：一圈纸面光晕 + 一条倾斜环带 + 一道细轨。
+   全部是平面图形（不加 3D 变换、不加合成层），避免滚动时闪烁。
+   地球在 SVG 里的位置：圆心 x=750/1500=50%，y=640/1300，半径 430/1500 → 直径 57.3% */
+.globe-decor { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: visible; }
+.globe-decor__halo {
+  position: absolute;
+  left: 50%;
+  top: 49.2%;
+  width: 78%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side circle at 50% 50%,
+    transparent 54%,
+    color-mix(in srgb, var(--accent) 20%, transparent) 66%,
+    color-mix(in srgb, var(--accent) 7%, transparent) 80%,
+    transparent 100%);
+}
+/* 黄道环带：一条很扁的斜椭圆，走到地球背后就被地球挡住 */
+.globe-decor__band {
+  position: absolute;
+  left: 50%;
+  top: 49.2%;
+  width: 94%;
+  aspect-ratio: 1000 / 430;
+  transform: translate(-50%, -50%) rotate(-9deg);
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--ring-line) 90%, transparent);
+  border-top-color: color-mix(in srgb, var(--accent) 24%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--ring-line) 55%, transparent);
+}
+/* 天球环：贴着地球外缘的一圈虚线 */
+.globe-decor__ring {
+  position: absolute;
+  left: 50%;
+  top: 49.2%;
+  width: 69%;
+  aspect-ratio: 1000 / 940;
+  transform: translate(-50%, -50%) rotate(14deg);
+  border-radius: 50%;
+  border: 1px dashed color-mix(in srgb, var(--ring-line) 75%, transparent);
+  opacity: 0.75;
+}
+
+/* 前景层：环带下半段露在地球前面 → 立体环绕的感觉 */
+.globe-decor--front { z-index: 2; }
+.globe-decor--front .globe-decor__band {
+  clip-path: inset(55% -40% -40% -40%);
+  border-top-color: transparent;
+  border-left-color: color-mix(in srgb, var(--accent) 34%, transparent);
+  border-right-color: color-mix(in srgb, var(--accent) 34%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  opacity: 1;
+}
 
 /* 星野：纸上的墨色，像古典星图 */
 .sky-field use {

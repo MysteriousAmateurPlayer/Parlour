@@ -213,7 +213,7 @@
       ox: 0, oy: 0,
       hx: [], hy: [],
       age: 0, life: 600 + Math.random() * 1000, wave: 0,
-      hot: Math.random() < 0.06,
+      hot: Math.random() < 0.11,
       tw: Math.random() * Math.PI * 2, tws: 0.4 + Math.random() * 1.4
     };
   }
@@ -261,8 +261,9 @@
         p.age++;
         if (p.age > p.life) parts[i] = spawn(p.s);
         // 束内行进波：整束一起蜿蜒（组内一致），并随时间缓慢推进
-        p.wave = 0.022 * Math.sin(2 * p.a + S.seed + t0 * 0.00009)
-               + 0.010 * Math.sin(3 * p.a - S.bobP + t0 * 0.00013);
+        // —— 幅度在原有基础上再放大 2.3 倍，束流看起来更汹涌
+        p.wave = 0.051 * Math.sin(2 * p.a + S.seed + t0 * 0.00009)
+               + 0.023 * Math.sin(3 * p.a - S.bobP + t0 * 0.00013);
         // 每 SAMPLE 帧记一次真实位置 → 拖尾直接连这些点
         if (tick % SAMPLE === 0 && parts[i] === p) {
           p.hx.push(p.x == null ? ex + p.ox : p.x);
@@ -273,7 +274,7 @@
         var w = p.wave || 0;
         p.x = cx + rx * (p.t + w) * Math.cos(p.a) + p.ox;
         p.y = cy + ry * (p.t + w) * Math.sin(p.a) + p.oy
-              + ry * 0.055 * S.bobA * (0.7 + 0.3 * Math.sin(3 * p.a + S.seed + t0 * 0.0001))
+              + ry * 0.105 * S.bobA * (0.7 + 0.3 * Math.sin(3 * p.a + S.seed + t0 * 0.0001))
                 * Math.sin(S.bobF * 2 + S.bobP + t0 * 0.00028);
       }
       t0 += 16;
@@ -302,13 +303,13 @@
 
       ctx.strokeStyle = colSpark;
       ctx.globalAlpha = Math.max(0.03, 0.7 * fade * tw * depth);
-      ctx.lineWidth = 0.9 * (0.6 + 0.6 * depth);
+      ctx.lineWidth = 2.0 * (0.6 + 0.6 * depth);
       var n = p.hx.length;
       var aq = Math.round(Math.max(0.015, (p.hot ? 0.7 : 0.42) * fade * tw * depth) * 7);   // 量化成 8 档
       if (aq !== lastA) { ctx.globalAlpha = aq / 7; lastA = aq; }
       if (!p.hot) {
         // 普通粒子：一个极小的实心点（数量大也不拖慢；不改 fillStyle）
-        var sz = 0.9 * (0.6 + 0.6 * depth);
+        var sz = 1.5 * (0.6 + 0.6 * depth);
         ctx.fillRect(p.x - sz / 2, p.y - sz / 2, sz, sz);
         continue;
       }
@@ -330,7 +331,7 @@
       }
       if (p.hot) {
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 0.7 + 0.5 * tw, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, 1.3 + 0.9 * tw, 0, Math.PI * 2);
         ctx.fillStyle = colSpark;
         ctx.fill();
       }
@@ -357,6 +358,203 @@
     }, { threshold: 0 }).observe(back);
   }
   new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();
+
+
+/* ==========================================================================
+   首页极光：铺在太阳星轨椭圆**之上**的那片空天里（绝不进入椭圆范围）。
+   · 极光是"会垂下来的光帘"：底边贴着星轨椭圆的上弧（留一点缝），
+     顶边是一条缓慢起伏的波浪 → 帘幕的褶皱感
+   · 帘内再画密集的竖直光丝（rays），强弱随机并缓慢漂移
+   · 三色叠加：青（缥色）→ 淡金 → 淡紫，与站内纸色/金色同一族
+   · canvas 软件绘制；无 CSS 3D、无 backdrop-filter，避免合成层闪烁
+   ========================================================================== */
+(function () {
+  var cv = document.querySelector('.hero__aurora');
+  if (!cv || !cv.getContext) return;
+  var ctx = cv.getContext('2d');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+
+  var probe = document.createElement('span');
+  probe.setAttribute('aria-hidden', 'true');
+  probe.style.cssText = 'position:absolute;left:-9999px;top:0;width:0;height:0';
+  document.body.appendChild(probe);
+  function cssColor(name, fallback) {
+    var v = '';
+    try { probe.style.color = ''; probe.style.color = 'var(' + name + ')'; v = getComputedStyle(probe).color; } catch (e) {}
+    return (!v || v === 'rgba(0, 0, 0, 0)') ? fallback : v;
+  }
+  function toRgba(c, a) {
+    c = (c || '').trim();
+    var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(c);
+    if (m) {
+      var h = m[1];
+      if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+      return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')';
+    }
+    var m2 = /^rgba?\(([^)]+)\)$/.exec(c);
+    if (m2) { var p = m2[1].split(','); return 'rgba(' + p[0].trim() + ',' + p[1].trim() + ',' + p[2].trim() + ',' + a + ')'; }
+    return 'rgba(120,200,180,' + a + ')';
+  }
+
+  var W = 0, H = 0, sunX = 0, sunY = 0, rx = 0, ry = 0;
+  var COL = ['#79c9b4', '#dcb268', '#9c86c8'], A_BASE = 0.34;
+
+  var CURTAINS = 4, cur = [];
+  for (var ci = 0; ci < CURTAINS; ci++) {
+    cur.push({
+      hue: ci % 3,
+      base: 0.12 + ci * 0.07,            // 帘幕底边相对缝隙的抬升
+      amp: 0.55 + Math.random() * 0.5,   // 起伏幅度
+      k1: 0.0032 + Math.random() * 0.0028,
+      k2: 0.0086 + Math.random() * 0.005,
+      ph: Math.random() * 6.28,
+      ph2: Math.random() * 6.28,
+      speed: 0.11 + Math.random() * 0.13,
+      bright: 0.5 + Math.random() * 0.4
+    });
+  }
+  var rays = [];
+  for (var ri = 0; ri < 260; ri++) {
+    rays.push({ u: Math.random(), off: Math.random(), w: 0.4 + Math.random() * 1.3, hue: ri % 3 });
+  }
+
+  function readColors() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    COL[0] = cssColor('--aurora-1', dark ? '#7ee0c0' : '#79c9b4');
+    COL[1] = cssColor('--aurora-2', dark ? '#eccb8a' : '#dcb268');
+    COL[2] = cssColor('--aurora-3', dark ? '#a88ee2' : '#9c86c8');
+    A_BASE = dark ? 0.46 : 0.32;
+  }
+
+  function resize() {
+    var host = cv.parentNode;
+    var r = host.getBoundingClientRect();
+    W = Math.max(1, r.width);
+    H = Math.max(1, r.height);
+    cv.width = Math.round(W * dpr);
+    cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    var sun = document.querySelector('.hero__sun-layer') || document.querySelector('.hero__sun-wrap');
+    var sr = sun ? sun.getBoundingClientRect() : null;
+    sunX = sr ? (sr.left + sr.width / 2 - r.left) : W / 2;
+    sunY = sr ? (sr.top + sr.height / 2 - r.top) : H * 0.5;
+
+    rx = W * 0.44; ry = rx * 0.29;
+    var ring = document.querySelector('.hero__star-ring');
+    if (ring) {
+      var o = (ring.getAttribute('data-outer') || '').split(',').map(Number);
+      var vb = (ring.getAttribute('viewBox') || '0 0 1636 596').split(/\s+/).map(Number);
+      var rr = ring.getBoundingClientRect();
+      if (o.length === 2 && vb.length === 4 && vb[2] && vb[3] && rr.width) {
+        var k = rr.width / vb[2];
+        rx = o[0] * k;
+        ry = o[1] * k;
+      }
+    }
+  }
+
+  // 星轨椭圆上弧在某 x 处的 y
+  function arcY(x) {
+    var d = (x - sunX) / Math.max(1, rx);
+    d = Math.max(-1, Math.min(1, d));
+    return sunY - ry * Math.sqrt(Math.max(0, 1 - d * d));
+  }
+  function curtainH(c, x, t) {
+    var b = arcY(x) - 16;
+    var h = (b - 26) * c.amp * (0.62 + 0.38 * Math.sin(x * c.k1 + c.ph + t * c.speed));
+    h *= 0.72 + 0.28 * Math.sin(x * c.k2 - c.ph2 - t * c.speed * 1.7);
+    return h > 0 ? h : 0;
+  }
+  // 帘幕底边相对星轨上弧再抬起一点，并把抬起量做成缓慢起伏 → 下缘是波浪而不是直线
+  function curtainLift(c, x, t) {
+    return 7 + 15 * (0.5 + 0.5 * Math.sin(x * c.k1 * 1.6 - c.ph + t * c.speed * 0.8));
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    if (!W || !H) return;
+
+    ctx.save();
+    // 兜底裁切：只在「星轨椭圆上弧以上」作画
+    ctx.beginPath();
+    ctx.moveTo(-2, -2);
+    ctx.lineTo(W + 2, -2);
+    for (var x = W + 2; x >= -2; x -= 8) ctx.lineTo(x, arcY(x) - 4);
+    ctx.closePath();
+    ctx.clip();
+    ctx.globalCompositeOperation = 'lighter';
+
+    // 竖直渐变的上下界取整幅的极值，这样整条帘幕共用一个渐变也不会断层
+    var gTop = sunY - ry - 175;
+    var gBot = sunY + 90;
+
+    for (var i = 0; i < cur.length; i++) {
+      var c = cur[i];
+      var a0 = A_BASE * c.bright;
+      var g = ctx.createLinearGradient(0, gBot, 0, gTop);
+      g.addColorStop(0.00, toRgba(COL[c.hue], 0));
+      g.addColorStop(0.28, toRgba(COL[c.hue], a0 * 0.34));
+      g.addColorStop(0.58, toRgba(COL[c.hue], a0 * 0.72));
+      g.addColorStop(0.74, toRgba(COL[c.hue], a0));
+      g.addColorStop(0.90, toRgba(COL[c.hue], a0 * 0.3));
+      g.addColorStop(1.00, toRgba(COL[c.hue], 0));
+
+      ctx.beginPath();
+      for (var x2 = -2; x2 <= W + 2; x2 += 8) {
+        var yb = arcY(x2) - 16 - curtainLift(c, x2, t) - curtainH(c, x2, t) * c.base;
+        if (x2 === -2) ctx.moveTo(x2, yb); else ctx.lineTo(x2, yb);
+      }
+      for (var x3 = W + 2; x3 >= -2; x3 -= 8) {
+        var h3 = curtainH(c, x3, t);
+        var yb3 = arcY(x3) - 16 - curtainLift(c, x3, t) - h3 * c.base;
+        ctx.lineTo(x3, yb3 - Math.max(26, h3 * (1 - c.base)));
+      }
+      ctx.closePath();
+      ctx.fillStyle = g;
+      ctx.fill();
+
+      // 帘内的竖直光丝
+      ctx.lineWidth = 1.2;
+      for (var k = 0; k < rays.length; k++) {
+        var rr = rays[k];
+        if (rr.hue !== c.hue) continue;
+        var xr = rr.u * W;
+        var hr = curtainH(c, xr, t);
+        if (hr < 30) continue;
+        var ybr = arcY(xr) - 16 - curtainLift(c, xr, t) - hr * c.base;
+        var flick = 0.3 + 0.7 * Math.abs(Math.sin(xr * 0.06 + rr.off * 6.28 + t * 0.55));
+        ctx.strokeStyle = toRgba(COL[c.hue], a0 * 0.55 * flick);
+        ctx.beginPath();
+        ctx.moveTo(xr, ybr);
+        ctx.lineTo(xr + Math.sin(xr * 0.02 + t * 0.25) * 7, ybr - hr * (0.45 + rr.w * 0.35));
+        ctx.stroke();
+      }
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.restore();
+  }
+
+  var T = 0, raf = 0;
+  readColors();
+  resize();
+  draw(0);
+  window.addEventListener('resize', function () { resize(); draw(T); }, { passive: true });
+  new MutationObserver(function () { readColors(); draw(T); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (reduce) return;
+  function frame(now) { T = now / 1000; draw(T); raf = requestAnimationFrame(frame); }
+  raf = requestAnimationFrame(frame);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (e.isIntersecting && !raf) { raf = requestAnimationFrame(frame); }
+        else if (!e.isIntersecting && raf) { cancelAnimationFrame(raf); raf = 0; }
+      });
+    }, { threshold: 0 }).observe(cv);
+  }
 })();
 
 

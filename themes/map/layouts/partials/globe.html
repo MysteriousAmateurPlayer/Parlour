@@ -32,6 +32,12 @@
 
 <section class="globe-band" id="globe" aria-labelledby="globe-title">
   <div class="globe-band__stage">
+    {{/* 地球仪外面的装饰：一圈光晕 + 一条倾斜的环带（纯 CSS 平面图形，不用 3D 变换） */}}
+    <span class="globe-decor" aria-hidden="true">
+      <span class="globe-decor__halo"></span>
+      <span class="globe-decor__band"></span>
+      <span class="globe-decor__ring"></span>
+    </span>
     <svg class="globe-svg" viewBox="0 0 1500 1300" preserveAspectRatio="xMidYMid meet"
          role="img" aria-label="可以旋转的地球，球面上的大陆轮廓与片区是各个板块">
       <defs>
@@ -1051,6 +1057,10 @@
         </g>
       </g>
     </svg>
+    {{/* 前景层：环带的下半段压在地球前面，读起来就是一条绕球的立体环 */}}
+    <span class="globe-decor globe-decor--front" aria-hidden="true">
+      <span class="globe-decor__band"></span>
+    </span>
   </div>
 
   <div class="wrap">
