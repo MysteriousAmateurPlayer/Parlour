@@ -60,25 +60,32 @@
     {{- end }}
   </g>
 
-  {{/* ⑦ 8 根特长主芒（比其余长出近一倍，撑起气势） */}}
-  <g class="sun-ray sun-ray--long">
-    {{- range $i := seq 0 7 }}
-    <path d="M-2.2 -340 L0 -468 L2.2 -340 Z" transform="rotate({{ add (mul $i 45) 22.5 }})"/>
-    {{- end }}
-  </g>
+  {{/* 三层光芒整体转 360/16 = 22.5°：
+       原本是「中芒」对着正上方，转过来之后**特长主芒**正对上方，
+       并且正好与盘面 0° 的长刻度、正上方的菱形饰对齐。 */}}
+  <g transform="rotate(22.5)">
 
-  {{/* ⑧ 16 根锥形中芒 */}}
-  <g class="sun-ray sun-ray--spike">
-    {{- range $i := seq 0 15 }}
-    <path d="M-3.4 -334 L0 -386 L3.4 -334 Z" transform="rotate({{ mul $i 22.5 }})"/>
-    {{- end }}
-  </g>
+    {{/* ⑦ 8 根特长主芒（比其余长出近一倍，撑起气势） */}}
+    <g class="sun-ray sun-ray--long">
+      {{- range $i := seq 0 7 }}
+      <path d="M-2.2 -340 L0 -468 L2.2 -340 Z" transform="rotate({{ add (mul $i 45) 22.5 }})"/>
+      {{- end }}
+    </g>
 
-  {{/* ⑨ 16 根火焰短芒（只有描边） */}}
-  <g class="sun-ray sun-ray--flame">
-    {{- range $i := seq 0 15 }}
-    <path d="M0 -336 C5.5 -348 5.5 -362 0 -374 C-5.5 -362 -5.5 -348 0 -336 Z"
-          transform="rotate({{ add (mul $i 22.5) 11.25 }})"/>
-    {{- end }}
+    {{/* ⑧ 16 根锥形中芒 */}}
+    <g class="sun-ray sun-ray--spike">
+      {{- range $i := seq 0 15 }}
+      <path d="M-3.4 -334 L0 -386 L3.4 -334 Z" transform="rotate({{ mul $i 22.5 }})"/>
+      {{- end }}
+    </g>
+
+    {{/* ⑨ 16 根火焰短芒（只有描边） */}}
+    <g class="sun-ray sun-ray--flame">
+      {{- range $i := seq 0 15 }}
+      <path d="M0 -336 C5.5 -348 5.5 -362 0 -374 C-5.5 -362 -5.5 -348 0 -336 Z"
+            transform="rotate({{ add (mul $i 22.5) 11.25 }})"/>
+      {{- end }}
+    </g>
+
   </g>
 </svg>
