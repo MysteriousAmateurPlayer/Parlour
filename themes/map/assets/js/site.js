@@ -1560,13 +1560,13 @@
   var R_ROMAN = 410;           // 罗马数字环
   var R_ARAB = 378;            // 阿拉伯数字环
   var R_DIAL = 352;            // 星图表盘
-  var R_BELT_OUT = 338;        // 蓝色黄道带外缘
-  var R_BELT_IN = 304;         // 蓝色黄道带内缘
+  var R_BELT_OUT = 332;        // 蓝色黄道带外缘
+  var R_BELT_IN = 306;         // 蓝色黄道带内缘
   var R_ECL = (R_BELT_IN + R_BELT_OUT) / 2;   // 日躔所在半径
-  var R_MOON_DISC = R / 2;     // 月相盘半径 = 1/2 R
-  var R_MOON_ORBIT = R / 2;    // 月相盘公转半径 = 1/2 R
-  var R_ZOD_DISC = 190;        // 十二宫环（位于月相盘上）
-  var R_MOON = 106;            // 月亮圆半径
+  var R_MOON_DISC = 194;       // 月相盘半径（外沿正好压到阿拉伯数字环 378）
+  var R_MOON_ORBIT = 194;      // 月相盘公转半径
+  var R_ZOD_DISC = 146;        // 十二宫环（位于月相盘上）
+  var R_MOON = 94;             // 月亮圆半径
   var SPIN_PERIOD = 300;       // 月相盘自转周期（秒）
   var ORBIT_PERIOD = 420;      // 月相盘公转周期（秒，演示速率）
   var STAR_PERIOD = 480;       // 星点流动周期（秒，演示速率）
@@ -1583,11 +1583,11 @@
         numeral: '#efdcaa', numShadow: 'rgba(0,0,0,0.75)',
         edgeDark: 'rgba(0,0,0,0.62)',
         blue: '#2c5286', blueD: '#0c1c33',
-        belt: '#16304f', beltHi: '#20456f', beltLo: '#0b1a2e',
-        discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138',
+        belt: '#16304f', beltHi: '#20456f', beltLo: '#0b1a2e', beltLit: 'rgba(150,190,240,0.42)',
+        discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138', discHot: '#4a7cb8',
+        glow: 'rgba(246,233,194,0.34)', glowSoft: 'rgba(246,233,194,0.16)',
         shadow: 'rgba(0,0,0,0.55)', hilite: 'rgba(255,246,214,0.45)',
-        vignette: 'rgba(0,0,0,0.55)', sheen: 'rgba(190,215,255,0.14)',
-        plaque: '#0f1f36', plaqueHi: '#1b3155',
+        vignette: 'rgba(0,0,0,0.38)', sheen: 'rgba(190,215,255,0.10)',
         filigree: 'rgba(200,168,106,0.10)',
         moon: '#f2e7c8', moonHi: '#fffaea', moonLo: '#d6c398',
         mare: 'rgba(146,128,94,0.28)', mareSoft: 'rgba(146,128,94,0.12)',
@@ -1601,11 +1601,11 @@
         numeral: '#5b4519', numShadow: 'rgba(255,253,246,0.95)',
         edgeDark: 'rgba(120,96,52,0.42)',
         blue: '#1f3a63', blueD: '#0f2138',
-        belt: '#1c3760', beltHi: '#2a5088', beltLo: '#102340',
-        discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138',
+        belt: '#26456f', beltHi: '#37619a', beltLo: '#172d4d', beltLit: 'rgba(170,205,248,0.55)',
+        discHi: '#2b5280', disc: '#1d3a5f', discLo: '#0f2138', discHot: '#4a7cb8',
+        glow: 'rgba(255,250,232,0.7)', glowSoft: 'rgba(255,250,232,0.34)',
         shadow: 'rgba(70,52,24,0.28)', hilite: 'rgba(255,252,240,0.9)',
-        vignette: 'rgba(110,86,42,0.38)', sheen: 'rgba(255,255,255,0.5)',
-        plaque: '#efe5cd', plaqueHi: '#f9f4e6',
+        vignette: 'rgba(110,86,42,0.22)', sheen: 'rgba(255,255,255,0.34)',
         filigree: 'rgba(180,150,90,0.12)',
         moon: '#f7eed6', moonHi: '#fffdf6', moonLo: '#dfcfa2',
         mare: 'rgba(154,134,98,0.24)', mareSoft: 'rgba(154,134,98,0.10)',
@@ -1866,15 +1866,18 @@
   }
 
   /* ---------- ② 表圈：实心金环分隔 + 分界环 ---------- */
-  function drawTicks() {
-    goldBand(393, 401);
-    goldBand(358, 366);
+  /* ---------- 金环：内层（会被月相盘盖住）与外层（压在月相盘之上） ---------- */
+  function drawBandsInner() {
+    goldBand(359, 364);
+    bevelRing(R_DIAL + 8, 0.5, false);
+  }
+
+  function drawBandsOuter() {
+    goldBand(394, 399);
   }
 
   function drawBezels() {
-    bevelRing(R_RIM_IN, 0.8, true);
-    bevelRing(R_DIAL + 8, 0.6, false);
-    bevelRing(R_DIAL, 1.6, true);
+    bevelRing(R_RIM_IN, 0.7, true);
   }
 
   /* ---------- 外场玑镂（数字环底色） ---------- */
@@ -1898,22 +1901,14 @@
     ctx.restore();
   }
 
-  /* ---------- ③ 数字 ---------- */
-  function drawNumerals() {
+  /* ---------- ② 数字：阿拉伯数字在下层（会被月相盘盖住），罗马数字在上层 ---------- */
+  function drawArabNumerals() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round';
     for (var i = 0; i < 12; i++) {
       var a = -Math.PI / 2 + i * Math.PI / 6;
-      var ca = Math.cos(a), sa = Math.sin(a);
-      var x = CX + ca * R_ROMAN, y = CY + sa * R_ROMAN;
-      ctx.font = '400 29px ' + FONT;
-      ctx.lineWidth = 3.4;
-      ctx.strokeStyle = COL.numShadow;
-      ctx.strokeText(ROMAN[i], x, y);
-      ctx.fillStyle = COL.numeral;
-      ctx.fillText(ROMAN[i], x, y);
-      var x2 = CX + ca * R_ARAB, y2 = CY + sa * R_ARAB;
+      var x2 = CX + Math.cos(a) * R_ARAB, y2 = CY + Math.sin(a) * R_ARAB;
       ctx.font = '400 21px ' + FONT;
       ctx.lineWidth = 3.0;
       ctx.strokeStyle = COL.numShadow;
@@ -1922,6 +1917,22 @@
       ctx.globalAlpha = 0.88;
       ctx.fillText(ARAB[i], x2, y2);
       ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawRomanNumerals() {
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    for (var i = 0; i < 12; i++) {
+      var a = -Math.PI / 2 + i * Math.PI / 6;
+      var x = CX + Math.cos(a) * R_ROMAN, y = CY + Math.sin(a) * R_ROMAN;
+      ctx.font = '400 29px ' + FONT;
+      ctx.lineWidth = 3.4;
+      ctx.strokeStyle = COL.numShadow;
+      ctx.strokeText(ROMAN[i], x, y);
+      ctx.fillStyle = COL.numeral;
+      ctx.fillText(ROMAN[i], x, y);
     }
   }
 
@@ -1956,56 +1967,57 @@
 
     // ── 玑镂纹：内区细同心纹
     ctx.strokeStyle = COL.gold;
-    ctx.lineWidth = 0.35;
-    ctx.globalAlpha = 0.17;
-    for (var rr2 = 22; rr2 < 172; rr2 += 3) {
+    ctx.lineWidth = 0.32;
+    ctx.globalAlpha = 0.15;
+    for (var rr2 = 26; rr2 < 176; rr2 += 4) {
       ctx.beginPath(); ctx.arc(CX, CY, rr2, 0, TAU); ctx.stroke();
     }
     ctx.globalAlpha = 1;
 
     // ── 铁轨式分钟刻度（railway track）
     ctx.strokeStyle = COL.gold;
-    ctx.globalAlpha = 0.75; ctx.lineWidth = 0.5;
-    ctx.beginPath(); ctx.arc(CX, CY, 344, 0, TAU); ctx.stroke();
+    ctx.globalAlpha = 0.5; ctx.lineWidth = 0.4;
+    ctx.beginPath(); ctx.arc(CX, CY, 345, 0, TAU); ctx.stroke();
     ctx.beginPath(); ctx.arc(CX, CY, 350, 0, TAU); ctx.stroke();
-    for (var m2 = 0; m2 < 120; m2++) {
-      var ma2 = m2 * TAU / 120;
-      var big = (m2 % 10 === 0);
-      ctx.globalAlpha = big ? 0.95 : 0.45;
-      ctx.lineWidth = big ? 1.0 : 0.35;
+    for (var m2 = 0; m2 < 60; m2++) {
+      var ma2 = m2 * TAU / 60;
+      var big = (m2 % 5 === 0);
+      ctx.globalAlpha = big ? 0.7 : 0.32;
+      ctx.lineWidth = big ? 0.8 : 0.3;
       ctx.beginPath();
-      ctx.moveTo(CX + Math.cos(ma2) * (big ? 338 : 342), CY + Math.sin(ma2) * (big ? 338 : 342));
+      ctx.moveTo(CX + Math.cos(ma2) * (big ? 340 : 344), CY + Math.sin(ma2) * (big ? 340 : 344));
       ctx.lineTo(CX + Math.cos(ma2) * 350, CY + Math.sin(ma2) * 350);
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
 
-    // ── 珠链环
-    beadRing(168, 84, 1.9);
-
-    // ── 中心玫瑰纹（旋转玫瑰车花 rose engine）
+    // ── 中心玫瑰纹（玫瑰车花 rose engine，淡）
     ctx.strokeStyle = COL.blue;
-    ctx.lineWidth = 0.45;
-    ctx.globalAlpha = 0.3;
-    for (var p = 0; p < 36; p++) {
-      var pa3 = p * TAU / 36;
+    ctx.lineWidth = 0.4;
+    ctx.globalAlpha = 0.2;
+    for (var p = 0; p < 20; p++) {
+      var pa3 = p * TAU / 20;
       ctx.beginPath();
-      ctx.arc(CX + Math.cos(pa3) * 66, CY + Math.sin(pa3) * 66, 66, 0, TAU);
+      ctx.arc(CX + Math.cos(pa3) * 62, CY + Math.sin(pa3) * 62, 62, 0, TAU);
       ctx.stroke();
     }
-    ctx.globalAlpha = 0.22;
-    for (var p2 = 0; p2 < 24; p2++) {
-      var pa4 = p2 * TAU / 24;
+    ctx.globalAlpha = 0.15;
+    for (var p2 = 0; p2 < 14; p2++) {
+      var pa4 = p2 * TAU / 14;
       ctx.beginPath();
-      ctx.arc(CX + Math.cos(pa4) * 34, CY + Math.sin(pa4) * 34, 34, 0, TAU);
+      ctx.arc(CX + Math.cos(pa4) * 32, CY + Math.sin(pa4) * 32, 32, 0, TAU);
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
 
-    // ══ 蓝色黄道带（内含日躔）——随天球视旋转
+    // ══ 蓝色黄道圈：太阳的周年轨道。
+    //    固定不动（不随天球视旋转），分十二宫，太阳所在那一宫整格点亮 —— 这样
+    //    金太阳的位置就是「日躔」，一眼能读出太阳现在在哪一宫。
     ctx.save();
     ctx.translate(CX, CY);
-    ctx.rotate(frame);
+
+    // 当前宫位高亮：先铺底，再压蓝底，最后再淡淡叠一层，确保在蓝底上看得出来
+    var secA0 = -Math.PI / 2 + Math.floor(sunLon / 30) * Math.PI / 6;
 
     ctx.beginPath();
     ctx.arc(0, 0, R_BELT_OUT, 0, TAU);
@@ -2016,50 +2028,74 @@
     bg2.addColorStop(1, COL.beltHi);
     ctx.fillStyle = bg2;
     ctx.fill();
-    ctx.globalAlpha = 0.55;
+    ctx.globalAlpha = 0.5;
     ensureNoise();
     if (noisePat) { ctx.fillStyle = noisePat; ctx.fill(); }
     ctx.globalAlpha = 1;
 
-    ctx.beginPath(); ctx.arc(0, 0, R_BELT_OUT, 0, TAU);
-    ctx.strokeStyle = goldGrad; ctx.lineWidth = 1.6; ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, R_BELT_IN, 0, TAU);
-    ctx.lineWidth = 1.6; ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, R_BELT_OUT - 3, 0, TAU);
-    ctx.strokeStyle = COL.hilite; ctx.globalAlpha = 0.4; ctx.lineWidth = 0.5; ctx.stroke();
-    ctx.globalAlpha = 1;
+    ctx.beginPath();
+    ctx.arc(0, 0, R_BELT_OUT - 1.5, secA0, secA0 + Math.PI / 6);
+    ctx.arc(0, 0, R_BELT_IN + 1.5, secA0 + Math.PI / 6, secA0, true);
+    ctx.closePath();
+    ctx.fillStyle = COL.beltLit;
+    ctx.fill();
 
+    ctx.beginPath(); ctx.arc(0, 0, R_BELT_OUT, 0, TAU);
+    ctx.strokeStyle = goldGrad; ctx.lineWidth = 1.1; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R_BELT_IN, 0, TAU);
+    ctx.lineWidth = 1.1; ctx.stroke();
+
+    // 刻度：每 2.5° 一格，每 30°（一宫）加长
     for (var t2 = 0; t2 < 144; t2++) {
       var ta = t2 * TAU / 144;
       var lg = (t2 % 12 === 0);
-      ctx.globalAlpha = lg ? 0.95 : 0.5;
-      ctx.lineWidth = lg ? 1.2 : 0.4;
-      ctx.strokeStyle = COL.goldHi;
+      ctx.globalAlpha = lg ? 0.95 : 0.42;
+      ctx.lineWidth = lg ? 1.1 : 0.32;
+      ctx.strokeStyle = lg ? COL.goldHi : COL.gold;
       ctx.beginPath();
       ctx.moveTo(Math.cos(ta) * R_BELT_OUT, Math.sin(ta) * R_BELT_OUT);
-      ctx.lineTo(Math.cos(ta) * (R_BELT_OUT - (lg ? 14 : 8)), Math.sin(ta) * (R_BELT_OUT - (lg ? 14 : 8)));
+      ctx.lineTo(Math.cos(ta) * (R_BELT_OUT - (lg ? 15 : 7)), Math.sin(ta) * (R_BELT_OUT - (lg ? 15 : 7)));
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
 
-    // 日躔
-    var ea = sunLon * Math.PI / 180;
-    var ex = Math.cos(ea) * R_ECL, ey = Math.sin(ea) * R_ECL;
+    // 二分二至：四个节气位加饰
+    for (var sq = 0; sq < 4; sq++) {
+      var sa2 = -Math.PI / 2 + sq * Math.PI / 2;
+      ctx.save();
+      ctx.rotate(sa2);
+      ctx.translate(0, (R_BELT_IN + R_BELT_OUT) / 2);
+      ctx.beginPath();
+      ctx.moveTo(0, -6); ctx.lineTo(5, 0); ctx.lineTo(0, 6); ctx.lineTo(-5, 0);
+      ctx.closePath();
+      ctx.fillStyle = COL.goldHi;
+      ctx.globalAlpha = 0.9;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    // 日躔（太阳在黄道上的真实位置，一天走约 1°；0° = 春分在正上方）
+    var ea = sunLon * Math.PI / 180 - Math.PI / 2;
+    ctx.save();
+    ctx.rotate(ea);
+    var ex = R_ECL, ey = 0;
     for (var q4 = 0; q4 < 16; q4++) {
       var qa2 = q4 * TAU / 16;
       ctx.beginPath();
-      ctx.moveTo(ex + Math.cos(qa2) * 10, ey + Math.sin(qa2) * 10);
-      ctx.lineTo(ex + Math.cos(qa2) * (q4 % 2 ? 13 : 16), ey + Math.sin(qa2) * (q4 % 2 ? 13 : 16));
-      ctx.lineWidth = 1.0; ctx.strokeStyle = COL.goldHi; ctx.globalAlpha = 0.95; ctx.stroke();
+      ctx.moveTo(ex + Math.cos(qa2) * 9, ey + Math.sin(qa2) * 9);
+      ctx.lineTo(ex + Math.cos(qa2) * (q4 % 2 ? 12 : 15), ey + Math.sin(qa2) * (q4 % 2 ? 12 : 15));
+      ctx.lineWidth = 0.9; ctx.strokeStyle = COL.goldHi; ctx.globalAlpha = 0.9; ctx.stroke();
     }
     ctx.globalAlpha = 1;
-    ctx.beginPath(); ctx.arc(ex, ey, 8, 0, TAU);
+    ctx.beginPath(); ctx.arc(ex, ey, 7.5, 0, TAU);
     var sg = ctx.createRadialGradient(ex - 3, ey - 3, 1, ex, ey, 9);
     sg.addColorStop(0, COL.goldHi);
     sg.addColorStop(0.7, COL.gold);
     sg.addColorStop(1, COL.goldLo);
     ctx.fillStyle = sg; ctx.fill();
-    ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.7; ctx.stroke();
+    ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.6; ctx.stroke();
+    ctx.restore();
     ctx.restore();
 
     // ══ 流动的星点（只有星星，没有星座连线）
@@ -2071,10 +2107,10 @@
       var sx = Math.cos(sd.a) * sd.r, sy = Math.sin(sd.a) * sd.r;
       ctx.beginPath(); ctx.arc(sx, sy, sd.s, 0, TAU);
       ctx.fillStyle = sd.c ? COL.blue : COL.gold;
-      ctx.globalAlpha = sd.b ? 1 : 0.8;
+      ctx.globalAlpha = sd.b ? 1 : 0.75;
       ctx.fill();
       if (sd.b) {
-        ctx.globalAlpha = 0.6;
+        ctx.globalAlpha = 0.45;
         ctx.beginPath();
         ctx.moveTo(sx - 7, sy); ctx.lineTo(sx + 7, sy);
         ctx.moveTo(sx, sy - 7); ctx.lineTo(sx, sy + 7);
@@ -2103,7 +2139,7 @@
     ctx.fillRect(CX - R_DIAL, CY - R_DIAL, R_DIAL * 2, R_DIAL * 2);
     ctx.restore();
 
-    bevelRing(R_DIAL, 2.4, true);
+    bevelRing(R_DIAL, 1.8, true);
   }
 
   /* ---------- ⑤ 月相 ---------- */
@@ -2170,15 +2206,15 @@
     ctx.globalAlpha = 0.5; ctx.stroke(); ctx.globalAlpha = 1;
   }
 
-  function drawMoonDisc(mx, my, ang, spin, phase, sunDir) {
+  function drawMoonDisc(mx, my, ang, spin, phase, sunDir, moonSign) {
     ctx.save();
     ctx.translate(mx, my);
 
     ctx.save();
     ctx.shadowColor = COL.shadow;
-    ctx.shadowBlur = 24;
-    ctx.shadowOffsetX = 7;
-    ctx.shadowOffsetY = 9;
+    ctx.shadowBlur = 15;
+    ctx.shadowOffsetX = 5;
+    ctx.shadowOffsetY = 6;
     ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC, 0, TAU);
     ctx.fillStyle = COL.goldLo; ctx.fill();
     ctx.restore();
@@ -2197,14 +2233,14 @@
     mg.addColorStop(1.00, COL.goldLo);
     ctx.fillStyle = mg; ctx.fill();
 
-    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 18, 0, TAU);
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 15, 0, TAU);
     var eg = ctx.createRadialGradient(-R_MOON_DISC * 0.3, -R_MOON_DISC * 0.3, R_MOON_DISC * 0.06, 0, 0, R_MOON_DISC);
     eg.addColorStop(0, COL.discHi);
     eg.addColorStop(0.55, COL.disc);
     eg.addColorStop(1, COL.discLo);
     ctx.fillStyle = eg; ctx.fill();
     ctx.save();
-    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 18, 0, TAU); ctx.clip();
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 15, 0, TAU); ctx.clip();
     ensureNoise();
     if (noisePat) {
       ctx.fillStyle = noisePat;
@@ -2217,62 +2253,80 @@
       var a = i * TAU / 96;
       var long = (i % 8 === 0);
       ctx.beginPath();
-      ctx.moveTo(Math.cos(a) * (R_MOON_DISC - 16), Math.sin(a) * (R_MOON_DISC - 16));
-      ctx.lineTo(Math.cos(a) * (R_MOON_DISC - (long ? 4 : 10)), Math.sin(a) * (R_MOON_DISC - (long ? 4 : 10)));
+      ctx.moveTo(Math.cos(a) * (R_MOON_DISC - 13), Math.sin(a) * (R_MOON_DISC - 13));
+      ctx.lineTo(Math.cos(a) * (R_MOON_DISC - (long ? 3 : 8)), Math.sin(a) * (R_MOON_DISC - (long ? 3 : 8)));
       ctx.strokeStyle = long ? COL.goldHi : COL.gold;
-      ctx.globalAlpha = long ? 0.95 : 0.6;
-      ctx.lineWidth = long ? 1.3 : 0.5;
+      ctx.globalAlpha = long ? 0.9 : 0.5;
+      ctx.lineWidth = long ? 1.1 : 0.45;
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
-    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 16, 0, TAU);
-    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.7; ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 18, 0, TAU);
-    ctx.strokeStyle = COL.hilite; ctx.globalAlpha = 0.55; ctx.lineWidth = 0.5; ctx.stroke();
-    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON_DISC - 13, 0, TAU);
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.6; ctx.stroke();
 
     // 十二宫环底纹
     ctx.beginPath(); ctx.arc(0, 0, R_ZOD_DISC, 0, TAU);
-    ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.6; ctx.lineWidth = 0.6; ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, R_ZOD_DISC - 30, 0, TAU);
-    ctx.globalAlpha = 0.45; ctx.lineWidth = 0.45; ctx.stroke();
+    ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.5; ctx.lineWidth = 0.55; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R_ZOD_DISC - 24, 0, TAU);
+    ctx.globalAlpha = 0.35; ctx.lineWidth = 0.4; ctx.stroke();
     ctx.globalAlpha = 1;
 
-    // 十二宫徽章
+    // 十二宫徽章（月亮所在那一宫高亮）
+    var MR = 21;
     for (var z = 0; z < 12; z++) {
       var za = -Math.PI / 2 + z * TAU / 12;
       var zx = Math.cos(za) * R_ZOD_DISC, zy = Math.sin(za) * R_ZOD_DISC;
+      var hot = (z === moonSign);
       ctx.save();
       ctx.translate(zx, zy);
       ctx.save();
       ctx.rotate(za + Math.PI / 2);
 
-      ctx.beginPath(); ctx.arc(0, 0, 26, 0, TAU);
-      var rg2 = ctx.createRadialGradient(-8, -9, 2, 0, 0, 27);
+      if (hot) {   // 光晕：一眼看出月亮在哪一宫
+        var gl = ctx.createRadialGradient(0, 0, MR * 0.7, 0, 0, MR + 20);
+        gl.addColorStop(0, COL.glow);
+        gl.addColorStop(0.55, COL.glowSoft);
+        gl.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.beginPath(); ctx.arc(0, 0, MR + 20, 0, TAU);
+        ctx.fillStyle = gl; ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 0, MR + 2.4, 0, TAU);
+        ctx.strokeStyle = COL.goldHi; ctx.lineWidth = 2.2; ctx.stroke();
+      }
+
+      ctx.beginPath(); ctx.arc(0, 0, MR, 0, TAU);
+      var rg2 = ctx.createRadialGradient(-6, -7, 2, 0, 0, MR + 1);
       rg2.addColorStop(0, COL.goldHi);
       rg2.addColorStop(0.42, COL.gold);
       rg2.addColorStop(0.78, COL.goldLo);
       rg2.addColorStop(1, COL.gold);
       ctx.fillStyle = rg2; ctx.fill();
 
-      ctx.beginPath(); ctx.arc(0, 0, 22.2, 0, TAU);
-      var rg3 = ctx.createRadialGradient(-5, -8, 2, 0, 0, 23);
-      rg3.addColorStop(0, COL.discHi);
-      rg3.addColorStop(0.7, COL.disc);
-      rg3.addColorStop(1, COL.discLo);
-      ctx.fillStyle = rg3; ctx.fill();
-      ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.8; ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, MR - 3.1, 0, TAU);
+      if (hot) {
+        var rg4 = ctx.createRadialGradient(-4, -6, 2, 0, 0, MR);
+        rg4.addColorStop(0, COL.discHot);
+        rg4.addColorStop(1, COL.discHi);
+        ctx.fillStyle = rg4;
+      } else {
+        var rg3 = ctx.createRadialGradient(-4, -6, 2, 0, 0, MR);
+        rg3.addColorStop(0, COL.discHi);
+        rg3.addColorStop(0.7, COL.disc);
+        rg3.addColorStop(1, COL.discLo);
+        ctx.fillStyle = rg3;
+      }
+      ctx.fill();
+      ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.7; ctx.stroke();
 
       ctx.save();
-      ctx.scale(0.42, 0.42);
+      ctx.scale(0.34, 0.34);
       ctx.lineWidth = 5.6;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.globalAlpha = 0.7;
+      ctx.globalAlpha = 0.65;
       ctx.strokeStyle = COL.goldLo;
       ctx.save(); ctx.translate(1.6, 2.2); ZG[z](); ctx.restore();
       ctx.globalAlpha = 1;
-      ctx.strokeStyle = COL.goldHi;
+      ctx.strokeStyle = hot ? COL.goldHi : COL.gold;
       ZG[z]();
       ctx.restore();
 
@@ -2281,29 +2335,23 @@
 
       var ba = za + TAU / 24;
       ctx.beginPath();
-      ctx.arc(Math.cos(ba) * R_ZOD_DISC, Math.sin(ba) * R_ZOD_DISC, 3, 0, TAU);
-      ctx.fillStyle = COL.goldHi; ctx.globalAlpha = 0.9; ctx.fill();
+      ctx.arc(Math.cos(ba) * R_ZOD_DISC, Math.sin(ba) * R_ZOD_DISC, 2.4, 0, TAU);
+      ctx.fillStyle = COL.goldHi; ctx.globalAlpha = 0.8; ctx.fill();
       ctx.globalAlpha = 1;
     }
 
     // 内圈挡圈
-    ctx.beginPath(); ctx.arc(0, 0, R_MOON + 21, 0, TAU);
-    ctx.strokeStyle = goldGrad; ctx.lineWidth = 1.4; ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, R_MOON + 23.5, 0, TAU);
-    ctx.strokeStyle = COL.hilite; ctx.globalAlpha = 0.45; ctx.lineWidth = 0.5; ctx.stroke();
-    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON + 16, 0, TAU);
+    ctx.strokeStyle = goldGrad; ctx.lineWidth = 1.2; ctx.stroke();
 
     ctx.restore();   // 结束自转
 
     // 月球（不随盘自转；亮面永远朝向太阳刻度 = 真实月相）
     ctx.save();
     ctx.rotate(sunDir);
-    ctx.beginPath(); ctx.arc(0, 0, R_MOON + 17, 0, TAU);
+    ctx.beginPath(); ctx.arc(0, 0, R_MOON + 13, 0, TAU);
     ctx.fillStyle = COL.blueD; ctx.fill();
-    ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.9; ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, R_MOON + 17, 0, TAU);
-    ctx.strokeStyle = COL.gold; ctx.globalAlpha = 0.5; ctx.lineWidth = 0.4; ctx.stroke();
-    ctx.globalAlpha = 1;
+    ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.8; ctx.stroke();
     drawMoon(R_MOON, phase);
     ctx.restore();
 
@@ -2393,122 +2441,6 @@
     ctx.fillStyle = COL.goldHi; ctx.fill();
   }
 
-  /* ---------- 天象铭牌：读出当天月相与星座 ---------- */
-  var ZOD_CN = ['白羊', '金牛', '双子', '巨蟹', '狮子', '处女',
-                '天秤', '天蝎', '射手', '摩羯', '水瓶', '双鱼'];
-
-  function phaseName(p) {
-    if (p < 0.02 || p > 0.98) return '朔';
-    if (p < 0.23) return '娥眉月';
-    if (p < 0.27) return '上弦';
-    if (p < 0.48) return '盈凸月';
-    if (p < 0.52) return '望';
-    if (p < 0.73) return '亏凸月';
-    if (p < 0.77) return '下弦';
-    return '残月';
-  }
-
-  function roundRect(x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
-  }
-
-  function drawPlaque(phase, sunLon) {
-    var w = 330, h = 100, rad = 16;
-    var px = CX, py = CY + 216;
-    var x0 = px - w / 2, y0 = py - h / 2;
-
-    ctx.save();
-    ctx.shadowColor = COL.shadow;
-    ctx.shadowBlur = 16; ctx.shadowOffsetY = 4;
-    roundRect(x0, y0, w, h, rad);
-    ctx.fillStyle = COL.plaque; ctx.fill();
-    ctx.restore();
-
-    roundRect(x0, y0, w, h, rad);
-    var pg = ctx.createLinearGradient(x0, y0, x0 + w, y0 + h);
-    pg.addColorStop(0, COL.plaqueHi);
-    pg.addColorStop(1, COL.plaque);
-    ctx.fillStyle = pg; ctx.fill();
-    ctx.lineWidth = 3.4; ctx.strokeStyle = COL.goldLo; ctx.stroke();
-    roundRect(x0, y0, w, h, rad);
-    ctx.lineWidth = 2.2; ctx.strokeStyle = goldGrad; ctx.stroke();
-    ctx.lineWidth = 0.7; ctx.strokeStyle = COL.goldLo;
-    roundRect(x0 + 6, y0 + 6, w - 12, h - 12, rad - 6); ctx.stroke();
-    // 四角铆钉
-    for (var rv = 0; rv < 4; rv++) {
-      var rx = (rv % 2 ? x0 + w - 16 : x0 + 16);
-      var ry = (rv < 2 ? y0 + 16 : y0 + h - 16);
-      ctx.beginPath(); ctx.arc(rx, ry, 4.2, 0, TAU);
-      ctx.fillStyle = goldGrad; ctx.fill();
-      ctx.beginPath(); ctx.arc(rx - 1, ry - 1, 1.7, 0, TAU);
-      ctx.fillStyle = COL.goldHi; ctx.fill();
-    }
-
-    // 左：月相小图标
-    ctx.save();
-    ctx.translate(x0 + 42, py);
-    ctx.beginPath(); ctx.arc(0, 0, 30, 0, TAU);
-    ctx.fillStyle = COL.blueD; ctx.fill();
-    ctx.lineWidth = 1.6; ctx.strokeStyle = goldGrad; ctx.stroke();
-    ctx.save();
-    ctx.beginPath(); ctx.arc(0, 0, 25, 0, TAU); ctx.clip();
-    var f = (1 - Math.cos(phase * TAU)) / 2;
-    var k = Math.abs(1 - 2 * f);
-    ctx.beginPath();
-    ctx.moveTo(0, -25);
-    ctx.arc(0, 0, 25, -Math.PI / 2, Math.PI / 2, false);
-    ctx.ellipse(0, 0, Math.max(0.0001, 25 * k), 25, 0, Math.PI / 2, -Math.PI / 2, f < 0.5);
-    ctx.closePath();
-    ctx.fillStyle = COL.moonHi; ctx.fill();
-    ctx.restore();
-    ctx.restore();
-
-    // 右：太阳所在星座徽章
-    var sunSign = Math.floor(((sunLon % 360) + 360) % 360 / 30) % 12;
-    ctx.save();
-    ctx.translate(x0 + w - 42, py);
-    ctx.beginPath(); ctx.arc(0, 0, 27, 0, TAU);
-    var zg2 = ctx.createRadialGradient(-8, -9, 2, 0, 0, 28);
-    zg2.addColorStop(0, COL.goldHi); zg2.addColorStop(0.5, COL.gold);
-    zg2.addColorStop(0.85, COL.goldLo); zg2.addColorStop(1, COL.gold);
-    ctx.fillStyle = zg2; ctx.fill();
-    ctx.beginPath(); ctx.arc(0, 0, 22.5, 0, TAU);
-    ctx.fillStyle = COL.blue; ctx.fill();
-    ctx.strokeStyle = COL.goldLo; ctx.lineWidth = 0.8; ctx.stroke();
-    ctx.save();
-    ctx.scale(0.36, 0.36);
-    ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.globalAlpha = 0.7; ctx.strokeStyle = COL.goldLo;
-    ctx.save(); ctx.translate(1.6, 2.2); ZG[sunSign](); ctx.restore();
-    ctx.globalAlpha = 1; ctx.strokeStyle = COL.goldHi; ZG[sunSign]();
-    ctx.restore();
-    ctx.restore();
-
-    // 中：文字
-    var tx = x0 + 76;
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.font = '400 20px ' + FONT;
-    ctx.fillStyle = COL.numShadow;
-    ctx.fillText('月相　' + phaseName(phase) + '　' + Math.round(f * 100) + '%', tx + 0.8, py - 17 + 1);
-    ctx.fillStyle = COL.numeral;
-    ctx.fillText('月相　' + phaseName(phase) + '　' + Math.round(f * 100) + '%', tx, py - 17);
-
-    var moonLon = (((sunLon + phase * 360) % 360) + 360) % 360;
-    var moonSign = Math.floor(moonLon / 30) % 12;
-    ctx.font = '400 16px ' + FONT;
-    ctx.fillStyle = COL.numeral;
-    ctx.globalAlpha = 0.75;
-    ctx.fillText('太阳 ' + ZOD_CN[sunSign] + '　月亮 ' + ZOD_CN[moonSign], tx, py + 19);
-    ctx.globalAlpha = 1;
-    ctx.textAlign = 'center';
-  }
-
   /* ---------- 布局：表盘中心落在「视口垂直正中 × 屏宽黄金分割」 ---------- */
   var LAY = { r: 400, cx: 500, cy: 500 };
   function computeLayout() {
@@ -2519,7 +2451,7 @@
     var vh = window.innerHeight;
     var visH = Math.max(240, vh - navH);
     var cw = head.clientWidth || window.innerWidth;
-    var r = Math.min(cw * 0.45, visH * 0.59);
+    var r = Math.min(cw * 0.45, visH * 0.55);
     var headTop = head.getBoundingClientRect().top + (window.pageYOffset || 0);
     var cyLocal = (navH + visH / 2) - headTop;      // 相对页头
     // 12 点方向的罗马数字不能被页眉压住
@@ -2562,30 +2494,41 @@
     var utcMs = d.getTime() + d.getTimezoneOffset() * 60000;
     var sidereal = (utcMs % 86164091) / 86164091 * TAU;
     var frame = sidereal + (T / STAR_PERIOD) * TAU;   // 天球视旋转（含可看出的演示速率）
+    var sunLonRad = sunLon * Math.PI / 180;
+    var moonLon = (((sunLon + phase * 360) % 360) + 360) % 360;
+    var moonSign = Math.floor(moonLon / 30) % 12;     // 月亮所在宫
 
     ctx.save();
     ctx.shadowColor = COL.shadow;
-    ctx.shadowBlur = 30;
-    ctx.shadowOffsetY = 8;
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetY = 6;
     ctx.beginPath(); ctx.arc(CX, CY, R, 0, TAU);
     ctx.fillStyle = COL.field;
     ctx.fill();
     ctx.restore();
 
+    // ① 星图表盘
     drawDial(frame, sunLon);
     drawFieldTexture();
 
-    // 月相盘：亮面永远朝向日躔刻度（真实受光方向）；盘面自转 + 绕表心公转
-    var sunDir = sunLon * Math.PI / 180 + frame;
-    var mo = sunDir + phase * TAU + (T / ORBIT_PERIOD) * TAU;
-    drawMoonDisc(CX + Math.cos(mo) * R_MOON_ORBIT, CY + Math.sin(mo) * R_MOON_ORBIT,
-                 mo, (T / SPIN_PERIOD) * TAU, phase, sunDir);
+    // ② 下层外框：阿拉伯数字环与内圈金环（会被月相盘压住）
+    drawBandsInner();
+    drawArabNumerals();
 
+    // ③ 月相盘：亮面永远朝向日躔刻度（真实受光方向）；自转 + 绕表心公转。
+    //    外沿半径 = 194，公转半径也是 194 → 最远处正好 388，压住阿拉伯数字环
+    //    (378) 而够不到罗马数字环 (410)。
+    var sunDir = sunLonRad - Math.PI / 2;              // 与日躔刻度在同一角度
+    // 公转基点 = 日躔 + 月相角（朔时与太阳同向、望时正对），再叠加可看出的演示转速
+    var orbitA = sunDir + phase * TAU + (T / ORBIT_PERIOD) * TAU;
+    drawMoonDisc(CX + Math.cos(orbitA) * R_MOON_ORBIT, CY + Math.sin(orbitA) * R_MOON_ORBIT,
+                 orbitA, (T / SPIN_PERIOD) * TAU, phase, sunDir, moonSign);
+
+    // ④ 上层外框：花边、外层金环、罗马数字（永远压在月相盘之上）
     drawFiligree(T);
-    drawTicks();
+    drawBandsOuter();
     drawBezels();
-    drawNumerals();
-    drawPlaque(phase, sunLon);
+    drawRomanNumerals();
     drawHands(hh, mm, ss);
   }
 
