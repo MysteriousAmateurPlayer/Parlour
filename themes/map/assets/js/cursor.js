@@ -92,24 +92,37 @@
     return out;
   }
 
-  /* 每个点处的单位法线 */
+  /* 每个点处的单位法线。
+     用 ±3 点的大跨度差分，再平滑两轮 —— A 端附近重采样点很密，
+     只用相邻 ±1 点的话，微小的坐标噪声会被放大成法线抖动，
+     带子边界和彩虹渐变方向就会跟着抖，看起来就是「波折」。 */
   function normals(p) {
-    var out = [], n = p.length;
-    for (var i = 0; i < n; i++) {
-      var a = p[i > 0 ? i - 1 : 0], b = p[i < n - 1 ? i + 1 : i];
+    var n = p.length, out = [], i, k;
+    for (i = 0; i < n; i++) {
+      var a = p[i > 3 ? i - 3 : 0], b = p[i < n - 4 ? i + 3 : n - 1];
       var dx = b.x - a.x, dy = b.y - a.y;
       var L = Math.sqrt(dx * dx + dy * dy) || 1;
       out.push({ x: -dy / L, y: dx / L });
+    }
+    for (k = 0; k < 2; k++) {
+      var sm = [];
+      for (i = 0; i < n; i++) {
+        var q0 = out[i > 0 ? i - 1 : 0], q1 = out[i], q2 = out[i < n - 1 ? i + 1 : i];
+        var ux = (q0.x + q1.x * 2 + q2.x) / 4, uy = (q0.y + q1.y * 2 + q2.y) / 4;
+        var L2 = Math.sqrt(ux * ux + uy * uy) || 1;
+        sm.push({ x: ux / L2, y: uy / L2 });
+      }
+      out = sm;
     }
     return out;
   }
 
   /* 每个点允许的最大**半**宽 = 局部曲率半径 × CURV_K。
-     用三点外接圆半径当曲率半径；直线段给一个大数。 */
+     同样用 ±3 点的外接圆，避免噪声把带宽压得过窄。 */
   function halfWidthLimit(p, n) {
     var lim = new Array(n);
     for (var i = 0; i < n; i++) {
-      var a = p[i > 0 ? i - 1 : 0], b = p[i], c = p[i < n - 1 ? i + 1 : i];
+      var a = p[i > 3 ? i - 3 : 0], b = p[i], c = p[i < n - 4 ? i + 3 : n - 1];
       var abx = b.x - a.x, aby = b.y - a.y;
       var bcx = c.x - b.x, bcy = c.y - b.y;
       var cross = abx * bcy - aby * bcx;
@@ -179,12 +192,17 @@
       return A0 * Math.pow(rise, 0.3) * Math.pow(1 - a / total, 1.9);
     }
 
-    // 相邻微元只共享端点（i1 就是下一段的 i0），内部绝不交叠
-    function segRange(s) {
-      var i0 = Math.round(s * (n - 1) / SEG);
-      var i1 = Math.round((s + 1) * (n - 1) / SEG);
-      return [i0, i1];
+    // 相邻微元**按弧长均分**（不是按点索引）：
+    // A 端附近重采样点很密，按索引分会让那一小段的宽度在极短距离里剧烈变化，
+    // 按等弧长分则每段长度一致，宽度过渡也就均匀了。段间只共享端点，内部不交叠。
+    var bounds = [0];
+    for (var b2 = 1; b2 <= SEG; b2++) {
+      var target = total * b2 / SEG;
+      var idx = bounds[b2 - 1];
+      while (idx < n - 1 && arc[idx] < target) idx++;
+      bounds.push(idx);
     }
+    function segRange(s) { return [bounds[s], bounds[s + 1]]; }
 
     ctx.globalCompositeOperation = 'lighter';
 
@@ -214,7 +232,8 @@
         if (al2 <= 0.005) continue;
 
         var mi = Math.round(mid2);
-        var hw = wAt(mi) * 0.5;
+        var hw = (wAt(b0) + wAt(b1)) * 0.25;      // 段内平均半宽，比取单点更稳
+        if (hw < 0.6) { outline(path, nor, b0, b1, wAt); ctx.fillStyle = 'hsla(0,0%,100%,' + (al2 * 0.4).toFixed(3) + ')'; ctx.fill(); continue; }
         var g = ctx.createLinearGradient(
           path[mi].x + nor[mi].x * hw, path[mi].y + nor[mi].y * hw,
           path[mi].x - nor[mi].x * hw, path[mi].y - nor[mi].y * hw
