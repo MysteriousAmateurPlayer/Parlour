@@ -48,8 +48,8 @@ window.MapSuck = (function () {
     if (stage) stage.style.transformOrigin = ox + 'px ' + oy + 'px';
 
     /* ---------- 星尘：沿螺旋被卷进去 ---------- */
-    var N = reduce ? 0 : 230;
-    var TAIL = 7;                       // 每颗星保留几个历史点
+    var N = reduce ? 0 : 150;
+    var TAIL = 12;                      // 每颗星保留几个历史点（点够密，逐段连起来就是曲线）
     var stars = [];
 
     function respawn(st, first) {
@@ -87,9 +87,11 @@ window.MapSuck = (function () {
       ctx.fillStyle = 'rgba(4,5,8,' + veil.toFixed(3) + ')';
       ctx.fillRect(0, 0, W, H);
 
-      // ② 星尘：开普勒式螺旋，尾巴用二次曲线连成平滑的弧
+      // ② 星尘：开普勒式螺旋。尾巴沿长度**渐细 + 渐透明**，最后收成一个圆头亮核，
+      //    所以看上去是一条圆滑的锥形拖尾，而不是等宽的矩形。
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
       for (var j = 0; j < N; j++) {
         var s = stars[j];
 
@@ -102,30 +104,36 @@ window.MapSuck = (function () {
         if (s.hist.length > TAIL) s.hist.shift();
 
         var h = s.hist;
-        if (h.length < 2) continue;
+        var n = h.length;
+        if (n < 2) continue;
 
         var near = 1 - Math.min(1, s.r / (maxDim * 0.7));
-        var al = (0.09 + 0.66 * near) * (1 - veil * 0.5);
-        if (al <= 0.012) continue;
+        var baseAl = (0.09 + 0.62 * near) * (1 - veil * 0.5);
+        if (baseAl <= 0.012) continue;
 
-        ctx.strokeStyle = s.hue
-          ? 'rgba(150,190,246,' + al.toFixed(3) + ')'
-          : 'rgba(226,196,132,' + al.toFixed(3) + ')';
-        ctx.lineWidth = s.w * (0.45 + near * 1.5);
+        var rC = s.hue ? 150 : 226, gC = s.hue ? 190 : 196, bC = s.hue ? 246 : 132;
+        var w0 = s.w * (0.5 + near * 1.7);
+        var head = h[n - 1];
 
-        ctx.beginPath();
-        ctx.moveTo(h[0].x, h[0].y);
-        if (h.length === 2) {
-          ctx.lineTo(h[1].x, h[1].y);
-        } else {
-          for (var k = 1; k < h.length - 1; k++) {
-            var mx = (h[k].x + h[k + 1].x) / 2, my = (h[k].y + h[k + 1].y) / 2;
-            ctx.quadraticCurveTo(h[k].x, h[k].y, mx, my);
-          }
-          var lp = h[h.length - 1];
-          ctx.lineTo(lp.x, lp.y);
+        // 逐段描：t=0 是最旧的尾梢（细、透），t=1 是最新的头部（粗、亮）
+        var segs = n - 1;
+        for (var k = 0; k < segs; k++) {
+          var t = (k + 1) / segs;
+          var al = baseAl * (0.06 + 0.94 * Math.pow(t, 1.35));
+          if (al <= 0.01) continue;
+          ctx.strokeStyle = 'rgba(' + rC + ',' + gC + ',' + bC + ',' + al.toFixed(3) + ')';
+          ctx.lineWidth = w0 * (0.14 + 0.86 * t);
+          ctx.beginPath();
+          ctx.moveTo(h[k].x, h[k].y);
+          ctx.lineTo(h[k + 1].x, h[k + 1].y);
+          ctx.stroke();
         }
-        ctx.stroke();
+
+        // 头部的圆核，让锥尖收得圆
+        ctx.fillStyle = 'rgba(' + rC + ',' + gC + ',' + bC + ',' + baseAl.toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.arc(head.x, head.y, w0 * 0.5, 0, TAU);
+        ctx.fill();
       }
 
       // ③ 黑洞影子：指数级膨胀，最后吞掉整个画面
