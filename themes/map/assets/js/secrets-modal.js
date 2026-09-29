@@ -70,7 +70,9 @@
       if (core) {
         var gs = Math.min(p.s * GROW, GROW_MAX);                    // 稍微放大一丢丢
         core.setAttribute('transform', (p.r ? 'rotate(' + p.r + ') ' : '') + 'scale(' + gs.toFixed(3) + ')');
-        if (p.o) core.style.opacity = p.o;
+        // 不透明度拉满且不参与任何闪烁 —— 它是唯一的路标，不能跟着星星一起呼吸
+        core.style.opacity = '1';
+        core.style.visibility = 'visible';
       }
       return true;
     }
@@ -175,6 +177,8 @@
     var go = function () {
       S.unlock();
       S.paintHeaderEntries();
+      // 告诉落地页「我是被吸进来的」，它会慢慢地从黑里亮出来，而不是啪地闪现
+      try { sessionStorage.setItem('map-secrets-arriving', '1'); } catch (err) {}
       window.location.href = targetUrl;
     };
     if (window.MapSuck) window.MapSuck.play(origin, go);

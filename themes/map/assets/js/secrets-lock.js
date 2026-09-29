@@ -165,6 +165,19 @@ window.MapSecrets = (function () {
     return { reset: reset, left: function () { return left; } };
   }
 
+  /* ---------- 落地页：把「刚被吸进来」的黑幕收掉 ---------- */
+  function clearArriving() {
+    var el = document.documentElement;
+    if (!el.classList.contains('is-arriving')) return;
+    // 淡出动画 1.6s；等它跑完再摘掉类，免得中途重排把黑幕又拉回不透明
+    window.setTimeout(function () { el.classList.remove('is-arriving'); }, 1900);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', clearArriving);
+  } else {
+    clearArriving();
+  }
+
   /* ---------- 页眉上的入口：拿到钥匙且解锁之后才露出来 ---------- */
   function paintHeaderEntries() {
     var nodes = document.querySelectorAll('[data-secrets-only]');

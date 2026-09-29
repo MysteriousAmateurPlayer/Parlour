@@ -3,6 +3,18 @@
 <html lang="{{ site.Language.Locale | default "zh-cn" }}" data-theme="{{ if eq $theme "dark" }}dark{{ else }}light{{ end }}" data-theme-pref="{{ $theme }}">
 <head>
   {{- partial "head.html" . -}}
+  {{- /* 「被吸进黑洞」之后落地的那一页要缓慢淡入，不能闪。
+        这段必须内联在 head 里同步跑 —— 等 defer 脚本执行时页面早就画出来了，就来不及了。 */ -}}
+  <script>
+    (function () {
+      try {
+        if (sessionStorage.getItem('map-secrets-arriving') === '1') {
+          sessionStorage.removeItem('map-secrets-arriving');
+          document.documentElement.classList.add('is-arriving');
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body class="kind-{{ .Kind }}{{ with .Section }} section-{{ . }}{{ end }}{{ if .IsHome }} is-home{{ end }}{{ if .Params.private }} is-private{{ end }}">
   <a class="skip-link" href="#main">跳到主要内容</a>

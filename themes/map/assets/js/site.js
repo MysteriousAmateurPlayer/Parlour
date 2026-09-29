@@ -734,7 +734,7 @@
     var picked = [], bgTotal = 0;
     for (var i3 = 0; i3 < all.length; i3++) {
       var el3 = all[i3];
-      if (el3.closest && el3.closest('.sky-set')) continue;   // 星座连线上的星不参与
+      if (el3.closest && (el3.closest('.sky-set') || el3.closest('.secrets-star'))) continue;   // 星座上的星与入口星都不参与闪烁
       var season = el3.closest ? el3.closest('.sky-season') : null;
       if (season && !season.classList.contains('is-active')) continue;   // 隐藏季节组里的星不管
       bgTotal++;

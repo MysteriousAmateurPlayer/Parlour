@@ -1222,6 +1222,21 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .clock-core.is-open:hover .clock-core__label,
 .clock-core.is-open:focus-visible .clock-core__label { opacity: 1; }
 
+/* 被吸进黑洞之后落地的那一页：先盖一层黑，再慢慢亮起来（不闪） */
+html.is-arriving::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: #030407;
+  pointer-events: none;
+  animation: arrive-out 1.6s var(--ease) forwards;
+}
+@keyframes arrive-out {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* 被吸进黑洞的那一段演出：满屏 canvas，盖住一切 */
 .suck {
   position: fixed;
