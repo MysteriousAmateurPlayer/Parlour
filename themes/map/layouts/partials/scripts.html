@@ -12,6 +12,10 @@
 <script src="{{ $sk.RelPermalink }}" integrity="{{ $sk.Data.Integrity }}" crossorigin="anonymous" defer></script>
 {{- end }}
 
+{{- /* 鼠标拖尾：日间彩虹 / 夜间极光。触屏与 prefers-reduced-motion 下自己会退出。 */ -}}
+{{- $cu := resources.Get "js/cursor.js" | minify | fingerprint "sha512" -}}
+<script src="{{ $cu.RelPermalink }}" integrity="{{ $cu.Data.Integrity }}" crossorigin="anonymous" defer></script>
+
 {{- if .Params.math }}
 {{- /* 数学页面：KaTeX 与自动渲染（顺序不能反，defer 按文档顺序执行） */ -}}
 <script src="{{ "vendor/katex/katex.min.js" | relURL }}" defer></script>
