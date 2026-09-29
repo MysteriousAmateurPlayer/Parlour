@@ -1,9 +1,14 @@
 /* ==========================================================================
-   另一个维度 · 锁（三个脚本共用）
+   另一个维度 · 锁（所有相关脚本共用）
    --------------------------------------------------------------------------
-   两样东西存在 localStorage 里：
-     map-secrets-unlocked : "1"  —— 解开过一次就永久记住
+   三样东西存在 localStorage 里：
+     map-secrets-key      : "1"  —— 在首页那颗特殊星星上答对日期题，拿到钥匙
+     map-secrets-unlocked : "1"  —— 用钥匙打开钟心的黑洞、点灯过关（或跳过）
      map-secrets-fails    : {ym:"2026-9", n:2} —— 当月答错次数，换月自动清零
+
+   两道门是分开的：
+     ① 首页星星 → 日期题 → 钥匙
+     ② 随性笔记页钟心黑洞（需要钥匙才点得动）→ 星图点灯 → 演出 → 另一个维度
 
    门禁是「软」的：答案以 SHA-256 存放，源码里看不到明文，
    但懂行的人清掉 localStorage 就能重来。这是仪式感，不是保险箱。
@@ -11,6 +16,7 @@
 window.MapSecrets = (function () {
   'use strict';
 
+  var KEY_STORE = 'map-secrets-key';
   var UNLOCK_KEY = 'map-secrets-unlocked';
   var FAIL_KEY = 'map-secrets-fails';
 
@@ -22,12 +28,29 @@ window.MapSecrets = (function () {
     return d.getFullYear() + '-' + (d.getMonth() + 1);
   }
 
-  /* ---------- 解锁状态 ---------- */
+  /* ---------- 第一道门：钥匙 ---------- */
+  function hasKey() {
+    return safe(function () { return localStorage.getItem(KEY_STORE) === '1'; }, false);
+  }
+  function giveKey() {
+    safe(function () { localStorage.setItem(KEY_STORE, '1'); });
+  }
+
+  /* ---------- 第二道门：解锁状态 ---------- */
   function isUnlocked() {
     return safe(function () { return localStorage.getItem(UNLOCK_KEY) === '1'; }, false);
   }
   function unlock() {
     safe(function () { localStorage.setItem(UNLOCK_KEY, '1'); });
+  }
+
+  /* ---------- 重新上锁：清掉一切，好把整场演出再看一遍 ---------- */
+  function putOn() {
+    safe(function () {
+      localStorage.removeItem(KEY_STORE);
+      localStorage.removeItem(UNLOCK_KEY);
+      localStorage.removeItem(FAIL_KEY);
+    });
   }
 
   /* ---------- 当月答错次数 ---------- */
@@ -82,6 +105,7 @@ window.MapSecrets = (function () {
     var state = [];
     var cells = [];
     var solved = false;
+    var left = 0;
 
     function toggle(i) {
       var r = (i / n) | 0, c = i % n;
@@ -92,15 +116,19 @@ window.MapSecrets = (function () {
         state[rr * n + cc] = !state[rr * n + cc];
       }
     }
-    function allOn() {
-      for (var i = 0; i < total; i++) if (!state[i]) return false;
-      return true;
+    function countOff() {
+      var c2 = 0;
+      for (var i = 0; i < total; i++) if (!state[i]) c2++;
+      return c2;
     }
+    function allOn() { return countOff() === 0; }
     function paint() {
+      left = countOff();
       for (var i = 0; i < total; i++) {
         if (state[i]) cells[i].classList.add('is-on');
         else cells[i].classList.remove('is-on');
       }
+      if (host) host.setAttribute('data-left', String(left));
     }
     function reset() {
       solved = false;
@@ -134,10 +162,10 @@ window.MapSecrets = (function () {
       }
     });
     reset();
-    return { reset: reset };
+    return { reset: reset, left: function () { return left; } };
   }
 
-  /* ---------- 解锁之后，页眉上的「另一个维度」才露出来 ---------- */
+  /* ---------- 页眉上的入口：拿到钥匙且解锁之后才露出来 ---------- */
   function paintHeaderEntries() {
     var nodes = document.querySelectorAll('[data-secrets-only]');
     var on = isUnlocked();
@@ -154,8 +182,11 @@ window.MapSecrets = (function () {
   }
 
   return {
+    hasKey: hasKey,
+    giveKey: giveKey,
     isUnlocked: isUnlocked,
     unlock: unlock,
+    putOn: putOn,
     fails: fails,
     addFail: addFail,
     isLocked: isLocked,

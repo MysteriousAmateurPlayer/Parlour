@@ -1533,7 +1533,7 @@
   new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 })();
 
-﻿﻿﻿/* ==========================================================================
+﻿﻿﻿﻿/* ==========================================================================
    天文表盘时钟（随性笔记页）：canvas 软件渲染的蓝金豪华天文钟。
    读出真实时间（时/分/秒针）+ 天象：太阳黄经驱动日躔位置，朔望月驱动月相。
    结构（由外到内）：
@@ -2679,6 +2679,19 @@
 
   /* ---------- 布局：表盘中心落在「视口垂直正中 × 屏宽黄金分割」 ---------- */
   var LAY = { r: 400, cx: 500, cy: 500 };
+  /* 钟心那个黑洞在屏幕上的位置与大小 —— 「另一个维度」的门按钮要对齐到这里。
+     世界坐标里黑洞在 (CX, CY)，外缘约 ROUT*1.12 = 101。 */
+  function syncCoreButton() {
+    var btn = document.querySelector('[data-clock-core]');
+    if (!btn) return;
+    var k = LAY.r / R;
+    var box = Math.max(76, 210 * k);
+    btn.style.left = LAY.cx + 'px';
+    btn.style.top = LAY.cy + 'px';
+    btn.style.width = box + 'px';
+    btn.style.height = box + 'px';
+  }
+
   function computeLayout() {
     var head = cv.parentNode && cv.parentNode.parentNode;
     if (!head || !head.getBoundingClientRect) return;
@@ -2704,6 +2717,7 @@
     LAY.r = r;
     LAY.cx = Math.min(Math.max(cw2 * gx, r + 4), Math.max(r + 4, cw2 - r - 4));
     LAY.cy = cyLocal + lift;
+    syncCoreButton();
   }
 
   /* ---------- 渲染 ---------- */

@@ -1,10 +1,12 @@
 /* ==========================================================================
-   另一个维度 · 入门弹窗
+   另一个维度 · 两道门的弹窗
    --------------------------------------------------------------------------
-   触发点：星野里那颗五角星（任何带 data-secrets-open 的元素）。
-   流程：选日期 →（对）→ 星图点灯 →（过）→ 解锁并进入。
-        选日期当月答错超过 maxFails 次，本月就不能再试。
-   所有状态都在 window.MapSecrets 里，和 secrets-gate.js 共用。
+   第一道门（data-secrets-open="star"，首页星野里那颗五角星）：
+       选日期 → 答对 → 拿到钥匙（到此为止，不直接放行）
+   第二道门（data-secrets-open="clock"，随性笔记页钟心的黑洞）：
+       没钥匙 → 显示「被锁着」
+       有钥匙 → 星图点灯（可跳过）→ 播出「被吸进黑洞」的演出 → 进入另一个维度
+   状态都在 window.MapSecrets 里，和 secrets-gate.js 共用。
    ========================================================================== */
 (function () {
   'use strict';
@@ -19,7 +21,6 @@
        所以选中之后要把入口星**搬进**那颗星所在的组，否则位置会对不上。
      · 形态是五角星（其他星都是四角），朝向与亮度沿用被换下的那颗，
        尺寸只放大一点点（×1.5，上限 0.85），好找一些但仍不扎眼。
-     · 落点排除地球圆盘内（被遮罩挡住就看不见）与星野画布外。
      ========================================================================== */
   (function () {
     var star = document.querySelector('.secrets-star');
@@ -42,16 +43,15 @@
         var u = all[i];
         if ((u.getAttribute('href') || u.getAttribute('xlink:href')) !== '#star4') continue;
         var tf = u.getAttribute('transform') || '';
-        // 注意：globe.js 会在运行时给每颗星补一个 rotate()，所以逐个提取而不是整体匹配
+        // 逐段解析：背景星会被 site.js 补上 rotate()，星座上的星则没有
         var mt = /translate\(\s*(-?[\d.]+)[,\s]+(-?[\d.]+)\s*\)/.exec(tf);
         var ms = /scale\(\s*(-?[\d.]+)/.exec(tf);
         if (!mt || !ms) continue;
         var x = parseFloat(mt[1]), y = parseFloat(mt[2]), s = parseFloat(ms[1]);
-        if (!(s > 0)) continue;
+        if (!(s > 0.3)) continue;                                // 太小的星点看不出形状、也点不着
         var dx = x - 750, dy = y - 640;
-        if (Math.sqrt(dx * dx + dy * dy) < 480) continue;      // 落在地球上就看不见了
-        if (x < 70 || x > 1430 || y < -40 || y > 1320) continue; // 也别落在星野画布外面
-        if (s < 0.3) continue;                                  // 太小的星点看不出形状、也点不着
+        if (Math.sqrt(dx * dx + dy * dy) < 480) continue;        // 落在地球上就看不见了
+        if (x < 70 || x > 1430 || y < -40 || y > 1320) continue; // 别落在星野画布外面
         var mr = /rotate\(\s*(-?[\d.]+)/.exec(tf);
         pool.push({
           el: u, x: x, y: y, s: s,
@@ -88,8 +88,10 @@
   var puzzleSize = parseInt(modal.getAttribute('data-puzzle-size'), 10) || 4;
   var targetUrl = modal.getAttribute('data-url') || '../secrets/';
 
-  var stepDate = modal.querySelector('[data-secrets-step="date"]');
-  var stepPuzzle = modal.querySelector('[data-secrets-step="puzzle"]');
+  var steps = {};
+  Array.prototype.forEach.call(modal.querySelectorAll('[data-secrets-step]'), function (el) {
+    steps[el.getAttribute('data-secrets-step')] = el;
+  });
   var form = modal.querySelector('[data-secrets-form]');
   var selMonth = modal.querySelector('[data-secrets-month]');
   var selDay = modal.querySelector('[data-secrets-day]');
@@ -98,26 +100,43 @@
   var puzzleMsg = modal.querySelector('[data-secrets-puzzle-msg]');
   var puzzleHost = modal.querySelector('[data-secrets-puzzle]');
   var puzzleResetBtn = modal.querySelector('[data-secrets-puzzle-reset]');
+  var puzzleSkipBtn = modal.querySelector('[data-secrets-puzzle-skip]');
   var card = modal.querySelector('.secrets-modal__card');
   var lastFocus = null;
   var puzzle = null;
 
+  /* ---------- 钟心黑洞按钮：按「没钥匙 / 有钥匙 / 已解锁」换三种样子 ---------- */
+  var coreBtn = document.querySelector('[data-clock-core]');
+  function paintCore() {
+    if (!coreBtn) return;
+    var unlocked = S.isUnlocked(), key = S.hasKey();
+    coreBtn.hidden = false;
+    coreBtn.classList.toggle('is-locked', !key);
+    coreBtn.classList.toggle('is-ready', key && !unlocked);
+    coreBtn.classList.toggle('is-open', unlocked);
+    var label = coreBtn.querySelector('.clock-core__label');
+    if (label) label.textContent = unlocked ? '进入' : (key ? '开锁' : '上锁');
+    coreBtn.setAttribute('aria-label',
+      unlocked ? '进入另一个维度' : (key ? '用钥匙打开钟心的黑洞' : '钟心的黑洞（还锁着）'));
+  }
+  paintCore();
+
+  function show(step) {
+    for (var k in steps) { if (steps.hasOwnProperty(k)) steps[k].hidden = (k !== step); }
+  }
   function setMsg(el, text, kind) {
     if (!el) return;
     el.textContent = text || '';
     el.classList.remove('gate__msg--ok', 'gate__msg--error');
     if (kind) el.classList.add('gate__msg--' + kind);
   }
-
   function shake() {
     if (!card) return;
     card.classList.add('is-shaking');
     setTimeout(function () { card.classList.remove('is-shaking'); }, 500);
   }
-
-  /* 「本月还剩几次」 */
   function paintFails() {
-    if (!failsLine) return;
+    if (!failsLine || !steps.date || steps.date.hidden) return;
     if (S.isLocked(maxFails)) {
       failsLine.textContent = '本月已经没有机会了，下个月再来吧。';
       failsLine.classList.add('gate__fails--out');
@@ -128,33 +147,57 @@
     failsLine.textContent = left >= maxFails ? '' : ('本月还剩 ' + left + ' 次机会。');
   }
 
-  function goPuzzle() {
-    if (!usePuzzle) { finish(); return; }
-    if (stepDate) stepDate.hidden = true;
-    if (stepPuzzle) stepPuzzle.hidden = false;
-    if (!puzzle) puzzle = S.mountPuzzle(puzzleHost, puzzleSize, finish);
-    else puzzle.reset();
-    setMsg(puzzleMsg, '', null);
+  /* ---------- 第一道门的结果：发钥匙 ---------- */
+  function giveKey() {
+    S.giveKey();
+    paintCore();
+    show('key');
   }
 
-  function finish() {
-    S.unlock();
-    S.paintHeaderEntries();
-    setMsg(puzzleMsg, '门开了，正在进入另一个维度…', 'ok');
-    setTimeout(function () { window.location.href = targetUrl; }, 600);
+  /* ---------- 第二道门 ---------- */
+  function startPuzzle() {
+    if (!usePuzzle) { suckIn(); return; }
+    show('puzzle');
+    if (!puzzle) puzzle = S.mountPuzzle(puzzleHost, puzzleSize, suckIn);
+    else { puzzle.reset(); setMsg(puzzleMsg, '', null); }
   }
 
-  function open() {
+  /* ---------- 演出：被吸进黑洞 ---------- */
+  function suckIn() {
+    var btn = document.querySelector('[data-clock-core]');
+    var origin = null;
+    if (btn) {
+      var b = btn.getBoundingClientRect();
+      origin = { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+    }
+    modal.hidden = true;
+    document.body.classList.remove('is-modal-open');
+    var go = function () {
+      S.unlock();
+      S.paintHeaderEntries();
+      window.location.href = targetUrl;
+    };
+    if (window.MapSuck) window.MapSuck.play(origin, go);
+    else go();
+  }
+
+  function open(mode) {
     lastFocus = document.activeElement;
     modal.hidden = false;
     document.body.classList.add('is-modal-open');
     if (card) { card.style.animation = 'none'; void card.offsetWidth; card.style.animation = ''; }
-    if (stepPuzzle) stepPuzzle.hidden = true;
-    if (stepDate) stepDate.hidden = false;
     setMsg(msg, '', null);
     setMsg(puzzleMsg, '', null);
-    paintFails();
 
+    if (mode === 'clock') {
+      if (!S.hasKey()) { show('locked'); return; }
+      startPuzzle();
+      return;
+    }
+    // star：已经有钥匙就直接告诉他钥匙在哪儿
+    if (S.hasKey()) { show('key'); return; }
+    show('date');
+    paintFails();
     var locked = S.isLocked(maxFails);
     if (form) form.hidden = locked;
     if (selMonth) selMonth.value = '';
@@ -173,9 +216,14 @@
   document.addEventListener('click', function (e) {
     var trigger = e.target.closest ? e.target.closest('[data-secrets-open]') : null;
     if (!trigger) return;
-    if (S.isUnlocked()) return;          // 已解锁：当普通链接跳过去
+    var mode = trigger.getAttribute('data-secrets-open') || 'star';
+    if (mode === 'clock' && S.isUnlocked()) {     // 已经进去过：直接推门
+      e.preventDefault();
+      window.location.href = targetUrl;
+      return;
+    }
     e.preventDefault();
-    open();
+    open(mode);
   });
 
   modal.addEventListener('click', function (e) {
@@ -185,7 +233,7 @@
     if (e.key === 'Escape' && !modal.hidden) close();
   });
 
-  /* ---------- 第一道锁：日期 ---------- */
+  /* ---------- 日期提交 ---------- */
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -198,7 +246,7 @@
       S.answerHash(m, d).then(function (digest) {
         if (digest === hash) {
           setMsg(msg, '对上了。', 'ok');
-          setTimeout(goPuzzle, 420);
+          setTimeout(giveKey, 420);
           return;
         }
         var n = S.addFail();
@@ -222,9 +270,17 @@
       setMsg(puzzleMsg, '', null);
     });
   }
+  if (puzzleSkipBtn) {
+    puzzleSkipBtn.addEventListener('click', function () {
+      setMsg(puzzleMsg, '好，直接进去。', 'ok');
+      setTimeout(suckIn, 300);
+    });
+  }
 
-  /* 方便测试：?secrets=1 直接打开 */
+  /* 方便测试：?secrets=1 打开第一道门，?secrets=clock 打开第二道门 */
   try {
-    if (new URLSearchParams(window.location.search).get('secrets') === '1') open();
+    var q = new URLSearchParams(window.location.search).get('secrets');
+    if (q === '1') open('star');
+    else if (q === 'clock') open('clock');
   } catch (e) {}
 })();

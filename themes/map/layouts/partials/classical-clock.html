@@ -1,5 +1,15 @@
 {{- /* 随性笔记页：巨大天文表盘时钟（canvas 软件渲染，蓝金配色，读出真实时间与天象）。
-       渲染逻辑见 assets/js/site.js 的 clock-canvas 模块。 */ -}}
+       渲染逻辑见 assets/js/site.js 的 clock-canvas 模块。
+       钟心的黑洞是「另一个维度」的第二道门：没钥匙时上着锁，拿到钥匙才点得动。
+       按钮必须放在 .orloj 外面 —— .orloj 自成层叠上下文，放里面会被正文盖住点不到。 */ -}}
 <div class="orloj" aria-hidden="true">
   <canvas class="clock-canvas"></canvas>
 </div>
+{{- if site.Params.secrets.enabled }}
+<button class="clock-core" type="button" data-clock-core data-secrets-open="clock" hidden aria-label="钟心的黑洞">
+  <span class="clock-core__ring" aria-hidden="true"></span>
+  <span class="clock-core__icon clock-core__icon--lock" aria-hidden="true">{{ partial "icon.html" (dict "name" "lock") }}</span>
+  <span class="clock-core__icon clock-core__icon--key" aria-hidden="true">{{ partial "icon.html" (dict "name" "key") }}</span>
+  <span class="clock-core__label" aria-hidden="true"></span>
+</button>
+{{- end }}

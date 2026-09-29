@@ -8,6 +8,8 @@
 <script src="{{ $sl.RelPermalink }}" integrity="{{ $sl.Data.Integrity }}" crossorigin="anonymous" defer></script>
 {{- $sm := resources.Get "js/secrets-modal.js" | minify | fingerprint "sha512" -}}
 <script src="{{ $sm.RelPermalink }}" integrity="{{ $sm.Data.Integrity }}" crossorigin="anonymous" defer></script>
+{{- $sk := resources.Get "js/secrets-suck.js" | minify | fingerprint "sha512" -}}
+<script src="{{ $sk.RelPermalink }}" integrity="{{ $sk.Data.Integrity }}" crossorigin="anonymous" defer></script>
 {{- end }}
 
 {{- if .Params.math }}
