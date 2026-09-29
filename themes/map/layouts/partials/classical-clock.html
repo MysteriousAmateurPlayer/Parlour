@@ -7,7 +7,6 @@
 </div>
 {{- if site.Params.secrets.enabled }}
 <button class="clock-core" type="button" data-clock-core data-secrets-open="clock" hidden aria-label="钟心的黑洞">
-  <span class="clock-core__ring" aria-hidden="true"></span>
   <span class="clock-core__icon clock-core__icon--lock" aria-hidden="true">{{ partial "icon.html" (dict "name" "lock") }}</span>
   <span class="clock-core__icon clock-core__icon--key" aria-hidden="true">{{ partial "icon.html" (dict "name" "key") }}</span>
   <span class="clock-core__label" aria-hidden="true"></span>

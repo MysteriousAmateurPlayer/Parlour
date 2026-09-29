@@ -111,8 +111,8 @@
     if (!coreBtn) return;
     var unlocked = S.isUnlocked(), key = S.hasKey();
     coreBtn.hidden = false;
-    coreBtn.classList.toggle('is-locked', !key);
-    coreBtn.classList.toggle('is-ready', key && !unlocked);
+    coreBtn.classList.toggle('is-locked', !key && !unlocked);
+    coreBtn.classList.toggle('is-ready', (key && !unlocked) || unlocked);
     coreBtn.classList.toggle('is-open', unlocked);
     var label = coreBtn.querySelector('.clock-core__label');
     if (label) label.textContent = unlocked ? '进入' : (key ? '开锁' : '上锁');
@@ -217,9 +217,10 @@
     var trigger = e.target.closest ? e.target.closest('[data-secrets-open]') : null;
     if (!trigger) return;
     var mode = trigger.getAttribute('data-secrets-open') || 'star';
-    if (mode === 'clock' && S.isUnlocked()) {     // 已经进去过：直接推门
+    if (mode === 'clock' && S.isUnlocked()) {
+      // 已经进去过：不再问，但演出照样走一遍 —— 点黑洞永远能看到被吸进去
       e.preventDefault();
-      window.location.href = targetUrl;
+      suckIn();
       return;
     }
     e.preventDefault();

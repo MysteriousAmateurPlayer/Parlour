@@ -19,11 +19,6 @@ window.MapSuck = (function () {
     if (running) return;
     running = true;
 
-    if (reduce) {                       // 减少动效：直接过去
-      if (done) done();
-      return;
-    }
-
     var ov = document.createElement('div');
     ov.className = 'suck';
     var cv = document.createElement('canvas');
@@ -50,7 +45,7 @@ window.MapSuck = (function () {
     if (stage) stage.style.transformOrigin = ox + 'px ' + oy + 'px';
 
     /* ---------- 星尘：从外围被卷进去 ---------- */
-    var N = 300, stars = [];
+    var N = reduce ? 0 : 300, stars = [];
     function respawn(st, first) {
       st.r = maxDim * (first ? (0.15 + Math.random() * 0.95) : (0.62 + Math.random() * 0.5));
       st.a = Math.random() * Math.PI * 2;
@@ -60,7 +55,7 @@ window.MapSuck = (function () {
     }
     for (var i = 0; i < N; i++) { stars.push({}); respawn(stars[i], true); }
 
-    var DUR = 4300;
+    var DUR = reduce ? 1100 : 4300;      // 减少动效时只留一段很短的渐黑，不至于「什么都没有」
     var t0 = performance.now();
     var raf = 0;
     var last = t0;

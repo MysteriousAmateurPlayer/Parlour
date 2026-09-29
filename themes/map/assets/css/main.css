@@ -1184,14 +1184,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   transition: color 0.3s var(--ease);
 }
 .clock-core[hidden] { display: none; }
-.clock-core__ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 1px dashed currentColor;
-  opacity: 0;
-  transition: opacity 0.3s var(--ease);
-}
+/* 判定区是一块看不见的方形热区；不画任何圆环，免得像调试框。 */
 .clock-core__icon {
   position: absolute;
   left: 50%;
@@ -1221,21 +1214,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .clock-core.is-locked .clock-core__icon--lock { opacity: 0.85; }
 .clock-core.is-locked:hover .clock-core__label,
 .clock-core.is-locked:focus-visible .clock-core__label { opacity: 0.8; }
-/* ② 有钥匙：金钥匙 + 一圈缓慢呼吸的虚线 */
+/* ② 有钥匙（或已解锁）：金钥匙常显 */
 .clock-core.is-ready { color: var(--accent); }
 .clock-core.is-ready .clock-core__icon--key { opacity: 1; }
-.clock-core.is-ready .clock-core__ring { opacity: 0.5; animation: core-pulse 2.6s var(--ease) infinite; }
 .clock-core.is-ready .clock-core__label { opacity: 0.9; }
-/* ③ 已解锁：平时安静，指过去才浮出一圈「进入」 */
-.clock-core.is-open .clock-core__ring { border-style: solid; }
-.clock-core.is-open:hover .clock-core__ring,
-.clock-core.is-open:focus-visible .clock-core__ring { opacity: 0.7; }
+/* ③ 已解锁：指过去再多浮一行「进入」 */
 .clock-core.is-open:hover .clock-core__label,
-.clock-core.is-open:focus-visible .clock-core__label { opacity: 0.9; }
-@keyframes core-pulse {
-  0%, 100% { transform: scale(0.76); opacity: 0.6; }
-  50% { transform: scale(0.96); opacity: 0.22; }
-}
+.clock-core.is-open:focus-visible .clock-core__label { opacity: 1; }
 
 /* 被吸进黑洞的那一段演出：满屏 canvas，盖住一切 */
 .suck {
