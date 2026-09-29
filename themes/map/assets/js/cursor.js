@@ -12,10 +12,10 @@
       u=0 处严格等于原始首点，所以 A 端精确落在光标上；
       每次 mousemove 也会把最新那个点钉到当前坐标，光标停住时拖尾不会落后。
 
-   2) A 端快速渐变（不再"一大条突然冒出来"）
-      宽度 ∝ rise^0.5、不透明度 ∝ rise^0.6，其中 rise = min(1, t/0.10)
-      —— 在头 10% 长度内就升到接近满值，然后按 (1-t)^0.85 / (1-t)^1.9 缓慢收到 0。
-      所以两端都有渐变，但 A 端比 B 端快得多。
+   2) A 端快速起势（不再"一大条突然冒出来"，也不再离光标一截）
+      起势长度按**绝对像素**算：rise = min(1, 弧长 / 9px)。
+      头 9px 内宽度与不透明度就升到接近满值，然后按 (1-弧长/总长)^0.85 / ^1.9 缓慢收到 0。
+      所以带子紧贴光标，两端都有渐变、但 A 端比 B 端快得多。
 
    3) 不重叠（②③ 的根因与解法）
       ② 「带宽大于间隔」：原来是 i1 = floor(...) + 1，相邻微元**整整重叠一个点距**，
@@ -66,7 +66,7 @@
   var SEG = 26;          // 沿长度切成几段（只共享端点，不重叠）
   var W0 = 16;           // A 端的带宽（像素）
   var A0 = 0.40;         // A 端的不透明度上限
-  var RISE = 0.10;       // A 端用多长的比例升到满值（比 B 端快得多）
+  var RISE_PX = 9;       // A 端起势只占**绝对 9 像素**（按比例算会离光标一截，很突兀）
   var CURV_K = 0.82;     // 带宽不得超过局部曲率半径的这个比例
   var STOPS = 7;         // 彩虹横向渐变的色标数
 
@@ -150,20 +150,33 @@
     var path = resample(raw, RES);
     var nor = normals(path);
     var n = path.length;
-    var lim = halfWidthLimit(path, n);
+    var lit = halfWidthLimit(path, n);
 
-    // t=0 在光标处，t=1 在尾梢；两端都有渐变，但 A 端快得多
+    // 沿路径的累计弧长：A 端的起势与 B 端的收尾都按**真实距离**算，
+    // 而不是按点索引的比例 —— 否则点密的地方衰减过快、点疏的地方又拖尾过长。
+    var arc = new Array(n);
+    arc[0] = 0;
+    for (var q = 1; q < n; q++) {
+      var ddx = path[q].x - path[q - 1].x, ddy = path[q].y - path[q - 1].y;
+      arc[q] = arc[q - 1] + Math.sqrt(ddx * ddx + ddy * ddy);
+    }
+    var total = arc[n - 1] || 1;
+    function arcAt(i) { return arc[Math.max(0, Math.min(n - 1, Math.round(i)))]; }
+
+    // t=0 在光标处，t=1 在尾梢
+    //   A 端：绝对 9px 内就把宽度与不透明度拉满 —— 所以带子紧贴光标，不会隔开一截
+    //   B 端：再按 (1-t)^0.85 / (1-t)^1.9 缓慢收到 0
     function wAt(i) {
-      var t = i / (n - 1);
-      var rise = Math.min(1, t / RISE);
-      var base = W0 * Math.pow(rise, 0.5) * Math.pow(1 - t, 0.85);
-      var cap = lim[i] * 2;                       // 急弯处自动收窄，杜绝自交
+      var a = arcAt(i);
+      var rise = Math.min(1, a / RISE_PX);
+      var base = W0 * Math.pow(rise, 0.45) * Math.pow(1 - a / total, 0.85);
+      var cap = lit[Math.max(0, Math.min(n - 1, Math.round(i)))] * 2;   // 急弯处自动收窄，杜绝自交
       return base < cap ? base : cap;
     }
     function aAt(i) {
-      var t = i / (n - 1);
-      var rise = Math.min(1, t / RISE);
-      return A0 * Math.pow(rise, 0.6) * Math.pow(1 - t, 1.9);
+      var a = arcAt(i);
+      var rise = Math.min(1, a / RISE_PX);
+      return A0 * Math.pow(rise, 0.3) * Math.pow(1 - a / total, 1.9);
     }
 
     // 相邻微元只共享端点（i1 就是下一段的 i0），内部绝不交叠
