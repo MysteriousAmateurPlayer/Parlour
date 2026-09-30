@@ -1533,7 +1533,7 @@
   new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 })();
 
-﻿﻿﻿﻿﻿/* ==========================================================================
+﻿﻿﻿﻿﻿﻿/* ==========================================================================
    天文表盘时钟（随性笔记页）：canvas 软件渲染的蓝金豪华天文钟。
    读出真实时间（时/分/秒针）+ 天象：太阳黄经驱动日躔位置，朔望月驱动月相。
    结构（由外到内）：
@@ -1557,7 +1557,8 @@
 
   var R = 495;                 // 花边外径 = 天球仪最外圈
   var R_RIM_IN = 435;          // 花边内径（与天球仪一致）
-  var R_ROMAN = 414;           // 罗马数字环（居中于 394~R_RIM_IN 的淡蓝底环带）
+  var R_ROMAN = 406;           // 罗马数字环（环带 394~434 的中线是 414，
+                                 //  但 middle 基线让字形重心偏外约 8，所以实际取 406）
   var R_ARAB = 378;            // 阿拉伯数字环
   var R_DIAL = 352;            // 星图表盘
   var R_BELT_OUT = 338;        // 蓝色黄道带外缘
@@ -1592,7 +1593,7 @@
         edgeDark: 'rgba(0,0,0,0.5)',
         blue: '#7fa3cf', blueHi: '#bcd8f6', blueD: '#0d1016',
         belt: 'rgba(127,163,207,0.20)', beltHi: 'rgba(127,163,207,0.28)',
-        romanBand: 'rgba(127,163,207,0.20)',
+        romanBand: 'rgba(126,150,186,0.12)',
         beltLo: 'rgba(127,163,207,0.12)', beltLit: 'rgba(127,163,207,0.40)',
         discHi: 'rgba(127,163,207,0.20)', disc: 'rgba(127,163,207,0.10)',
         discLo: 'rgba(127,163,207,0.03)', discHot: 'rgba(127,163,207,0.34)',
@@ -1619,7 +1620,7 @@
         edgeDark: 'rgba(90,74,48,0.34)',
         blue: '#3d5f8c', blueHi: '#6f9ad0', blueD: '#2a3f5c',
         belt: 'rgba(61,95,140,0.15)', beltHi: 'rgba(61,95,140,0.22)',
-        romanBand: 'rgba(61,95,140,0.16)',
+        romanBand: 'rgba(78,98,132,0.085)',
         beltLo: 'rgba(61,95,140,0.08)', beltLit: 'rgba(61,95,140,0.30)',
         discHi: 'rgba(61,95,140,0.16)', disc: 'rgba(61,95,140,0.08)',
         discLo: 'rgba(61,95,140,0.02)', discHot: 'rgba(61,95,140,0.26)',
