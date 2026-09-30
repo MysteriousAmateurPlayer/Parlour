@@ -1533,7 +1533,7 @@
   new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 })();
 
-﻿﻿﻿﻿/* ==========================================================================
+﻿﻿﻿﻿﻿/* ==========================================================================
    天文表盘时钟（随性笔记页）：canvas 软件渲染的蓝金豪华天文钟。
    读出真实时间（时/分/秒针）+ 天象：太阳黄经驱动日躔位置，朔望月驱动月相。
    结构（由外到内）：
@@ -1557,7 +1557,7 @@
 
   var R = 495;                 // 花边外径 = 天球仪最外圈
   var R_RIM_IN = 435;          // 花边内径（与天球仪一致）
-  var R_ROMAN = 410;           // 罗马数字环
+  var R_ROMAN = 414;           // 罗马数字环（居中于 394~R_RIM_IN 的淡蓝底环带）
   var R_ARAB = 378;            // 阿拉伯数字环
   var R_DIAL = 352;            // 星图表盘
   var R_BELT_OUT = 338;        // 蓝色黄道带外缘
@@ -1592,6 +1592,7 @@
         edgeDark: 'rgba(0,0,0,0.5)',
         blue: '#7fa3cf', blueHi: '#bcd8f6', blueD: '#0d1016',
         belt: 'rgba(127,163,207,0.20)', beltHi: 'rgba(127,163,207,0.28)',
+        romanBand: 'rgba(127,163,207,0.20)',
         beltLo: 'rgba(127,163,207,0.12)', beltLit: 'rgba(127,163,207,0.40)',
         discHi: 'rgba(127,163,207,0.20)', disc: 'rgba(127,163,207,0.10)',
         discLo: 'rgba(127,163,207,0.03)', discHot: 'rgba(127,163,207,0.34)',
@@ -1618,6 +1619,7 @@
         edgeDark: 'rgba(90,74,48,0.34)',
         blue: '#3d5f8c', blueHi: '#6f9ad0', blueD: '#2a3f5c',
         belt: 'rgba(61,95,140,0.15)', beltHi: 'rgba(61,95,140,0.22)',
+        romanBand: 'rgba(61,95,140,0.16)',
         beltLo: 'rgba(61,95,140,0.08)', beltLit: 'rgba(61,95,140,0.30)',
         discHi: 'rgba(61,95,140,0.16)', disc: 'rgba(61,95,140,0.08)',
         discLo: 'rgba(61,95,140,0.02)', discHot: 'rgba(61,95,140,0.26)',
@@ -2099,7 +2101,24 @@
   }
 
   function drawBandsOuter() {
-    goldBand(394, 399);
+    /* 罗马数字环：以前这里只有一条 5 单位宽的金带（394~399），
+       而罗马数字画在 410，等于整排数字都贴在那条线外面、还有一部分压线。
+       现在改成一条从 394 一直到花边内径的**淡蓝底**环带，数字居中落在里面；
+       两侧各留一道双细线收边，保持铜版画的画法。 */
+    var IN = 394, OUT = R_RIM_IN - 1;
+    ctx.beginPath();
+    ctx.arc(CX, CY, OUT, 0, TAU);
+    ctx.arc(CX, CY, IN, 0, TAU, true);
+    ctx.fillStyle = COL.romanBand || COL.belt;
+    ctx.fill();
+
+    ctx.strokeStyle = COL.gold;
+    ctx.beginPath(); ctx.arc(CX, CY, OUT, 0, TAU); ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, OUT - 3.5, 0, TAU); ctx.lineWidth = 0.32; ctx.globalAlpha = 0.7; ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(CX, CY, IN, 0, TAU); ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, IN + 3.5, 0, TAU); ctx.lineWidth = 0.32; ctx.globalAlpha = 0.7; ctx.stroke();
+    ctx.globalAlpha = 1;
   }
 
   function drawBezels() {
