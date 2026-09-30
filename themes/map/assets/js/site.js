@@ -2172,13 +2172,20 @@
     ctx.lineJoin = 'round';
     for (var i = 0; i < 12; i++) {
       var a = -Math.PI / 2 + i * Math.PI / 6;
-      var x = CX + Math.cos(a) * R_ROMAN, y = CY + Math.sin(a) * R_ROMAN;
+      /* 字头朝外（正面朝向钟心）：rotate(a + π/2) 之后，
+         字形的**高度**落在半径方向、**宽度**落在切线方向。
+         环带径向只有 40 单位，29px 的字高完全放得下；
+         XII、VIII 这类长字沿切线展开，再长也顶不出环带。 */
+      ctx.save();
+      ctx.translate(CX + Math.cos(a) * R_ROMAN, CY + Math.sin(a) * R_ROMAN);
+      ctx.rotate(a + Math.PI / 2);
       ctx.font = '400 29px ' + FONT;
       ctx.lineWidth = 3.4;
       ctx.strokeStyle = COL.numShadow;
-      ctx.strokeText(ROMAN[i], x, y);
+      ctx.strokeText(ROMAN[i], 0, 0);
       ctx.fillStyle = COL.numeral;
-      ctx.fillText(ROMAN[i], x, y);
+      ctx.fillText(ROMAN[i], 0, 0);
+      ctx.restore();
     }
   }
 
