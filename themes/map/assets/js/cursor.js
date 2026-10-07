@@ -1,36 +1,16 @@
 /* ==========================================================================
-   鼠标特效 · 拖尾（一条连续的缎带）
+   鼠标特效 · 光标处定时释放的小涟漪
    --------------------------------------------------------------------------
-   把拖尾当成一条线 A→B：
-     A = 光标所在那端（位置严格等于光标；宽度与不透明度在这里**快速**升起）
-     B = 尾梢（宽度与不透明度都缓慢收到 0）
+   之前做的是「沿鼠标轨迹连成一条带子」，那条路必须处理任意曲线的取样、法线、
+   自交、接缝……任何一处没算好都会露馅。现在换成完全离散的做法：
 
-   几个关键处理：
+     · 鼠标停在哪儿，就每隔 EVERY 毫秒在**那个点**放一个小特效；
+     · 每个特效的形状是**固定**的、只跟自己的寿命有关 —— 不存在「连不连续」的问题；
+     · 日间：一圈向外扩散的彩虹环，径向由内到外是「紫 → 青 → 黄 → 红」；
+     · 夜间：随机色相（绿 → 紫）的极光柔环，再叠一道随机角度与长度的亮弧；
+     · 尺寸很小（半径 22 / 26 像素封顶），扩散先快后慢、透明度二次曲线淡出。
 
-   1) 路径重采样
-      记最近若干个鼠标位置 → Catmull-Rom 重采样成 64 个等参数光滑点。
-      u=0 处严格等于原始首点，所以 A 端精确落在光标上；
-      每次 mousemove 也会把最新那个点钉到当前坐标，光标停住时拖尾不会落后。
-
-   2) A 端快速起势（不再"一大条突然冒出来"，也不再离光标一截）
-      起势长度按**绝对像素**算：rise = min(1, 弧长 / 9px)。
-      头 9px 内宽度与不透明度就升到接近满值，然后按 (1-弧长/总长)^0.85 / ^1.9 缓慢收到 0。
-      所以带子紧贴光标，两端都有渐变、但 A 端比 B 端快得多。
-
-   3) 不重叠（②③ 的根因与解法）
-      ② 「带宽大于间隔」：原来是 i1 = floor(...) + 1，相邻微元**整整重叠一个点距**，
-         两段的 alpha 一叠加就深一块浅一块。现在去掉 +1，相邻段只共享端点、内部不交叠。
-      ③ 「转弯处扇形重叠」：沿法线切分时，内侧的法线会交叉 —— 带宽一旦超过局部曲率半径
-         就必然自交。所以给每个点算**外接圆曲率半径 R**，把该点的实际半宽压到 R*0.82 以内：
-             w(i) = min(基础宽度, R(i) * 0.82)
-         急弯处带子自动收窄，永远不会叠在一起。这就是"聪明的算法"。
-      另：带宽整体从 20px 收到 16px，留出余量。
-
-   4) 颜色
-      极光（夜间）：色相沿长度 140 → 290（绿→青→蓝→紫），并随时间缓缓流动。
-      彩虹（日间）：每段一个**横向线性渐变**，垂直于 AB 方向由红到紫，
-                    饱和度 58% / 亮度 76%，柔和偏白。
-   亮度整体压得比光标本体低；触屏与 prefers-reduced-motion 一律不启用。
+   只在真有指针的设备上跑；触屏、prefers-reduced-motion 一律不启用。
    ========================================================================== */
 (function () {
   'use strict';
@@ -60,221 +40,109 @@
   readTheme();
   new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-  var MAXPT = 24;        // 原始轨迹点上限
-  var LIFE = 520;        // 每个点活多久（毫秒）
-  var RES = 64;          // 重采样后的点数
-  var SEG = 26;          // 沿长度切成几段（只共享端点，不重叠）
-  var W0 = 16;           // A 端的带宽（像素）
-  var A0 = 0.40;         // A 端的不透明度上限
-  var RISE_PX = 9;       // A 端起势只占**绝对 9 像素**（按比例算会离光标一截，很突兀）
-  var CURV_K = 0.82;     // 带宽不得超过局部曲率半径的这个比例
-  var STOPS = 7;         // 彩虹横向渐变的色标数
+  var EVERY = 150;       // 每隔多久放一个
+  var LIFE = 620;        // 每个活多久
+  var R_DAY = 22;        // 日间最大半径（很小）
+  var R_NIGHT = 26;      // 夜间最大半径
+  var MAX = 14;          // 同时最多几个
 
-  var pts = [];          // {x, y, t}，最新的在末尾
-  var lastX = null, lastY = null;
+  var items = [];
+  var mx = -1, my = -1;
+  var next = 0;
   var raf = 0;
 
-  /* Catmull-Rom 重采样：把稀疏、快慢不均的轨迹变成等参数光滑点 */
-  function resample(p, count) {
-    var m = p.length;
-    if (m < 2) return p.slice();
-    var segs = m - 1, out = [];
-    for (var k = 0; k < count; k++) {
-      var u = k / (count - 1) * segs;
-      var i = Math.min(segs - 1, Math.floor(u));
-      var t = u - i, t2 = t * t, t3 = t2 * t;
-      var p0 = p[i > 0 ? i - 1 : 0], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2 < m ? i + 2 : m - 1];
-      out.push({
-        x: 0.5 * (2 * p1.x + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
-        y: 0.5 * (2 * p1.y + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3)
-      });
-    }
-    return out;
-  }
-
-  /* 每个点处的单位法线。
-     用 ±3 点的大跨度差分，再平滑两轮 —— A 端附近重采样点很密，
-     只用相邻 ±1 点的话，微小的坐标噪声会被放大成法线抖动，
-     带子边界和彩虹渐变方向就会跟着抖，看起来就是「波折」。 */
-  function normals(p) {
-    var n = p.length, out = [], i, k;
-    for (i = 0; i < n; i++) {
-      var a = p[i > 3 ? i - 3 : 0], b = p[i < n - 4 ? i + 3 : n - 1];
-      var dx = b.x - a.x, dy = b.y - a.y;
-      var L = Math.sqrt(dx * dx + dy * dy) || 1;
-      out.push({ x: -dy / L, y: dx / L });
-    }
-    for (k = 0; k < 2; k++) {
-      var sm = [];
-      for (i = 0; i < n; i++) {
-        var q0 = out[i > 0 ? i - 1 : 0], q1 = out[i], q2 = out[i < n - 1 ? i + 1 : i];
-        var ux = (q0.x + q1.x * 2 + q2.x) / 4, uy = (q0.y + q1.y * 2 + q2.y) / 4;
-        var L2 = Math.sqrt(ux * ux + uy * uy) || 1;
-        sm.push({ x: ux / L2, y: uy / L2 });
-      }
-      out = sm;
-    }
-    return out;
-  }
-
-  /* 每个点允许的最大**半**宽 = 局部曲率半径 × CURV_K。
-     同样用 ±3 点的外接圆，避免噪声把带宽压得过窄。 */
-  function halfWidthLimit(p, n) {
-    var lim = new Array(n);
-    for (var i = 0; i < n; i++) {
-      var a = p[i > 3 ? i - 3 : 0], b = p[i], c = p[i < n - 4 ? i + 3 : n - 1];
-      var abx = b.x - a.x, aby = b.y - a.y;
-      var bcx = c.x - b.x, bcy = c.y - b.y;
-      var cross = abx * bcy - aby * bcx;
-      var la = Math.sqrt(abx * abx + aby * aby);
-      var lb = Math.sqrt(bcx * bcx + bcy * bcy);
-      if (la < 1e-4 || lb < 1e-4 || Math.abs(cross) < 1e-3) { lim[i] = 1e6; continue; }
-      var lc = Math.sqrt((c.x - a.x) * (c.x - a.x) + (c.y - a.y) * (c.y - a.y));
-      lim[i] = (la * lb * lc) / (2 * Math.abs(cross)) * CURV_K;
-    }
-    return lim;
-  }
-
-  /* 取第 i0..i1 之间的那一段带子的闭合轮廓 */
-  function outline(path, nor, i0, i1, wAt) {
-    ctx.beginPath();
-    for (var i = i0; i <= i1; i++) {
-      var w = wAt(i) * 0.5;
-      var px = path[i].x + nor[i].x * w, py = path[i].y + nor[i].y * w;
-      if (i === i0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    for (var j = i1; j >= i0; j--) {
-      var w2 = wAt(j) * 0.5;
-      ctx.lineTo(path[j].x - nor[j].x * w2, path[j].y - nor[j].y * w2);
-    }
-    ctx.closePath();
+  function spawn(now) {
+    var night = dark;
+    items.push({
+      x: mx, y: my, born: now,
+      life: LIFE * (0.85 + Math.random() * 0.3),
+      maxR: (night ? R_NIGHT : R_DAY) * (0.82 + Math.random() * 0.36),
+      peak: night ? 0.5 : 0.46,                       // 亮度上限，压得比光标本体低
+      hue: night ? (138 + Math.random() * 152) : 0,   // 夜间每个随机一个极光色相
+      arcA: Math.random() * Math.PI * 2,              // 那道亮弧的起始角与长度
+      arcLen: 0.5 + Math.random() * 1.5,
+      arcW: 1.4 + Math.random() * 1.4
+    });
+    if (items.length > MAX) items.shift();
   }
 
   function tick() {
     var now = performance.now();
-    while (pts.length && now - pts[0].t > LIFE) pts.shift();
-
     ctx.clearRect(0, 0, W, H);
-    if (pts.length < 3) { raf = 0; return; }
 
-    // 从光标那头（新）到尾梢（旧）
-    var raw = [];
-    for (var i = pts.length - 1; i >= 0; i--) raw.push(pts[i]);
-    var path = resample(raw, RES);
-    var nor = normals(path);
-    var n = path.length;
-    var lit = halfWidthLimit(path, n);
-
-    // 沿路径的累计弧长：A 端的起势与 B 端的收尾都按**真实距离**算，
-    // 而不是按点索引的比例 —— 否则点密的地方衰减过快、点疏的地方又拖尾过长。
-    var arc = new Array(n);
-    arc[0] = 0;
-    for (var q = 1; q < n; q++) {
-      var ddx = path[q].x - path[q - 1].x, ddy = path[q].y - path[q - 1].y;
-      arc[q] = arc[q - 1] + Math.sqrt(ddx * ddx + ddy * ddy);
-    }
-    var total = arc[n - 1] || 1;
-    function arcAt(i) { return arc[Math.max(0, Math.min(n - 1, Math.round(i)))]; }
-
-    // t=0 在光标处，t=1 在尾梢
-    //   A 端：绝对 9px 内就把宽度与不透明度拉满 —— 所以带子紧贴光标，不会隔开一截
-    //   B 端：再按 (1-t)^0.85 / (1-t)^1.9 缓慢收到 0
-    function wAt(i) {
-      var a = arcAt(i);
-      var rise = Math.min(1, a / RISE_PX);
-      var base = W0 * Math.pow(rise, 0.45) * Math.pow(1 - a / total, 0.85);
-      var cap = lit[Math.max(0, Math.min(n - 1, Math.round(i)))] * 2;   // 急弯处自动收窄，杜绝自交
-      return base < cap ? base : cap;
-    }
-    function aAt(i) {
-      var a = arcAt(i);
-      var rise = Math.min(1, a / RISE_PX);
-      return A0 * Math.pow(rise, 0.3) * Math.pow(1 - a / total, 1.9);
+    if (mx >= 0 && now >= next) {
+      spawn(now);
+      next = now + EVERY * (0.75 + Math.random() * 0.5);
     }
 
-    // 相邻微元**按弧长均分**（不是按点索引）：
-    // A 端附近重采样点很密，按索引分会让那一小段的宽度在极短距离里剧烈变化，
-    // 按等弧长分则每段长度一致，宽度过渡也就均匀了。段间只共享端点，内部不交叠。
-    var bounds = [0];
-    for (var b2 = 1; b2 <= SEG; b2++) {
-      var target = total * b2 / SEG;
-      var idx = bounds[b2 - 1];
-      while (idx < n - 1 && arc[idx] < target) idx++;
-      bounds.push(idx);
-    }
-    function segRange(s) { return [bounds[s], bounds[s + 1]]; }
-
+    var keep = [];
     ctx.globalCompositeOperation = 'lighter';
 
-    if (dark) {
-      // 极光：色相沿长度 140 → 290，并随时间缓缓流动
-      var flow = Math.sin(now * 0.00055) * 26 + Math.sin(now * 0.0017) * 10;
-      for (var s = 0; s < SEG; s++) {
-        var r0 = segRange(s), a0i = r0[0], a1i = r0[1];
-        if (a1i <= a0i) continue;
-        var mid = (a0i + a1i) / 2;
-        var al = aAt(mid);
-        if (al <= 0.005) continue;
-        var tt = mid / (n - 1);
-        var hue = 140 + 150 * tt + flow * (0.35 + tt);
-        var li = 64 + 13 * Math.sin(now * 0.002 + tt * 3.2);
-        outline(path, nor, a0i, a1i, wAt);
-        ctx.fillStyle = 'hsla(' + hue.toFixed(0) + ',74%,' + li.toFixed(0) + '%,' + al.toFixed(3) + ')';
-        ctx.fill();
-      }
-    } else {
-      // 彩虹：每段一个横向渐变，垂直于 AB 由红到紫
-      for (var s2 = 0; s2 < SEG; s2++) {
-        var q = segRange(s2), b0 = q[0], b1 = q[1];
-        if (b1 <= b0) continue;
-        var mid2 = (b0 + b1) / 2;
-        var al2 = aAt(mid2);
-        if (al2 <= 0.005) continue;
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      var t = (now - it.born) / it.life;
+      if (t >= 1) continue;
+      keep.push(it);
 
-        var mi = Math.round(mid2);
-        var hw = (wAt(b0) + wAt(b1)) * 0.25;      // 段内平均半宽，比取单点更稳
-        if (hw < 0.6) { outline(path, nor, b0, b1, wAt); ctx.fillStyle = 'hsla(0,0%,100%,' + (al2 * 0.4).toFixed(3) + ')'; ctx.fill(); continue; }
-        var g = ctx.createLinearGradient(
-          path[mi].x + nor[mi].x * hw, path[mi].y + nor[mi].y * hw,
-          path[mi].x - nor[mi].x * hw, path[mi].y - nor[mi].y * hw
-        );
-        for (var k = 0; k < STOPS; k++) {
-          var u = k / (STOPS - 1);
-          g.addColorStop(u, 'hsla(' + (u * 288).toFixed(0) + ',58%,76%,' + al2.toFixed(3) + ')');
-        }
-        outline(path, nor, b0, b1, wAt);
-        ctx.fillStyle = g;
-        ctx.fill();
+      var ease = 1 - (1 - t) * (1 - t);               // 先快后慢地扩散
+      var r = it.maxR * (0.25 + 0.75 * ease);
+      var a = it.peak * (1 - t) * (1 - t);            // 二次淡出，尾巴收得干净
+      if (a <= 0.01) continue;
+
+      var r0 = r * 0.6, r1 = r;
+      var g = ctx.createRadialGradient(it.x, it.y, r0, it.x, it.y, r1);
+
+      if (dark) {
+        var h = it.hue;
+        g.addColorStop(0.00, 'hsla(' + h.toFixed(0) + ',78%,72%,0)');
+        g.addColorStop(0.32, 'hsla(' + h.toFixed(0) + ',78%,72%,' + a.toFixed(3) + ')');
+        g.addColorStop(0.68, 'hsla(' + (h + 34).toFixed(0) + ',74%,66%,' + (a * 0.7).toFixed(3) + ')');
+        g.addColorStop(1.00, 'hsla(' + (h + 62).toFixed(0) + ',70%,62%,0)');
+      } else {
+        // 外红内紫：色标从内圈（紫）一路排到外圈（红）
+        g.addColorStop(0.00, 'hsla(288,86%,70%,0)');
+        g.addColorStop(0.22, 'hsla(288,86%,70%,' + a.toFixed(3) + ')');
+        g.addColorStop(0.45, 'hsla(196,86%,66%,' + a.toFixed(3) + ')');
+        g.addColorStop(0.68, 'hsla(52,88%,64%,' + a.toFixed(3) + ')');
+        g.addColorStop(0.86, 'hsla(4,86%,63%,' + a.toFixed(3) + ')');
+        g.addColorStop(1.00, 'hsla(4,86%,63%,0)');
+      }
+
+      ctx.beginPath();
+      ctx.arc(it.x, it.y, r1, 0, Math.PI * 2);
+      ctx.arc(it.x, it.y, r0, 0, Math.PI * 2, true);
+      ctx.fillStyle = g;
+      ctx.fill();
+
+      // 夜间那道随机的极光帘弧
+      if (dark) {
+        ctx.beginPath();
+        ctx.arc(it.x, it.y, r1 * 0.82, it.arcA, it.arcA + it.arcLen);
+        ctx.lineWidth = it.arcW * (0.4 + 0.6 * (1 - t));
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = 'hsla(' + it.hue.toFixed(0) + ',88%,78%,' + (a * 0.95).toFixed(3) + ')';
+        ctx.stroke();
       }
     }
 
     ctx.globalCompositeOperation = 'source-over';
+    items = keep;
+
+    // 鼠标不在窗口里、也没有残留特效了，就停掉 rAF，别白烧 CPU
+    if (mx < 0 && !items.length) { raf = 0; return; }
     raf = requestAnimationFrame(tick);
   }
 
   function kick() { if (!raf) raf = requestAnimationFrame(tick); }
 
   window.addEventListener('mousemove', function (e) {
-    var x = e.clientX, y = e.clientY;
-    if (pts.length) {
-      // 最新那个点始终钉在光标上，A 端不会有任何滞后
-      pts[pts.length - 1].x = x;
-      pts[pts.length - 1].y = y;
-      pts[pts.length - 1].t = performance.now();
-    }
-    if (lastX !== null) {
-      var dx = x - lastX, dy = y - lastY;
-      if (dx * dx + dy * dy < 6) { kick(); return; }
-    }
-    lastX = x; lastY = y;
-    pts.push({ x: x, y: y, t: performance.now() });
-    if (pts.length > MAXPT) pts.shift();
+    mx = e.clientX; my = e.clientY;
     kick();
   }, { passive: true });
 
   function clear() {
-    pts.length = 0;
-    lastX = lastY = null;
+    items.length = 0;
+    mx = my = -1;
     ctx.clearRect(0, 0, W, H);
   }
   document.addEventListener('mouseleave', clear);
