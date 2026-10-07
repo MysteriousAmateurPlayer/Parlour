@@ -42,3 +42,15 @@ latest:
   title: "最近的记录"
   subtitle: "Recent"
   count: 6
+
+# 首页「拼图板块」区块（首页中段那个大标题）
+explore:
+  kicker: "Explore"
+  title: "拼图板块"
+  lede: "姑且进行了一些分区（？"
+
+# 首页地球区块（首屏下方那颗地球）
+globe:
+  title: "地球上的每一块，都是一类记录"
+  lede: "试着点击感兴趣的拼图板块吧！"
+  hint: "拖动地球可以旋转"

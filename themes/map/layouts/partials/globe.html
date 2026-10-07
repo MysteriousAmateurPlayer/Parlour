@@ -1,4 +1,4 @@
-﻿{{- /* 地球仪区块。
+{{- /* 地球仪区块。
        · 它就是首屏下缘露出的那一半地球：区块用负外边距往上顶，往下拉屏幕才会"露出完整的地球"
        · 画布上是一颗很大的地球：球面有真实的海岸线（七大洲轮廓）+ 拼图式板块片区
        · 配色全是网页本来的纸色 + 棕/朱砂线稿（镂空星图质感），不做夜空反色
@@ -6,6 +6,7 @@
        · 星野里有一颗"稍微不一样"的星星 —— 里版入口
        渲染逻辑在 assets/js/globe.js，海岸线数据在 assets/js/world-data.js */ -}}
 {{- $secrets := site.GetPage "/secrets" -}}
+{{- $gb := hugo.Data.home.globe | default dict -}}
 {{- $secretsUrl := "" -}}
 {{- with $secrets }}{{ $secretsUrl = .RelPermalink }}{{ end -}}
 {{- if not $secretsUrl }}{{ $secretsUrl = partial "link.html" "/secrets/" }}{{ end -}}
@@ -1076,14 +1077,14 @@
       <button class="globe-btn" type="button" data-globe-rotate="-1" aria-label="向左转动地球">
         <span aria-hidden="true">↺</span><span>左转</span>
       </button>
-      <span class="globe-band__hint">拖动地球可以旋转</span>
+      <span class="globe-band__hint">{{ $gb.hint | default "拖动地球可以旋转" }}</span>
       <button class="globe-btn" type="button" data-globe-rotate="1" aria-label="向右转动地球">
         <span>右转</span><span aria-hidden="true">↻</span>
       </button>
     </div>
 
-    <h2 class="globe-band__title" id="globe-title">地球上的每一块，都是一类记录</h2>
-    <p class="globe-band__lede">点一下就进去；空着的几块留给以后的板块。</p>
+    <h2 class="globe-band__title" id="globe-title">{{ $gb.title | default "地球上的每一块，都是一类记录" }}</h2>
+    <p class="globe-band__lede">{{ $gb.lede | default "试着点击感兴趣的拼图板块吧！" }}</p>
 
     {{/* 键盘与读屏用户的普通文字索引（也利于搜索引擎） */}}
     <ul class="globe-band__index">

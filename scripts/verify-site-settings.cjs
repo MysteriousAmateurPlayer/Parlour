@@ -32,7 +32,12 @@ try {
   ok('首页文案能解析成表单值', !!values['hero.name'], `名字=${values['hero.name']}`);
   ok('段落是多行文本', values['about.paragraphs'].includes('\n'), `${values['about.paragraphs'].split('\n').length} 段`);
   ok('速览是「名目 | 内容」', values['about.facts'].includes('|'), JSON.stringify(values['about.facts'].split('\n')[0]));
-  ok('字段表覆盖了 18 项', W.SITE_HOME_FIELDS.length === 18, String(W.SITE_HOME_FIELDS.length));
+  const needFields = ['hero.kicker', 'hero.name', 'about.paragraphs', 'about.facts', 'latest.count',
+    'explore.kicker', 'explore.title', 'explore.lede',
+    'globe.title', 'globe.lede', 'globe.hint'];
+  const missing = needFields.filter((k) => !W.SITE_HOME_FIELDS.some((f) => f.key === k));
+  ok('字段表覆盖了首页全部可编辑文案', W.SITE_HOME_FIELDS.length >= 18 && missing.length === 0,
+    '共 ' + W.SITE_HOME_FIELDS.length + ' 项' + (missing.length ? '，缺 ' + missing.join('/') : ''));
 
   const probe = { ...values };
   probe['hero.tabTitle'] = '__测试标签页标题__';
@@ -81,6 +86,26 @@ try {
   ok('空行被过滤（保存 2 条）', after2.length === 2, `${after2.length} 条`);
   ok('图标与链接正确', after2[1].icon === 'github' && after2[1].url === 'https://github.com/x');
   ok('联系方式注释头保留', fs.readFileSync(SOCIALS, 'utf8').trimStart().startsWith('#'));
+
+  /* ---------- 友情链接 ---------- */
+  const FRIENDS = path.join(ROOT, 'data', 'friends.yaml');
+  const fOriginal = fs.existsSync(FRIENDS) ? fs.readFileSync(FRIENDS, 'utf8') : '';
+  try {
+    const before = W.readFriends();
+    ok('友情链接能读出来', Array.isArray(before), before.length + ' 条');
+    const savedF = W.saveFriends([
+      { name: '__测试友链__', url: 'https://example.com', banner: '/images/x.jpg', note: '一句话' },
+      { name: '', url: '', banner: '', note: '' }
+    ]);
+    ok('空行被过滤（保存 1 条）', savedF.length === 1, savedF.length + ' 条');
+    ok('banner 与说明都写进去了', savedF[0].banner === '/images/x.jpg' && savedF[0].note === '一句话');
+    const back = W.readFriends();
+    ok('重新读回来一致', back.length === 1 && back[0].name === '__测试友链__');
+    ok('友情链接注释头保留', fs.readFileSync(FRIENDS, 'utf8').includes('#  页脚 · 友情链接'));
+  } finally {
+    fs.writeFileSync(FRIENDS, fOriginal, 'utf8');
+  }
+
 } finally {
   let restored = 0;
   for (const [k, f] of Object.entries(files)) {

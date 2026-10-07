@@ -226,6 +226,20 @@
         <button class="btn" id="btnAddSocial">＋ 添加一行</button>
         <button class="btn primary" id="btnSaveSocials">保存联系方式</button>
       </div>
+
+      <h2>④ 友情链接（页脚）</h2>
+      <div class="notice">
+        页面最底部那一大片「友情链接」卡片区。每一条有：<b>主链接文字</b>、<b>主链接地址</b>，
+        以及可选的 <b>banner 头图</b>（上传后会显示在卡片顶部）和 <b>小字说明</b>。<br>
+        头图留空就只显示文字卡片；想加几条就点「＋ 添加一行」。
+      </div>
+      <div style="overflow:auto">
+        <table class="sec" id="friendsTable"></table>
+      </div>
+      <div class="actions" style="margin:10px 0 30px">
+        <button class="btn" id="btnAddFriend">＋ 添加一行</button>
+        <button class="btn primary" id="btnSaveFriends">保存友情链接</button>
+      </div>
     </div>
 
     <!-- ================= 板块管理视图 ================= -->
@@ -291,6 +305,8 @@ async function boot() {
   $('btnSaveIntro').addEventListener('click', saveIntroPage);
   $('btnSaveSocials').addEventListener('click', saveSocialsTable);
   $('btnAddSocial').addEventListener('click', () => { (SITE.socials = SITE.socials || []).push({ name: '', icon: 'link', url: '', text: '' }); renderSocialsTable(); });
+  $('btnSaveFriends').addEventListener('click', saveFriendsTable);
+  $('btnAddFriend').addEventListener('click', () => { (SITE.friends = SITE.friends || []).push({ name: '', url: '', banner: '', note: '' }); renderFriendsTable(); });
   $('introSection').addEventListener('change', loadIntroFields);
   $('btnUpload').addEventListener('click', () => { EDITING_FILE = EDITING_FILE; imageTargetField = null; $('fileInput').click(); });
   $('fileInput').addEventListener('change', () => uploadFiles($('fileInput').files));
@@ -360,6 +376,9 @@ async function renderSite(force) {
 
   // ---- 联系方式 ----
   renderSocialsTable();
+
+  // ---- 友情链接 ----
+  renderFriendsTable();
 }
 
 function loadIntroFields() {
@@ -420,6 +439,36 @@ async function saveSocialsTable() {
   SITE = null;
   await renderSite(true);
   setStatus(`联系方式已保存（${r.count} 条）。回到「✍ 写作」点一次「保存并发布」即可。`, 'ok');
+}
+
+function renderFriendsTable() {
+  const rows = (SITE.friends || []).map((it, i) => `<tr data-i="${i}">
+      <td><input type="text" data-f="name" value="${esc(it.name || '')}" style="min-width:130px"></td>
+      <td><input type="text" data-f="url" value="${esc(it.url || '')}" style="min-width:220px"></td>
+      <td><div class="row"><input type="text" data-f="banner" value="${esc(it.banner || '')}" id="friend-banner-${i}" style="flex:1;min-width:150px" placeholder="/images/xxx.jpg">
+          <button class="btn" onclick="pickImage('friend-banner-${i}')">上传</button></div></td>
+      <td><input type="text" data-f="note" value="${esc(it.note || '')}" style="min-width:150px"></td>
+      <td><button class="btn sm danger" onclick="removeFriendRow(${i})">删除</button></td>
+    </tr>`).join('');
+  $('friendsTable').innerHTML = `<tr><th>主链接文字</th><th>主链接地址</th><th>banner 头图（可空）</th><th>小字说明（可空）</th><th></th></tr>${rows}`;
+}
+
+function removeFriendRow(i) {
+  SITE.friends.splice(i, 1);
+  renderFriendsTable();
+}
+
+async function saveFriendsTable() {
+  const items = [...document.querySelectorAll('#friendsTable tr[data-i]')].map((tr) => {
+    const o = {};
+    tr.querySelectorAll('[data-f]').forEach((el) => { o[el.dataset.f] = el.value; });
+    return o;
+  });
+  const r = await post('/api/site/friends', { items });
+  if (r.error) return setStatus('保存失败：' + r.error, 'err');
+  SITE = null;
+  await renderSite(true);
+  setStatus(`友情链接已保存（${r.count} 条）。回到「✍ 写作」点一次「保存并发布」即可。`, 'ok');
 }
 
 /* ================= 板块 ================= */

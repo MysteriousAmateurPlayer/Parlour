@@ -1,7 +1,7 @@
 about:
   title: "关于本站"
   en: "About"
-  numeral: "壹"
+  numeral: "I"
   accent: "#fff194"
   icon: "user"
   blurb: ""
@@ -13,7 +13,7 @@ about:
 fanworks:
   title: "东方二次同人创作"
   en: "Fanworks"
-  numeral: "贰"
+  numeral: "II"
   accent: "#9acefe"
   icon: "feather"
   blurb: "东方二次同人STG创作的灵感解说与幕后故事"
@@ -23,7 +23,7 @@ fanworks:
 math:
   title: "弹幕与数学"
   en: "Mathematics"
-  numeral: "叁"
+  numeral: "III"
   accent: "#3d4a8a"
   icon: "sigma"
   blurb: "数学原理才是弹幕射击的基础噜"
@@ -31,19 +31,19 @@ math:
   nav: true
   home: true
 garden:
-  title: "园艺记录"
-  en: "Garden"
-  numeral: "肆"
-  accent: "#80de4a"
-  icon: "leaf"
-  blurb: "Flower land"
+  title: "克苏鲁调查记录"
+  en: "Cthulhu"
+  numeral: "IV"
+  accent: "#6fae8a"
+  icon: "yog"
+  blurb: "对不可名状之物的田野调查"
   weight: 40
   nav: true
   home: true
 kitchen:
   title: "烹饪食谱"
   en: "Kitchen"
-  numeral: "伍"
+  numeral: "V"
   accent: "#e6b065"
   icon: "pot"
   blurb: "人类需要甜点心"
@@ -53,7 +53,7 @@ kitchen:
 secrets:
   title: "另一个维度"
   en: "Another Dimension"
-  numeral: "零"
+  numeral: "0"
   accent: "#4a4a55"
   icon: "orbit"
   blurb: "心灵枷锁的另一侧"
@@ -63,7 +63,7 @@ secrets:
 blogs:
   title: "随性笔记"
   en: ""
-  numeral: "陆"
+  numeral: "VI"
   accent: "#6b7a8a"
   icon: "link"
   blurb: "将奇迹化作日常"

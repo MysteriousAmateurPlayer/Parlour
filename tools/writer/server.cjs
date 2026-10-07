@@ -213,6 +213,18 @@ const PAGES_SETTINGS_BLOCK = `  # ==============================================
               values: [mail, github, twitter, bilibili, pixiv, rss, link]
           - { name: url, label: 链接, type: string }
           - { name: text, label: 显示的文字, type: string }
+
+      - name: friends
+        label: 友情链接（页脚）
+        type: file
+        path: data/friends.yaml
+        format: yaml
+        list: true
+        fields:
+          - { name: name, label: 主链接文字, type: string }
+          - { name: url, label: 主链接地址, type: string }
+          - { name: banner, label: banner 头图, type: image }
+          - { name: note, label: 小字说明, type: string }
 `;
 
 function cmsFieldLines(f) {
@@ -402,6 +414,7 @@ function trashPost(sectionKey, file) {
    ============================================================ */
 const HOME_FILE = path.join(ROOT, 'data', 'home.yaml');
 const SOCIALS_FILE = path.join(ROOT, 'data', 'socials.yaml');
+const FRIENDS_FILE = path.join(ROOT, 'data', 'friends.yaml');
 
 // 首页文案的字段表（dotted path → 类型），前端照着渲染表单
 const SITE_HOME_FIELDS = [
@@ -422,7 +435,21 @@ const SITE_HOME_FIELDS = [
   { group: '关于我（首页区块）', key: 'about.facts', label: '速览', type: 'pairs', hint: '一行一条，写成「名目 | 内容」，例如：\n常驻 | 某座四季分明的城市' },
   { group: '最近的记录', key: 'latest.title', label: '标题', type: 'string' },
   { group: '最近的记录', key: 'latest.subtitle', label: '英文小标题', type: 'string' },
-  { group: '最近的记录', key: 'latest.count', label: '显示几条', type: 'number' }
+  { group: '最近的记录', key: 'latest.count', label: '显示几条', type: 'number' },
+  { group: '拼图板块（首页中段）', key: 'explore.kicker', label: '英文小标', type: 'string', hint: '默认 Explore' },
+  { group: '拼图板块（首页中段）', key: 'explore.title', label: '大字标题', type: 'string' },
+  { group: '拼图板块（首页中段）', key: 'explore.lede', label: '小字说明', type: 'string' },
+  { group: '地球区块（首屏下方）', key: 'globe.title', label: '地球旁边的大字', type: 'string' },
+  { group: '地球区块（首屏下方）', key: 'globe.lede', label: '地球下方那行字', type: 'string' },
+  { group: '地球区块（首屏下方）', key: 'globe.hint', label: '拖动地球时的操作提示', type: 'string' }
+];
+
+// 友情链接的字段表
+const SITE_FRIEND_FIELDS = [
+  { key: 'name', label: '主链接文字', type: 'string', hint: '必填，卡片上显示的名字' },
+  { key: 'url', label: '主链接地址', type: 'string', hint: '站外写完整网址 https://…；站内写 /about/ 这样就行' },
+  { key: 'banner', label: 'banner 头图', type: 'image', hint: '可选。上传后会显示在卡片顶部；留空则只显示文字' },
+  { key: 'note', label: '小字说明', type: 'string', hint: '可选，卡片上那行很小的介绍' }
 ];
 
 function getPath(obj, dotted) {
@@ -516,6 +543,32 @@ function saveSocials(items) {
     `  text: ${quoteIfNeeded(it.text)}`
   ].join('\n')).join('\n');
   fs.writeFileSync(SOCIALS_FILE, leadingComments(original) + body + '\n', 'utf8');
+  return clean;
+}
+
+function readFriends() {
+  if (!fs.existsSync(FRIENDS_FILE)) return [];
+  const v = parseYaml(fs.readFileSync(FRIENDS_FILE, 'utf8'));
+  return Array.isArray(v) ? v : [];
+}
+
+function saveFriends(items) {
+  const original = fs.existsSync(FRIENDS_FILE) ? fs.readFileSync(FRIENDS_FILE, 'utf8') : '';
+  const clean = (Array.isArray(items) ? items : [])
+    .map((it) => ({
+      name: String(it.name || '').trim(),
+      url: String(it.url || '').trim(),
+      banner: String(it.banner || '').trim(),
+      note: String(it.note || '').trim()
+    }))
+    .filter((it) => it.name || it.url);
+  const body = clean.map((it) => [
+    `- name: ${quoteIfNeeded(it.name)}`,
+    `  url: ${quoteIfNeeded(it.url)}`,
+    `  banner: ${quoteIfNeeded(it.banner)}`,
+    `  note: ${quoteIfNeeded(it.note)}`
+  ].join('\n')).join('\n');
+  fs.writeFileSync(FRIENDS_FILE, leadingComments(original) + body + '\n', 'utf8');
   return clean;
 }
 
@@ -962,6 +1015,8 @@ const server = http.createServer(async (req, res) => {
         homeValues: homeToFormValues(home),
         fields: SITE_HOME_FIELDS,
         socials: readSocials(),
+        friends: readFriends(),
+        friendFields: SITE_FRIEND_FIELDS,
         icons: ICON_CHOICES,
         sections: listSections().map((s) => ({
           key: s.key, title: s.title, blurb: s.blurb, intro: readIntro(s.key)
@@ -978,6 +1033,12 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && u.pathname === '/api/site/socials') {
       const payload = JSON.parse(await readBody(req) || '{}');
       const saved = saveSocials(payload.items);
+      return json(res, 200, { ok: true, count: saved.length });
+    }
+
+    if (req.method === 'POST' && u.pathname === '/api/site/friends') {
+      const payload = JSON.parse(await readBody(req) || '{}');
+      const saved = saveFriends(payload.items);
       return json(res, 200, { ok: true, count: saved.length });
     }
 
@@ -1124,6 +1185,6 @@ module.exports = {
   parseFrontMatter, dumpFrontMatter, parseYaml, buildPost, listPosts, CONTENT, ROOT,
   listSections, readSectionData, writeSectionData, saveSectionDisplay, createSection,
   deleteSection, trashPost, regeneratePagesYml,
-  readHome, saveHome, homeToFormValues, readSocials, saveSocials, readIntro, saveIntro, SITE_HOME_FIELDS,
+  readHome, saveHome, homeToFormValues, readSocials, saveSocials, readFriends, saveFriends, readIntro, saveIntro, SITE_HOME_FIELDS,
   previewBase, hugoExe
 };

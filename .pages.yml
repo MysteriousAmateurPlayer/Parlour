@@ -99,9 +99,9 @@ content:
         label: "草稿（勾着就不对外显示）"
         type: boolean
         default: true
-  # ---------------- 园艺记录 ----------------
+  # ---------------- 克苏鲁调查记录 ----------------
   - name: garden
-    label: "园艺记录"
+    label: "克苏鲁调查记录"
     type: collection
     path: content/garden
     exclude: [_index.md]
@@ -209,9 +209,9 @@ content:
         label: "草稿（勾着就不对外显示）"
         type: boolean
         default: true
-  # ---------------- 里版 ----------------
+  # ---------------- 另一个维度 ----------------
   - name: secrets
-    label: "里版"
+    label: "另一个维度"
     type: collection
     path: content/secrets
     exclude: [_index.md]
@@ -312,10 +312,9 @@ content:
             label: 主视觉（首屏）
             type: object
             fields:
-              - { name: kicker, label: 名字上方的小字, type: string }
-              - { name: name, label: 名字（超大字）, type: string }
-              - { name: tagline, label: 一行定位语, type: string }
-              - { name: intro, label: 自我介绍正文, type: text }
+              - { name: kicker, label: 太阳上的小字前缀, type: string }
+              - { name: name, label: 太阳上的大标题, type: string }
+              - { name: tabTitle, label: 浏览器标签页标题（仅首页）, type: string }
               - name: primary
                 label: 主按钮（实心）
                 type: object
@@ -370,3 +369,15 @@ content:
               values: [mail, github, twitter, bilibili, pixiv, rss, link]
           - { name: url, label: 链接, type: string }
           - { name: text, label: 显示的文字, type: string }
+
+      - name: friends
+        label: 友情链接（页脚）
+        type: file
+        path: data/friends.yaml
+        format: yaml
+        list: true
+        fields:
+          - { name: name, label: 主链接文字, type: string }
+          - { name: url, label: 主链接地址, type: string }
+          - { name: banner, label: banner 头图, type: image }
+          - { name: note, label: 小字说明, type: string }

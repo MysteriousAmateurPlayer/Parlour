@@ -8,7 +8,6 @@
   <div class="wrap">
     <p class="page-head__kicker">{{ $meta.en | default "About" }}</p>
     <h1 class="page-head__title">{{ .Title }}</h1>
-    {{- with .Params.description }}<p class="page-head__lede">{{ . }}</p>{{ end }}
   </div>
 </header>
 

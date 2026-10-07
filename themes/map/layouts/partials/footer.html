@@ -52,6 +52,31 @@
       {{- end }}
     </div>
 
+    {{- /* 友情链接：页脚的主体，卡片可以带头图 */}}
+    {{- with hugo.Data.friends }}
+    <section class="friends" aria-labelledby="friends-title">
+      <h2 class="friends__title" id="friends-title">
+        <span class="friends__title-en">Friends</span>
+        <span class="friends__title-cn">友情链接</span>
+      </h2>
+      <ul class="friends__grid">
+        {{- range . }}
+        <li class="friends__cell">
+          <a class="friends__card" href="{{ partial "link.html" .url }}"{{ if not (hasPrefix .url "/") }} target="_blank" rel="noopener"{{ end }}>
+            {{- with .banner }}
+            <span class="friends__banner"><img src="{{ partial "link.html" . }}" alt="" loading="lazy"></span>
+            {{- end }}
+            <span class="friends__body">
+              <span class="friends__name">{{ .name }}</span>
+              {{- with .note }}<span class="friends__note">{{ . }}</span>{{ end }}
+            </span>
+          </a>
+        </li>
+        {{- end }}
+      </ul>
+    </section>
+    {{- end }}
+
     {{- /* 里版不再有明面入口，只留一句传说 */}}
     <p class="site-footer__legend">传说中，有颗不一样的星星是另一个维度的入口</p>
 

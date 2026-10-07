@@ -1270,6 +1270,83 @@ a, button, summary, label, select,
   pointer-events: none;
 }
 
+/* --------------------------------------------------------------------------
+   页脚 · 友情链接区（页脚的主体，卡片可以带头图）
+   -------------------------------------------------------------------------- */
+.friends {
+  margin-top: clamp(2.2rem, 5vw, 3.6rem);
+  padding-top: clamp(1.3rem, 3vw, 2.1rem);
+  border-top: 1px solid var(--line);
+}
+.friends__title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin: 0 0 1.1rem;
+  font-weight: 400;
+}
+.friends__title-en {
+  font-size: 0.68rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.friends__title-cn {
+  font-family: var(--font-serif);
+  font-size: 1.06rem;
+  letter-spacing: 0.16em;
+  color: var(--ink);
+}
+.friends__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.friends__cell { display: flex; }
+.friends__card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.friends__card:hover,
+.friends__card:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.friends__banner {
+  display: block;
+  aspect-ratio: 16 / 7;
+  overflow: hidden;
+  background: var(--accent-soft);
+  border-bottom: 1px solid var(--line);
+}
+.friends__banner img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.friends__body { display: block; padding: 0.72rem 0.85rem 0.85rem; }
+.friends__name {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+.friends__note {
+  display: block;
+  margin-top: 0.32rem;
+  font-size: 0.72rem;
+  line-height: 1.65;
+  color: var(--ink-mute);
+}
+
 /* 被吸进黑洞的那一段演出：满屏 canvas，盖住一切 */
 .suck {
   position: fixed;

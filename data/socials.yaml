@@ -8,22 +8,7 @@
   url: "mailto:map@example.com"
   text: "map@example.com"
 
-- name: GitHub
-  icon: github
-  url: "https://github.com/your-name"
-  text: "@your-name"
-
 - name: 哔哩哔哩
   icon: bilibili
   url: "https://space.bilibili.com/000000"
   text: "MAP 的频道"
-
-- name: Pixiv
-  icon: pixiv
-  url: "https://www.pixiv.net/users/000000"
-  text: "id=000000"
-
-- name: RSS
-  icon: rss
-  url: "/index.xml"
-  text: "订阅更新"

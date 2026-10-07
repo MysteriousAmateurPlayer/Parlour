@@ -8,7 +8,7 @@
 # 部署时 .github/workflows/hugo.yml 会用 actions/configure-pages 自动覆盖成真实地址，
 # 这里填对主要是为了让本地构建出的 canonical / sitemap 也正确。
 baseURL = "https://mysteriousamateurplayer.github.io/Parlour/"
-title = "MAP"
+title = "MAP's Parlour"
 theme = "map"
 
 locale = "zh-CN"
@@ -28,7 +28,7 @@ summaryLength = 72
 # ------------------------------------------------------------
 [params]
   author = "MAP"
-  description = "MAP 的个人网站：自我介绍、二次同人创作记录、数学分享、园艺记录与烹饪食谱。"
+  description = "MAP 的个人网站：自我介绍、二次同人创作记录、数学分享、克苏鲁调查记录与烹饪食谱。"
   # 首页 <title> 用到的副标题
   tagline = "在算式、花木与灶火之间"
   # 站点建立年份，用于页脚版权
