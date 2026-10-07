@@ -40,16 +40,31 @@
   readTheme();
   new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-  var EVERY = 150;       // 每隔多久放一个
-  var LIFE = 620;        // 每个活多久
+  var EVERY = 280;       // 每隔多久放一个（原来 150 太密了）
+  var LIFE = 1100;       // 每个活多久（原来 620，扩散显得太急）
   var R_DAY = 22;        // 日间最大半径（很小）
   var R_NIGHT = 26;      // 夜间最大半径
   var MAX = 14;          // 同时最多几个
+  var HUE_SPAN = 52;     // 单个极光环在自己一生里走多少度色相
+  var HUE_SWING = 70;    // 极光基色的摆动幅度（围绕 200°）
 
   var items = [];
   var mx = -1, my = -1;
   var next = 0;
   var raf = 0;
+
+  /* 极光基色：围绕 200°（青蓝）做 ±70° 的缓慢摆动 —— 也就是 130°~270°，
+     正好是绿 → 青 → 蓝 → 紫这一段，不会漂到不像极光的红黄去。 */
+  function baseHue(now) {
+    return 200 + Math.sin(now * 0.00018) * HUE_SWING;
+  }
+  /* 把色相夹在极光那一段里循环（140°~290°）——
+     否则「一环之内渐变 + 色标再向外偏移」会一路加到 380°，变成粉红。 */
+  function wrapHue(v) {
+    var span = 150, u = (v - 140) % span;
+    if (u < 0) u += span;
+    return 140 + u;
+  }
 
   function spawn(now) {
     var night = dark;
@@ -58,10 +73,9 @@
       life: LIFE * (0.85 + Math.random() * 0.3),
       maxR: (night ? R_NIGHT : R_DAY) * (0.82 + Math.random() * 0.36),
       peak: night ? 0.5 : 0.46,                       // 亮度上限，压得比光标本体低
-      hue: night ? (138 + Math.random() * 152) : 0,   // 夜间每个随机一个极光色相
-      arcA: Math.random() * Math.PI * 2,              // 那道亮弧的起始角与长度
-      arcLen: 0.5 + Math.random() * 1.5,
-      arcW: 1.4 + Math.random() * 1.4
+      // 初相 = 当前的极光基色 + 一点点抖动（所以整体色调会随时间缓缓流动，
+      // 但不是每个都从头随机，不会花）
+      h0: night ? baseHue(now) + (Math.random() - 0.5) * 26 : 0
     });
     if (items.length > MAX) items.shift();
   }
@@ -84,7 +98,7 @@
       if (t >= 1) continue;
       keep.push(it);
 
-      var ease = 1 - (1 - t) * (1 - t);               // 先快后慢地扩散
+      var ease = Math.pow(t, 0.75);                   // 略先快后慢，整体比原来慢得多
       var r = it.maxR * (0.25 + 0.75 * ease);
       var a = it.peak * (1 - t) * (1 - t);            // 二次淡出，尾巴收得干净
       if (a <= 0.01) continue;
@@ -93,11 +107,13 @@
       var g = ctx.createRadialGradient(it.x, it.y, r0, it.x, it.y, r1);
 
       if (dark) {
-        var h = it.hue;
-        g.addColorStop(0.00, 'hsla(' + h.toFixed(0) + ',78%,72%,0)');
-        g.addColorStop(0.32, 'hsla(' + h.toFixed(0) + ',78%,72%,' + a.toFixed(3) + ')');
-        g.addColorStop(0.68, 'hsla(' + (h + 34).toFixed(0) + ',74%,66%,' + (a * 0.7).toFixed(3) + ')');
-        g.addColorStop(1.00, 'hsla(' + (h + 62).toFixed(0) + ',70%,62%,0)');
+        // 色相在它自己的一生里再往前走 HUE_SPAN 度 —— 一圈之内也是渐变的；
+        // 全程用 wrapHue 夹在极光的 140°~290° 区间里循环。
+        var h = it.h0 + t * HUE_SPAN;
+        g.addColorStop(0.00, 'hsla(' + wrapHue(h).toFixed(0) + ',78%,72%,0)');
+        g.addColorStop(0.32, 'hsla(' + wrapHue(h).toFixed(0) + ',78%,72%,' + a.toFixed(3) + ')');
+        g.addColorStop(0.68, 'hsla(' + wrapHue(h + 30).toFixed(0) + ',74%,66%,' + (a * 0.7).toFixed(3) + ')');
+        g.addColorStop(1.00, 'hsla(' + wrapHue(h + 52).toFixed(0) + ',70%,62%,0)');
       } else {
         // 外红内紫：色标从内圈（紫）一路排到外圈（红）
         g.addColorStop(0.00, 'hsla(288,86%,70%,0)');
@@ -113,16 +129,6 @@
       ctx.arc(it.x, it.y, r0, 0, Math.PI * 2, true);
       ctx.fillStyle = g;
       ctx.fill();
-
-      // 夜间那道随机的极光帘弧
-      if (dark) {
-        ctx.beginPath();
-        ctx.arc(it.x, it.y, r1 * 0.82, it.arcA, it.arcA + it.arcLen);
-        ctx.lineWidth = it.arcW * (0.4 + 0.6 * (1 - t));
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = 'hsla(' + it.hue.toFixed(0) + ',88%,78%,' + (a * 0.95).toFixed(3) + ')';
-        ctx.stroke();
-      }
     }
 
     ctx.globalCompositeOperation = 'source-over';
