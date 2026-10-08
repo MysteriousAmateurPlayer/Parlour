@@ -68,21 +68,21 @@
     {{/* ⑦ 8 根特长主芒（比其余长出近一倍，撑起气势） */}}
     <g class="sun-ray sun-ray--long">
       {{- range $i := seq 0 7 }}
-      <path d="M-2.2 -300 L0 -468 L2.2 -300 Z" transform="rotate({{ add (mul $i 45) 22.5 }})"/>
+      <path class="ray" d="M-2.2 -300 L0 -468 L2.2 -300 Z" transform="rotate({{ add (mul $i 45) 22.5 }})"/>
       {{- end }}
     </g>
 
     {{/* ⑧ 16 根锥形中芒 */}}
     <g class="sun-ray sun-ray--spike">
       {{- range $i := seq 0 15 }}
-      <path d="M-3.4 -300 L0 -386 L3.4 -300 Z" transform="rotate({{ mul $i 22.5 }})"/>
+      <path class="ray" d="M-3.4 -300 L0 -386 L3.4 -300 Z" transform="rotate({{ mul $i 22.5 }})"/>
       {{- end }}
     </g>
 
     {{/* ⑨ 16 根火焰短芒（只有描边） */}}
     <g class="sun-ray sun-ray--flame">
       {{- range $i := seq 0 15 }}
-      <path d="M0 -300 C5.5 -316 5.5 -358 0 -374 C-5.5 -358 -5.5 -316 0 -300 Z"
+      <path class="ray" d="M0 -300 C5.5 -316 5.5 -358 0 -374 C-5.5 -358 -5.5 -316 0 -300 Z"
             transform="rotate({{ add (mul $i 22.5) 11.25 }})"/>
       {{- end }}
     </g>

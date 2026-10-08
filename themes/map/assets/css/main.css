@@ -1271,36 +1271,41 @@ a, button, summary, label, select,
 }
 
 /* --------------------------------------------------------------------------
-   首页太阳 · 光芒的呼吸
-   三组光芒各自沿半径伸缩（transform-origin 落在 viewBox 正中，也就是日轮中心），
-   周期不同、相位错开，所以不会整块一起缩放，看着像光在缓缓吞吐。
-   根部已经在模板里往内延到 -300，放大时不会在盘面边缘露出缝。
-   -------------------------------------------------------------------------- */
-.sun-ray {
-  transform-box: view-box;
-  transform-origin: 500px 500px;
-  will-change: auto;
-}
-.sun-ray--long { animation: ray-breathe-a 9s ease-in-out infinite; }
-.sun-ray--spike { animation: ray-breathe-b 7s ease-in-out infinite; }
-.sun-ray--flame { animation: ray-breathe-c 5.5s ease-in-out infinite; }
+   首页太阳 · 光芒的径向呼吸
+   --------------------------------------------------------------------------
+   用极坐标的思路：每条光芒都是「从自己根部沿半径方向伸出去的一条」，
+   所以「变长变短」应该只改**半径**，不该改宽度、也不该让根部移动。
 
-@keyframes ray-breathe-a {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.055); }
+   做法：给每条 path 加 .ray，用 transform-box: fill-box 让 transform-origin
+   以**该条光芒自己的包围盒**为准，再把原点放在包围盒的下边中点 —— 那正是它的根部。
+   然后只做 scaleY：在它自己（已被 rotate 转过）的坐标系里，y 轴就是半径方向，
+   于是尖端沿径向伸缩、根部钉死、宽度不变。
+     —— 之前用整体 scale() 是各向同性的，宽度也跟着变、根部还整体外移，
+        看起来就像整组光在「放大缩小」而不是「变长」，也就是错位的来源。 */
+.ray {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
 }
-@keyframes ray-breathe-b {
-  0%, 100% { transform: scale(1.028); }
-  50% { transform: scale(0.985); }
+.sun-ray--long .ray { animation: ray-grow-a 9s ease-in-out infinite; }
+.sun-ray--spike .ray { animation: ray-grow-b 7s ease-in-out infinite; }
+.sun-ray--flame .ray { animation: ray-grow-c 5.5s ease-in-out infinite; }
+
+@keyframes ray-grow-a {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.14); }
 }
-@keyframes ray-breathe-c {
-  0%, 100% { transform: scale(1.04); opacity: 1; }
-  50% { transform: scale(0.97); opacity: 0.82; }
+@keyframes ray-grow-b {
+  0%, 100% { transform: scaleY(1.05); }
+  50% { transform: scaleY(0.94); }
+}
+@keyframes ray-grow-c {
+  0%, 100% { transform: scaleY(1.12); }
+  50% { transform: scaleY(0.9); }
 }
 
 /* 关掉动效偏好时保持静止 */
 @media (prefers-reduced-motion: reduce) {
-  .sun-ray--long, .sun-ray--spike, .sun-ray--flame { animation: none; }
+  .sun-ray--long .ray, .sun-ray--spike .ray, .sun-ray--flame .ray { animation: none; }
 }
 
 /* --------------------------------------------------------------------------
