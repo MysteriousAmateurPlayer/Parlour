@@ -1271,81 +1271,79 @@ a, button, summary, label, select,
 }
 
 /* --------------------------------------------------------------------------
-   页脚 · 友情链接区（页脚的主体，卡片可以带头图）
+   首页太阳 · 光芒的呼吸
+   三组光芒各自沿半径伸缩（transform-origin 落在 viewBox 正中，也就是日轮中心），
+   周期不同、相位错开，所以不会整块一起缩放，看着像光在缓缓吞吐。
+   根部已经在模板里往内延到 -300，放大时不会在盘面边缘露出缝。
    -------------------------------------------------------------------------- */
-.friends {
-  margin-top: clamp(2.2rem, 5vw, 3.6rem);
-  padding-top: clamp(1.3rem, 3vw, 2.1rem);
-  border-top: 1px solid var(--line);
+.sun-ray {
+  transform-box: view-box;
+  transform-origin: 500px 500px;
+  will-change: auto;
 }
-.friends__title {
-  display: flex;
-  align-items: baseline;
-  gap: 0.7rem;
-  margin: 0 0 1.1rem;
-  font-weight: 400;
+.sun-ray--long { animation: ray-breathe-a 9s ease-in-out infinite; }
+.sun-ray--spike { animation: ray-breathe-b 7s ease-in-out infinite; }
+.sun-ray--flame { animation: ray-breathe-c 5.5s ease-in-out infinite; }
+
+@keyframes ray-breathe-a {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.055); }
 }
-.friends__title-en {
-  font-size: 0.68rem;
+@keyframes ray-breathe-b {
+  0%, 100% { transform: scale(1.028); }
+  50% { transform: scale(0.985); }
+}
+@keyframes ray-breathe-c {
+  0%, 100% { transform: scale(1.04); opacity: 1; }
+  50% { transform: scale(0.97); opacity: 0.82; }
+}
+
+/* 关掉动效偏好时保持静止 */
+@media (prefers-reduced-motion: reduce) {
+  .sun-ray--long, .sun-ray--spike, .sun-ray--flame { animation: none; }
+}
+
+/* --------------------------------------------------------------------------
+   页脚 · 友情链接（与导航、联系方式并排，排在它们左边）
+   -------------------------------------------------------------------------- */
+.site-footer__friends { min-width: 0; }
+.site-footer__friends-title {
+  margin: 0 0 0.6rem;
+  font-size: 0.66rem;
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--ink-mute);
 }
-.friends__title-cn {
-  font-family: var(--font-serif);
-  font-size: 1.06rem;
-  letter-spacing: 0.16em;
-  color: var(--ink);
-}
-.friends__grid {
+.friends-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
-  gap: 0.85rem;
+  gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.friends__cell { display: flex; }
-.friends__card {
+.friends-list a {
   display: flex;
-  flex-direction: column;
-  width: 100%;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: var(--surface);
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ink-soft);
   text-decoration: none;
-  color: inherit;
-  transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
+  transition: color 0.25s var(--ease);
 }
-.friends__card:hover,
-.friends__card:focus-visible {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-}
-.friends__banner {
-  display: block;
-  aspect-ratio: 16 / 7;
+.friends-list a:hover,
+.friends-list a:focus-visible { color: var(--accent); }
+.friends-list__banner {
+  flex: none;
+  width: 2.7rem;
+  height: 1.55rem;
   overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   background: var(--accent-soft);
-  border-bottom: 1px solid var(--line);
 }
-.friends__banner img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.friends__body { display: block; padding: 0.72rem 0.85rem 0.85rem; }
-.friends__name {
-  display: block;
-  font-family: var(--font-serif);
-  font-size: 0.95rem;
-  letter-spacing: 0.06em;
-  color: var(--ink);
-}
-.friends__note {
-  display: block;
-  margin-top: 0.32rem;
-  font-size: 0.72rem;
-  line-height: 1.65;
-  color: var(--ink-mute);
-}
+.friends-list__banner img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.friends-list__text { display: flex; flex-direction: column; min-width: 0; }
+.friends-list__name { font-size: 0.82rem; line-height: 1.35; }
+.friends-list__note { margin-top: 0.1rem; font-size: 0.68rem; color: var(--ink-mute); }
 
 /* 被吸进黑洞的那一段演出：满屏 canvas，盖住一切 */
 .suck {
@@ -2471,7 +2469,7 @@ body.is-modal-open { overflow: hidden; }
   border-bottom: 1px solid var(--line);
 }
 @media (min-width: 48rem) {
-  .site-footer__top { grid-template-columns: 1.2fr auto auto; align-items: start; }
+  .site-footer__top { grid-template-columns: 1fr 1.5fr auto auto; align-items: start; }
 }
 .site-footer__mark {
   display: block;

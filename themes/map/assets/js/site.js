@@ -1375,7 +1375,8 @@
 
   // 镂空经纬线球（3D、缓慢自转、只显示经纬线）：12 条经线 + 10 条纬线
   function sphereWireframe(t) {
-    var R = 413;   // 球半径 413
+    var R = 342;   // 球半径：原来 413，比天球仪主体（370）和最外可动环（354）都大，
+                   // 那圈半透明经纬线因此压到外圈装饰环上 —— 收到 342 让它稳稳待在里侧
     var items = [];
     var rotDeg = t * 0.06 * 180 / Math.PI;   // 缓慢自转
     // 12 条经线（每 30°）
@@ -2711,12 +2712,27 @@
   function syncCoreButton() {
     var btn = document.querySelector('[data-clock-core]');
     if (!btn) return;
+    var head = cv.parentNode && cv.parentNode.parentNode;
+    if (!head) return;
     var k = LAY.r / R;
     var box = Math.max(76, 210 * k);
-    btn.style.left = LAY.cx + 'px';
-    btn.style.top = LAY.cy + 'px';
-    btn.style.width = box + 'px';
-    btn.style.height = box + 'px';
+
+    /* LAY.cx / LAY.cy 是「**画布左上角**」坐标系里的值 —— 时钟用
+       setTransform(s,0,0,s, LAY.cx*dpr - CX*s, LAY.cy*dpr - CY*s)
+       把世界中心 (CX,CY) 映射到画布像素 (LAY.cx*dpr, LAY.cy*dpr)。
+       而 .clock-core 是 position:absolute，定位祖先是 offsetParent。
+       两者原点差着一个页头偏移（实测 62px，锁就因此掉到黑洞下方），
+       所以基准必须取 **canvas 的 rect**，不能用 head 的。 */
+    var host = btn.offsetParent || document.body;
+    var cr = cv.getBoundingClientRect();
+    var pr = host.getBoundingClientRect();
+    var left = (cr.left - pr.left) + LAY.cx;
+    var top = (cr.top - pr.top) + LAY.cy;
+
+    btn.style.left = left.toFixed(1) + 'px';
+    btn.style.top = top.toFixed(1) + 'px';
+    btn.style.width = box.toFixed(1) + 'px';
+    btn.style.height = box.toFixed(1) + 'px';
   }
 
   function computeLayout() {
