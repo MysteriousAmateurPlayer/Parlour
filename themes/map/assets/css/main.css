@@ -1171,7 +1171,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .clock-core {
   position: absolute;
   transform: translate(-50%, -50%);
-  z-index: 4;
+  /* 层级低于 .orloj —— 也就是说指针会压在锁上面。
+     canvas 是透明的，只画线条，所以锁照样看得见，只是不再"浮"在指针之上。
+     点击不受影响：.orloj 是 pointer-events:none，只有这个按钮开着 auto。 */
+  z-index: 0;
   display: grid;
   place-items: center;
   padding: 0;

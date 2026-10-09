@@ -2695,15 +2695,11 @@
     ctx.arc(CX - Math.cos(aS) * 50, CY - Math.sin(aS) * 50, 5.5, 0, TAU);
     ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.7; ctx.stroke();
 
-    // 中心轴：双圈线描。
-    // 半径由 10 放大到 34 —— 「另一个维度」那把锁就落在这个圆盘上，
-    // 盘子够大才有一整块纯色可以托住图标，不然锁压在一堆刻线/指针上会很乱。
-    ctx.beginPath(); ctx.arc(CX, CY, 34, 0, TAU);
+    // 中心轴：双圈线描（恢复原来的尺寸）
+    ctx.beginPath(); ctx.arc(CX, CY, 10, 0, TAU);
     ctx.fillStyle = COL.plate; ctx.fill();
-    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.9; ctx.stroke();
-    ctx.beginPath(); ctx.arc(CX, CY, 29, 0, TAU);
-    ctx.lineWidth = 0.4; ctx.globalAlpha = 0.6; ctx.stroke(); ctx.globalAlpha = 1;
-    ctx.beginPath(); ctx.arc(CX, CY, 7, 0, TAU);
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.85; ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, 5, 0, TAU);
     ctx.fillStyle = COL.gold; ctx.globalAlpha = 0.35; ctx.fill(); ctx.globalAlpha = 1;
     ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.5; ctx.stroke();
   }
@@ -2729,8 +2725,11 @@
     var host = btn.offsetParent || document.body;
     var cr = cv.getBoundingClientRect();
     var pr = host.getBoundingClientRect();
+    /* 落在黑洞正下方：黑洞外缘约 ROUT*1.12 = 101 世界单位，
+       再往下让开一点，锁就贴在洞口下沿。 */
+    var DROP = 118 * (LAY.r / R);   // 118：图标上沿刚好落在黑洞外缘(101)之下，既不压洞也不飘远
     var left = (cr.left - pr.left) + LAY.cx;
-    var top = (cr.top - pr.top) + LAY.cy;
+    var top = (cr.top - pr.top) + LAY.cy + DROP;
 
     btn.style.left = left.toFixed(1) + 'px';
     btn.style.top = top.toFixed(1) + 'px';
