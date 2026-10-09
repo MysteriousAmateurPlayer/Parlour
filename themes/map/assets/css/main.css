@@ -1291,21 +1291,23 @@ a, button, summary, label, select,
 .sun-ray--flame .ray { animation: ray-grow-c 5.5s ease-in-out infinite; }
 
 @keyframes ray-grow-a {
-  0%, 100% { transform: scaleY(1); }
-  50% { transform: scaleY(1.14); }
+  0%, 100% { transform: scaleY(0.90); }
+  50% { transform: scaleY(1.30); }
 }
 @keyframes ray-grow-b {
-  0%, 100% { transform: scaleY(1.05); }
-  50% { transform: scaleY(0.94); }
+  0%, 100% { transform: scaleY(1.22); }
+  50% { transform: scaleY(0.84); }
 }
 @keyframes ray-grow-c {
-  0%, 100% { transform: scaleY(1.12); }
-  50% { transform: scaleY(0.9); }
+  0%, 100% { transform: scaleY(1.38); }
+  50% { transform: scaleY(0.78); }
 }
 
-/* 关掉动效偏好时保持静止 */
+/* 关掉动效偏好时不是「完全没有」，而是放慢、减小幅度 —— 至少看得出光在呼吸 */
 @media (prefers-reduced-motion: reduce) {
-  .sun-ray--long .ray, .sun-ray--spike .ray, .sun-ray--flame .ray { animation: none; }
+  .sun-ray--long .ray { animation: ray-grow-a 18s ease-in-out infinite; }
+  .sun-ray--spike .ray { animation: ray-grow-b 18s ease-in-out infinite; }
+  .sun-ray--flame .ray { animation: ray-grow-c 18s ease-in-out infinite; }
 }
 
 /* --------------------------------------------------------------------------

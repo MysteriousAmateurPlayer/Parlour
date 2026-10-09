@@ -1375,7 +1375,7 @@
 
   // 镂空经纬线球（3D、缓慢自转、只显示经纬线）：12 条经线 + 10 条纬线
   function sphereWireframe(t) {
-    var R = 380;   // 球半径：内切于最外圈的**固定环**。
+    var R = 390;   // 球半径：内切于最外圈的**固定环**。
                    // 原来 413 会整个罩住最外的可动环（外沿 364），中途缩到 342 又太小、
                    // 够不着固定环内径 —— 380 贴着最外固定环内切。
     var items = [];
@@ -1610,6 +1610,7 @@
         vignette: 'rgba(0,0,0,0.34)', sheen: 'rgba(200,220,250,0.08)',
         filigree: 'rgba(194,160,102,0.10)',
         moon: '#efe6cf', moonHi: '#fdf9ee', moonLo: '#d3c4a2',
+        moonShadeHi: '#34353a', moonShade: '#232428', moonShadeDeep: '#16171b',
         mare: 'rgba(150,132,96,0.30)', mareSoft: 'rgba(150,132,96,0.13)',
         crater: 'rgba(150,132,96,0.26)', craterHi: 'rgba(253,249,238,0.34)'
       };
@@ -1637,6 +1638,7 @@
         vignette: 'rgba(120,98,58,0.13)', sheen: 'rgba(255,255,255,0.20)',
         filigree: 'rgba(138,106,52,0.10)',
         moon: '#f4eddb', moonHi: '#fdfaf2', moonLo: '#ded2b4',
+        moonShadeHi: '#c9bda0', moonShade: '#9d9074', moonShadeDeep: '#7f735c',
         mare: 'rgba(122,104,72,0.22)', mareSoft: 'rgba(122,104,72,0.09)',
         crater: 'rgba(122,104,72,0.24)', craterHi: 'rgba(253,250,242,0.6)'
       };
@@ -2439,20 +2441,13 @@
     var f = (1 - Math.cos(phase * TAU)) / 2;   // 被照亮比例 0=朔 1=望
     var k = Math.abs(1 - 2 * f);               // 明暗界线半轴系数
 
-    // 暗面：纸色 + 倾斜排线（古典星图里的月亮都是这么画的）
+    // 暗面：一层柔和的径向渐变（不再用倾斜排线 —— 排线在日间会糊成一片灰条纹）
     ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU);
-    ctx.fillStyle = COL.plate; ctx.fill();
-    ctx.save();
-    ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.clip();
-    ctx.strokeStyle = COL.mare; ctx.globalAlpha = 0.5; ctx.lineWidth = r * 0.012;
-    for (var hx = -r; hx <= r; hx += r * 0.075) {
-      ctx.beginPath();
-      ctx.moveTo(hx, -r);
-      ctx.lineTo(hx + r * 0.5, r);
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-    ctx.restore();
+    var dg = ctx.createRadialGradient(-r * 0.34, -r * 0.42, r * 0.04, 0, 0, r * 1.06);
+    dg.addColorStop(0, COL.moonShadeHi);
+    dg.addColorStop(0.62, COL.moonShade);
+    dg.addColorStop(1, COL.moonShadeDeep);
+    ctx.fillStyle = dg; ctx.fill();
 
     // 亮面：+x 方向朝向表心（太阳方向）
     ctx.save();
@@ -2567,7 +2562,10 @@
     // 十二宫徽章（月亮所在那一宫高亮）
     var MR = 15;
     for (var z = 0; z < 12; z++) {
-      var za = -Math.PI / 2 + z * TAU / 12;
+      /* 宫位中心 = 起点 + 15°。黄道带那圈标识用的是 (gz + 0.5) × 30°，
+         这里原来却是 z × 30° —— 两圈整整差 15°，所以「高亮的那一宫」看起来总跟
+         黄道带上的符号对不上。改成同一个相位，读出来的星座才和盘面一致。 */
+      var za = -Math.PI / 2 + (z + 0.5) * TAU / 12;
       var zx = Math.cos(za) * R_ZOD_DISC, zy = Math.sin(za) * R_ZOD_DISC;
       var hot = (z === moonSign);
       ctx.save();
@@ -2697,11 +2695,15 @@
     ctx.arc(CX - Math.cos(aS) * 50, CY - Math.sin(aS) * 50, 5.5, 0, TAU);
     ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.7; ctx.stroke();
 
-    // 中心轴：双圈线描
-    ctx.beginPath(); ctx.arc(CX, CY, 10, 0, TAU);
+    // 中心轴：双圈线描。
+    // 半径由 10 放大到 34 —— 「另一个维度」那把锁就落在这个圆盘上，
+    // 盘子够大才有一整块纯色可以托住图标，不然锁压在一堆刻线/指针上会很乱。
+    ctx.beginPath(); ctx.arc(CX, CY, 34, 0, TAU);
     ctx.fillStyle = COL.plate; ctx.fill();
-    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.85; ctx.stroke();
-    ctx.beginPath(); ctx.arc(CX, CY, 5, 0, TAU);
+    ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.9; ctx.stroke();
+    ctx.beginPath(); ctx.arc(CX, CY, 29, 0, TAU);
+    ctx.lineWidth = 0.4; ctx.globalAlpha = 0.6; ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(CX, CY, 7, 0, TAU);
     ctx.fillStyle = COL.gold; ctx.globalAlpha = 0.35; ctx.fill(); ctx.globalAlpha = 1;
     ctx.strokeStyle = COL.gold; ctx.lineWidth = 0.5; ctx.stroke();
   }
