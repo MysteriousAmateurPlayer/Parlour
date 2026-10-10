@@ -415,6 +415,7 @@ function trashPost(sectionKey, file) {
 const HOME_FILE = path.join(ROOT, 'data', 'home.yaml');
 const SOCIALS_FILE = path.join(ROOT, 'data', 'socials.yaml');
 const FRIENDS_FILE = path.join(ROOT, 'data', 'friends.yaml');
+const COPY_FILE = path.join(ROOT, 'data', 'copy.yaml');
 
 // 首页文案的字段表（dotted path → 类型），前端照着渲染表单
 const SITE_HOME_FIELDS = [
@@ -544,6 +545,39 @@ function saveSocials(items) {
   ].join('\n')).join('\n');
   fs.writeFileSync(SOCIALS_FILE, leadingComments(original) + body + '\n', 'utf8');
   return clean;
+}
+
+/* 界面文案：整份 data/copy.yaml 原样读写。
+     故意不做字段表 —— 结构就是「分组 → 名称: 文字」两层，
+     写作台照着文件动态渲染，所以你在这里新增分组或条目，编辑器会自动认出来。 */
+function readCopy() {
+  if (!fs.existsSync(COPY_FILE)) return {};
+  const v = parseYaml(fs.readFileSync(COPY_FILE, 'utf8'));
+  return (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
+}
+
+function saveCopy(next) {
+  const original = fs.existsSync(COPY_FILE) ? fs.readFileSync(COPY_FILE, 'utf8') : '';
+  const out = {};
+  Object.keys(next || {}).forEach((g) => {
+    const grp = next[g];
+    if (!grp || typeof grp !== 'object') return;
+    const clean = {};
+    Object.keys(grp).forEach((k) => {
+      const v = grp[k] == null ? '' : String(grp[k]);
+      if (v !== '') clean[k] = v;          // 空 = 不写进文件，模板会回落到默认文字
+    });
+    if (Object.keys(clean).length) out[g] = clean;
+  });
+  const lines = [];
+  Object.keys(out).forEach((g) => {
+    lines.push(g + ':');
+    Object.keys(out[g]).forEach((k) => {
+      lines.push('  ' + k + ': ' + JSON.stringify(out[g][k]));
+    });
+  });
+  fs.writeFileSync(COPY_FILE, leadingComments(original) + lines.join('\n') + '\n', 'utf8');
+  return out;
 }
 
 function readFriends() {
@@ -1017,6 +1051,7 @@ const server = http.createServer(async (req, res) => {
         socials: readSocials(),
         friends: readFriends(),
         friendFields: SITE_FRIEND_FIELDS,
+        copy: readCopy(),
         icons: ICON_CHOICES,
         sections: listSections().map((s) => ({
           key: s.key, title: s.title, blurb: s.blurb, intro: readIntro(s.key)
@@ -1040,6 +1075,13 @@ const server = http.createServer(async (req, res) => {
       const payload = JSON.parse(await readBody(req) || '{}');
       const saved = saveFriends(payload.items);
       return json(res, 200, { ok: true, count: saved.length });
+    }
+
+    if (req.method === 'POST' && u.pathname === '/api/site/copy') {
+      const payload = JSON.parse(await readBody(req) || '{}');
+      const saved = saveCopy(payload.copy);
+      const cnt = Object.keys(saved).reduce((a, g) => a + Object.keys(saved[g]).length, 0);
+      return json(res, 200, { ok: true, count: cnt });
     }
 
     if (req.method === 'POST' && u.pathname === '/api/site/intro') {
@@ -1185,6 +1227,6 @@ module.exports = {
   parseFrontMatter, dumpFrontMatter, parseYaml, buildPost, listPosts, CONTENT, ROOT,
   listSections, readSectionData, writeSectionData, saveSectionDisplay, createSection,
   deleteSection, trashPost, regeneratePagesYml,
-  readHome, saveHome, homeToFormValues, readSocials, saveSocials, readFriends, saveFriends, readIntro, saveIntro, SITE_HOME_FIELDS,
+  readHome, saveHome, homeToFormValues, readSocials, saveSocials, readFriends, saveFriends, readCopy, saveCopy, readIntro, saveIntro, SITE_HOME_FIELDS,
   previewBase, hugoExe
 };

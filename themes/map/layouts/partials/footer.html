@@ -34,7 +34,7 @@
       {{- /* 友情链接：与导航、联系方式并排，排在它们左边 */}}
       {{- with hugo.Data.friends }}
       <div class="site-footer__friends">
-        <p class="site-footer__friends-title">友情链接</p>
+        <p class="site-footer__friends-title">{{ partial "t.html" (dict "key" "页眉页脚.友情链接标题" "default" "友情链接") }}</p>
         <ul class="friends-list">
           {{- range . }}
           <li>
@@ -54,7 +54,7 @@
       {{- end }}
 
       <nav class="site-footer__nav" aria-label="页脚导航">
-        <a href="{{ site.Home.RelPermalink }}">首页</a>
+        <a href="{{ site.Home.RelPermalink }}">{{ partial "t.html" (dict "key" "页眉页脚.页脚首页" "default" "首页") }}</a>
         {{- range $item := partial "nav-items.html" . }}
         <a href="{{ $item.href }}">{{ $item.title }}</a>
         {{- end }}
@@ -75,7 +75,7 @@
     </div>
 
     {{- /* 里版不再有明面入口，只留一句传说 */}}
-    <p class="site-footer__legend">传说中，有颗不一样的星星是另一个维度的入口</p>
+    <p class="site-footer__legend">{{ partial "t.html" (dict "key" "页眉页脚.页脚传说" "default" "传说中，有颗不一样的星星是另一个维度的入口") }}</p>
 
     <div class="site-footer__bottom">
       <p class="copyright">

@@ -2,11 +2,11 @@
 <section class="band band--404">
   <div class="wrap error-page">
     <p class="error-page__code" aria-hidden="true">404</p>
-    <h1 class="error-page__title">这一页不在架上</h1>
-    <p class="error-page__text">你要找的东西也许被移到了别处，也许从来就没有写过。</p>
+    <h1 class="error-page__title">{{ partial "t.html" (dict "key" "404 页.标题" "default" "这一页不在架上") }}</h1>
+    <p class="error-page__text">{{ partial "t.html" (dict "key" "404 页.说明" "default" "你要找的东西也许被移到了别处，也许从来就没有写过。") }}</p>
     <div class="error-page__actions">
-      <a class="btn btn--primary" href="{{ site.Home.RelPermalink }}"><span>回到首页</span></a>
-      <a class="btn btn--ghost" href="{{ partial "link.html" "/about/" }}"><span>认识我</span></a>
+      <a class="btn btn--primary" href="{{ site.Home.RelPermalink }}"><span>{{ partial "t.html" (dict "key" "404 页.回首页按钮" "default" "回到首页") }}</span></a>
+      <a class="btn btn--ghost" href="{{ partial "link.html" "/about/" }}"><span>{{ partial "t.html" (dict "key" "404 页.认识我按钮" "default" "认识我") }}</span></a>
     </div>
   </div>
 </section>

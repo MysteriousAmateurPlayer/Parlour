@@ -44,7 +44,7 @@
       {{- end }}
 
       <a class="text-link reveal" href="{{ (site.GetPage "/about").RelPermalink }}">
-        <span>完整自我介绍</span>
+        <span>{{ partial "t.html" (dict "key" "首页.完整自我介绍按钮" "default" "完整自我介绍") }}</span>
         {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
       </a>
     </div>
@@ -124,7 +124,7 @@
     </div>
     {{- with site.GetPage "/tags" }}
     <a class="text-link" href="{{ .RelPermalink }}">
-      <span>按标签浏览全部</span>
+      <span>{{ partial "t.html" (dict "key" "首页.按标签浏览按钮" "default" "按标签浏览全部") }}</span>
       {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
     </a>
     {{- end }}

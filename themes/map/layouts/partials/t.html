@@ -1,0 +1,15 @@
+{{- /* 统一文案读取器。
+      用法： {{ partial "t.html" (dict "key" "页脚.传说" "default" "默认文字") }}
+      · 先去 data/copy.yaml 里按「分组.名称」找；找不到或留空就用 default 兜底。
+      · 所以写作台里清空某一项 = 恢复模板自带的默认文字，永远不会把页面变空白。 */ -}}
+{{- $key := .key | default "" -}}
+{{- $def := .default | default "" -}}
+{{- $v := hugo.Data.copy -}}
+{{- range $p := (split $key ".") -}}
+  {{- if and $v (reflect.IsMap $v) -}}
+    {{- $v = index $v $p -}}
+  {{- else -}}
+    {{- $v = "" -}}
+  {{- end -}}
+{{- end -}}
+{{- if $v -}}{{- $v -}}{{- else -}}{{- $def -}}{{- end -}}

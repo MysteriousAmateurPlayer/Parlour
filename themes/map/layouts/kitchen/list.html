@@ -44,7 +44,7 @@
   </div>
   {{ partial "pagination.html" . }}
   {{- else }}
-  <p class="empty">厨房还没开火。</p>
+  <p class="empty">{{ partial "t.html" (dict "key" "列表与文章.厨房空" "default" "厨房还没开火。") }}</p>
   {{- end }}
 </div>
 {{ end }}

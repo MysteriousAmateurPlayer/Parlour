@@ -42,7 +42,7 @@
     {{- end }}
   </div>
   {{- else }}
-  <p class="empty">还没有调查记录，等下一次采样。</p>
+  <p class="empty">{{ partial "t.html" (dict "key" "列表与文章.调查空" "default" "还没有调查记录，等下一次采样。") }}</p>
   {{- end }}
 </div>
 {{ end }}

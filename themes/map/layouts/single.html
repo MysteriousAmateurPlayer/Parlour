@@ -41,7 +41,7 @@
     <div class="article__layout{{ if .Params.toc }} has-toc{{ end }}">
       {{- if and .Params.toc .TableOfContents }}
       <aside class="article__toc" aria-label="目录">
-        <p class="article__toc-title">目录</p>
+        <p class="article__toc-title">{{ partial "t.html" (dict "key" "列表与文章.目录标题" "default" "目录") }}</p>
         {{ .TableOfContents }}
       </aside>
       {{- end }}

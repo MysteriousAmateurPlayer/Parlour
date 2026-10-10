@@ -38,7 +38,7 @@
     <div class="recipe-layout">
       {{- if $groups }}
       <aside class="recipe-ingredients">
-        <h2 class="recipe-section__title">食材</h2>
+        <h2 class="recipe-section__title">{{ partial "t.html" (dict "key" "列表与文章.食材标题" "default" "食材") }}</h2>
         {{- range $groups }}
           {{- if reflect.IsMap . }}
           <div class="ingredients__group">
@@ -60,7 +60,7 @@
       <div class="recipe-main">
         {{- if $steps }}
         <section class="recipe-steps">
-          <h2 class="recipe-section__title">做法</h2>
+          <h2 class="recipe-section__title">{{ partial "t.html" (dict "key" "列表与文章.做法标题" "default" "做法") }}</h2>
           <ol class="steps">
             {{- range $steps }}
             <li class="steps__item">{{ . | markdownify }}</li>

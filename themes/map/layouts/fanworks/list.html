@@ -28,7 +28,7 @@
 
   {{- if $filters }}
   <div class="filter-bar" data-filter-bar>
-    <button class="filter-bar__btn is-active" type="button" data-filter="__all__">全部</button>
+    <button class="filter-bar__btn is-active" type="button" data-filter="__all__">{{ partial "t.html" (dict "key" "列表与文章.筛选全部" "default" "全部") }}</button>
     {{- range $filters }}
     <button class="filter-bar__btn" type="button" data-filter="{{ . }}">{{ . }}</button>
     {{- end }}
@@ -41,7 +41,7 @@
     {{- end }}
   </div>
 
-  <p class="filter-empty" data-filter-empty hidden>这个标签下暂时没有记录。</p>
+  <p class="filter-empty" data-filter-empty hidden>{{ partial "t.html" (dict "key" "列表与文章.筛选无结果" "default" "这个标签下暂时没有记录。") }}</p>
 
   {{ partial "pagination.html" . }}
 </div>

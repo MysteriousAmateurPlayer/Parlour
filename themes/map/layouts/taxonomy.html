@@ -3,7 +3,7 @@
   <div class="wrap">
     <p class="page-head__kicker">Tags</p>
     <h1 class="page-head__title">{{ .Title }}</h1>
-    <p class="page-head__lede">全部标签，按条目数排序。</p>
+    <p class="page-head__lede">{{ partial "t.html" (dict "key" "列表与文章.标签页说明" "default" "全部标签，按条目数排序。") }}</p>
   </div>
 </header>
 
@@ -21,7 +21,7 @@
     {{- end }}
   </ul>
   {{- else }}
-  <p class="empty">还没有任何标签。</p>
+  <p class="empty">{{ partial "t.html" (dict "key" "列表与文章.还没有标签" "default" "还没有任何标签。") }}</p>
   {{- end }}
 </div>
 {{ end }}

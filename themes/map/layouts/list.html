@@ -26,7 +26,7 @@
   </div>
   {{ partial "pagination.html" . }}
   {{- else }}
-  <p class="empty">这个版块还空着，第一篇正在路上。</p>
+  <p class="empty">{{ partial "t.html" (dict "key" "列表与文章.版块空" "default" "这个版块还空着，第一篇正在路上。") }}</p>
   {{- end }}
 </div>
 {{ end }}

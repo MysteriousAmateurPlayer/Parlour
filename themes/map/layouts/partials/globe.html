@@ -1075,11 +1075,11 @@
   <div class="wrap">
     <div class="globe-band__controls">
       <button class="globe-btn" type="button" data-globe-rotate="-1" aria-label="向左转动地球">
-        <span aria-hidden="true">↺</span><span>左转</span>
+        <span aria-hidden="true">↺</span><span>{{ partial "t.html" (dict "key" "地球.左转" "default" "左转") }}</span>
       </button>
       <span class="globe-band__hint">{{ $gb.hint | default "拖动地球可以旋转" }}</span>
       <button class="globe-btn" type="button" data-globe-rotate="1" aria-label="向右转动地球">
-        <span>右转</span><span aria-hidden="true">↻</span>
+        <span>{{ partial "t.html" (dict "key" "地球.右转" "default" "右转") }}</span><span aria-hidden="true">↻</span>
       </button>
     </div>
 

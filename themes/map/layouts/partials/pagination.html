@@ -6,7 +6,7 @@
     {{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm icon--flip") }}<span>上一页</span>
   </a>
   {{- else }}
-  <span class="pagination__step is-disabled"><span>上一页</span></span>
+  <span class="pagination__step is-disabled"><span>{{ partial "t.html" (dict "key" "列表与文章.上一页" "default" "上一页") }}</span></span>
   {{- end }}
 
   <span class="pagination__status">第 {{ $p.PageNumber }} / {{ $p.TotalPages }} 页</span>
@@ -16,7 +16,7 @@
     <span>下一页</span>{{ partial "icon.html" (dict "name" "arrow-right" "class" "icon icon--sm") }}
   </a>
   {{- else }}
-  <span class="pagination__step is-disabled"><span>下一页</span></span>
+  <span class="pagination__step is-disabled"><span>{{ partial "t.html" (dict "key" "列表与文章.下一页" "default" "下一页") }}</span></span>
   {{- end }}
 </nav>
 {{- end }}

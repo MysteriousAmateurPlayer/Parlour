@@ -49,7 +49,7 @@
 
   {{- if site.Params.appearance.showScrollHint }}
   <a class="scroll-hint" href="#globe" aria-label="向下看完整的地球">
-    <span class="scroll-hint__text">向下</span>
+    <span class="scroll-hint__text">{{ partial "t.html" (dict "key" "首页.向下提示" "default" "向下") }}</span>
     {{ partial "icon.html" (dict "name" "arrow-down" "class" "icon") }}
   </a>
   {{- end }}

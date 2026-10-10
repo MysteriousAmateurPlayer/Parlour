@@ -18,7 +18,7 @@
     {{- end }}
     {{- with $series }}
     <div class="article-foot__group">
-      <span class="article-foot__label">系列</span>
+      <span class="article-foot__label">{{ partial "t.html" (dict "key" "列表与文章.系列标签" "default" "系列") }}</span>
       <ul class="tag-list">
         {{- range . }}
         <li><a href="{{ partial "link.html" (printf "/series/%s/" (. | urlize)) }}">{{ . }}</a></li>
@@ -33,18 +33,18 @@
   <nav class="article-nav" aria-label="同版块上下篇">
     <div class="article-nav__side article-nav__side--prev">
       {{- with .PrevInSection }}
-      <span class="article-nav__hint">上一篇</span>
+      <span class="article-nav__hint">{{ partial "t.html" (dict "key" "列表与文章.上一篇" "default" "上一篇") }}</span>
       <a class="article-nav__link" href="{{ .RelPermalink }}">{{ .Title }}</a>
       {{- else }}
-      <span class="article-nav__hint">已经是第一篇</span>
+      <span class="article-nav__hint">{{ partial "t.html" (dict "key" "列表与文章.已是第一篇" "default" "已经是第一篇") }}</span>
       {{- end }}
     </div>
     <div class="article-nav__side article-nav__side--next">
       {{- with .NextInSection }}
-      <span class="article-nav__hint">下一篇</span>
+      <span class="article-nav__hint">{{ partial "t.html" (dict "key" "列表与文章.下一篇" "default" "下一篇") }}</span>
       <a class="article-nav__link" href="{{ .RelPermalink }}">{{ .Title }}</a>
       {{- else }}
-      <span class="article-nav__hint">已经是最后一篇</span>
+      <span class="article-nav__hint">{{ partial "t.html" (dict "key" "列表与文章.已是最后一篇" "default" "已经是最后一篇") }}</span>
       {{- end }}
     </div>
   </nav>

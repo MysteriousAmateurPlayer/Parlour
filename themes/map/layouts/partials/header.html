@@ -40,7 +40,7 @@
   <div class="mobile-nav" id="mobile-nav" hidden>
     <div class="wrap">
       <nav class="mobile-nav__links" aria-label="移动端导航">
-        <a class="mobile-nav__link" href="{{ site.Home.RelPermalink }}">首页</a>
+        <a class="mobile-nav__link" href="{{ site.Home.RelPermalink }}">{{ partial "t.html" (dict "key" "页眉页脚.页脚首页" "default" "首页") }}</a>
         {{- range $item := partial "nav-items.html" . }}
         <a class="mobile-nav__link" href="{{ $item.href }}">{{ partial "icon.html" (dict "name" $item.icon "class" "icon icon--sm") }}<span>{{ $item.title }}</span></a>
         {{- end }}

@@ -240,6 +240,19 @@
         <button class="btn" id="btnAddFriend">＋ 添加一行</button>
         <button class="btn primary" id="btnSaveFriends">保存友情链接</button>
       </div>
+
+      <h2>⑤ 界面文案</h2>
+      <div class="notice">
+        网站里所有零散的文字都在这里：页脚那句传说、404 页、列表空状态、分页、目录，
+        以及「另一个维度」的全部门面话。<br>
+        <b>留空 = 用模板自带的默认文字</b> —— 所以清掉某一项不会让页面变空白。<br>
+        想加新的？直接在 <code>data/copy.yaml</code> 里按「分组 → 名称: 文字」加一行，
+        回到这里刷新就会多出一个输入框，不用改任何代码。
+      </div>
+      <div id="copyForm"></div>
+      <div class="actions" style="margin:10px 0 30px">
+        <button class="btn primary" id="btnSaveCopy">保存界面文案</button>
+      </div>
     </div>
 
     <!-- ================= 板块管理视图 ================= -->
@@ -307,6 +320,7 @@ async function boot() {
   $('btnAddSocial').addEventListener('click', () => { (SITE.socials = SITE.socials || []).push({ name: '', icon: 'link', url: '', text: '' }); renderSocialsTable(); });
   $('btnSaveFriends').addEventListener('click', saveFriendsTable);
   $('btnAddFriend').addEventListener('click', () => { (SITE.friends = SITE.friends || []).push({ name: '', url: '', banner: '', note: '' }); renderFriendsTable(); });
+  $('btnSaveCopy').addEventListener('click', saveCopyForm);
   $('introSection').addEventListener('change', loadIntroFields);
   $('btnUpload').addEventListener('click', () => { EDITING_FILE = EDITING_FILE; imageTargetField = null; $('fileInput').click(); });
   $('fileInput').addEventListener('change', () => uploadFiles($('fileInput').files));
@@ -379,6 +393,9 @@ async function renderSite(force) {
 
   // ---- 友情链接 ----
   renderFriendsTable();
+
+  // ---- 界面文案 ----
+  renderCopyForm();
 }
 
 function loadIntroFields() {
@@ -469,6 +486,36 @@ async function saveFriendsTable() {
   SITE = null;
   await renderSite(true);
   setStatus(`友情链接已保存（${r.count} 条）。回到「✍ 写作」点一次「保存并发布」即可。`, 'ok');
+}
+
+function renderCopyForm() {
+  const copy = SITE.copy || {};
+  const groups = Object.keys(copy);
+  if (!groups.length) {
+    $('copyForm').innerHTML = '<p class="hint">data/copy.yaml 还是空的。</p>';
+    return;
+  }
+  $('copyForm').innerHTML = groups.map(function (g) {
+    const rows = Object.keys(copy[g]).map(function (k) {
+      return '<div class="field"><label>' + esc(k) + '</label>' +
+        '<textarea rows="2" data-copy-group="' + esc(g) + '" data-copy-key="' + esc(k) + '">' +
+        esc(copy[g][k]) + '</textarea></div>';
+    }).join('');
+    return '<h3 style="font:600 15px/1.4 var(--serif);margin:18px 0 10px">' + esc(g) + '</h3>' + rows;
+  }).join('');
+}
+
+async function saveCopyForm() {
+  const out = {};
+  document.querySelectorAll('[data-copy-group]').forEach(function (el) {
+    const g = el.dataset.copyGroup, k = el.dataset.copyKey;
+    (out[g] = out[g] || {})[k] = el.value;
+  });
+  const r = await post('/api/site/copy', { copy: out });
+  if (r.error) return setStatus('保存失败：' + r.error, 'err');
+  SITE = null;
+  await renderSite(true);
+  setStatus('界面文案已保存（' + r.count + ' 条）。回到「✍ 写作」点一次「保存并发布」即可。', 'ok');
 }
 
 /* ================= 板块 ================= */
