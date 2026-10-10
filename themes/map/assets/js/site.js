@@ -294,10 +294,17 @@
     for (var i = 0; i < parts.length; i++) {
       var p = parts[i];
       if (p.x == null) continue;
-      var near = Math.sin(p.a) >= 0;
+      /* za = sin(轨道角)：-1 = 最远，+1 = 最近。
+         「在太阳前还是后」只能二分（那关系到遮挡，必须分两层画），
+         但**深浅**不该跟着二分 —— 原来 near ? 1 : 0.5 在椭圆两端（za 过零处）
+         会硬跳一档，所以正背交界能看到一条明显的分界。
+         现在按 za 连续取值：0.40（最远）→ 1.00（最近），并用 0.7 次幂让近端涨得快些，
+         粒子走到哪儿就深到哪儿，过渡是圆的。 */
+      var za = Math.sin(p.a);
+      var near = za >= 0;
       var ctx = near ? cf : cb;
       if (!near && Math.hypot(p.x - cx, p.y - cy) < sunR * 1.02) continue;
-      var depth = (near ? 1 : 0.5) * (0.55 + 0.45 * Math.min(1, p.t));
+      var depth = (0.40 + 0.60 * Math.pow((za + 1) * 0.5, 0.7)) * (0.55 + 0.45 * Math.min(1, p.t));
       var fade = Math.min(1, p.age / 80) * Math.min(1, (p.life - p.age) / 130);
       var tw = 0.55 + 0.45 * Math.sin(p.tw + t0 * 0.0012 * p.tws);
 
