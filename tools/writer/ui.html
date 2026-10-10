@@ -85,6 +85,14 @@
   table.sec input[type=text],table.sec select{padding:6px 8px;font-size:14px}
   code{font-family:var(--mono);font-size:12px;background:#fff;border:1px solid var(--line);border-radius:3px;padding:1px 5px}
   @media (max-width:900px){ .layout{grid-template-columns:1fr} aside{border-right:0;border-bottom:1px solid var(--line)} }
+/* 站点设置的子导航：让「哪儿能改什么」一眼看见 */
+.svnav{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin:14px 0 26px}
+.svnav a{display:block;padding:12px 14px;border:1px solid var(--line);border-radius:5px;
+background:var(--surface);text-decoration:none;color:var(--ink);font-weight:600;font-size:15px;
+border-left:3px solid var(--accent);transition:.2s}
+.svnav a:hover{border-color:var(--accent);background:var(--accent-soft)}
+.svnav a span{display:block;margin-top:4px;font-weight:400;font-size:12px;color:var(--ink-mute);line-height:1.6}
+h2[id^="sv-"]{scroll-margin-top:80px}
 </style>
 </head>
 <body>
@@ -114,9 +122,16 @@
     <div id="sideSite" style="display:none">
       <h2>站点设置</h2>
       <p style="font-size:13px;color:#8d857c;line-height:1.8">
-        这里改的是「首页」和「每个板块的介绍页」，以及页脚的联系方式。<br><br>
-        改完点右边的保存，再回到「✍ 写作」点一次 <b>保存并发布</b>，网站上就更新了。
+        网站上那些「原本写死的字」全在这儿。点下面任意一块跳过去；<br>
+        改完点该块的保存，再回「✍ 写作」点一次 <b>保存并发布</b> 即可。
       </p>
+      <div class="tabs" style="margin-top:14px">
+        <button class="tab svlink" data-goto="sv-home">① 首页文案<small>站名 / 按钮 / 关于我 / 最近记录 / 拼图板块 / 地球</small></button>
+        <button class="tab svlink" data-goto="sv-intro">② 板块介绍页<small>每个板块那一页的大标题与正文</small></button>
+        <button class="tab svlink" data-goto="sv-socials">③ 联系方式<small>邮件 / 哔哩哔哩</small></button>
+        <button class="tab svlink" data-goto="sv-friends">④ 友情链接<small>页脚那一列</small></button>
+        <button class="tab svlink" data-goto="sv-copy">⑤ 界面文案<small>页脚传说 / 404 / 空状态 / 分页 / 另一个维度</small></button>
+      </div>
     </div>
   </aside>
 
@@ -177,7 +192,19 @@
 
     <!-- ================= 站点设置视图 ================= -->
     <div id="viewSite" style="display:none">
-      <h2>① 首页文案</h2>
+      <div class="notice" style="border-left-color:var(--accent)">
+        <b>这里能改网站上所有「写死的字」。</b>下面一共五块，点任意一块直接跳过去；
+        改完点该块的保存按钮，最后回「✍ 写作」点一次 <b>保存并发布</b> 就上线了。
+      </div>
+      <div class="svnav">
+        <a href="#sv-home">① 首页文案<span>站名、按钮、关于我、最近的记录、拼图板块、地球</span></a>
+        <a href="#sv-intro">② 板块介绍页<span>每个板块自己那一页的大标题与开头正文</span></a>
+        <a href="#sv-socials">③ 联系方式<span>页脚与自我介绍页的邮件、哔哩哔哩</span></a>
+        <a href="#sv-friends">④ 友情链接<span>页脚那一列友链，可带头图和小字</span></a>
+        <a href="#sv-copy">⑤ 界面文案<span>页脚传说、404、空状态、分页、另一个维度的门面话…</span></a>
+      </div>
+
+      <h2 id="sv-home">① 首页文案</h2>
       <div class="notice">
         这里对应首页从上到下的内容：最上面的名字与定位语、中间的「关于我」区块、下面的「最近的记录」。
         按钮链接写 <code>/about/</code> 这种站内路径即可，网站会自动补全。
@@ -187,7 +214,7 @@
         <button class="btn primary" id="btnSaveHome">保存首页文案</button>
       </div>
 
-      <h2>② 板块介绍页</h2>
+      <h2 id="sv-intro">② 板块介绍页</h2>
       <div class="notice">
         每个板块自己那一页（例如点导航「弹幕与数学」进去的那一页）的大标题、副标题和开头那段介绍文字。
         板块的<b>显示名</b>与<b>一句话介绍（首页卡片上那句）</b>在「🗂 板块管理」里改。
@@ -214,7 +241,7 @@
         <span style="font-size:13px;color:var(--ink-mute)" id="introExtra"></span>
       </div>
 
-      <h2>③ 联系方式</h2>
+      <h2 id="sv-socials">③ 联系方式</h2>
       <div class="notice">
         显示在页脚和「自我介绍」页。图标可选：mail / github / twitter / bilibili / pixiv / rss / link。
         网址以 <code>mailto:</code> 开头就是邮件；<code>/index.xml</code> 是本站 RSS。
@@ -227,7 +254,7 @@
         <button class="btn primary" id="btnSaveSocials">保存联系方式</button>
       </div>
 
-      <h2>④ 友情链接（页脚）</h2>
+      <h2 id="sv-friends">④ 友情链接（页脚）</h2>
       <div class="notice">
         页面最底部那一大片「友情链接」卡片区。每一条有：<b>主链接文字</b>、<b>主链接地址</b>，
         以及可选的 <b>banner 头图</b>（上传后会显示在卡片顶部）和 <b>小字说明</b>。<br>
@@ -241,7 +268,7 @@
         <button class="btn primary" id="btnSaveFriends">保存友情链接</button>
       </div>
 
-      <h2>⑤ 界面文案</h2>
+      <h2 id="sv-copy">⑤ 界面文案</h2>
       <div class="notice">
         网站里所有零散的文字都在这里：页脚那句传说、404 页、列表空状态、分页、目录，
         以及「另一个维度」的全部门面话。<br>
@@ -321,6 +348,17 @@ async function boot() {
   $('btnSaveFriends').addEventListener('click', saveFriendsTable);
   $('btnAddFriend').addEventListener('click', () => { (SITE.friends = SITE.friends || []).push({ name: '', url: '', banner: '', note: '' }); renderFriendsTable(); });
   $('btnSaveCopy').addEventListener('click', saveCopyForm);
+  // 站点设置的子导航：侧栏按钮 → 滚动到对应区块并短暂高亮
+  document.querySelectorAll('.svlink').forEach(function (b) {
+    b.addEventListener('click', function () {
+      const el = document.getElementById(b.dataset.goto);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      el.style.transition = 'background .4s';
+      el.style.background = 'var(--accent-soft)';
+      setTimeout(function () { el.style.background = ''; }, 900);
+    });
+  });
   $('introSection').addEventListener('change', loadIntroFields);
   $('btnUpload').addEventListener('click', () => { EDITING_FILE = EDITING_FILE; imageTargetField = null; $('fileInput').click(); });
   $('fileInput').addEventListener('change', () => uploadFiles($('fileInput').files));
