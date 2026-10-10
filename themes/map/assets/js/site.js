@@ -2714,7 +2714,8 @@
     var head = cv.parentNode && cv.parentNode.parentNode;
     if (!head) return;
     var k = LAY.r / R;
-    var box = Math.max(76, 210 * k);
+    /* 判定区 = 整个黑洞。黑洞外缘约 ROUT*1.12 = 101 世界单位，所以取直径 202。 */
+    var box = Math.max(90, 202 * k);
 
     /* LAY.cx / LAY.cy 是「**画布左上角**」坐标系里的值 —— 时钟用
        setTransform(s,0,0,s, LAY.cx*dpr - CX*s, LAY.cy*dpr - CY*s)
@@ -2725,11 +2726,9 @@
     var host = btn.offsetParent || document.body;
     var cr = cv.getBoundingClientRect();
     var pr = host.getBoundingClientRect();
-    /* 落在黑洞正下方：黑洞外缘约 ROUT*1.12 = 101 世界单位，
-       再往下让开一点，锁就贴在洞口下沿。 */
-    var DROP = 118 * (LAY.r / R);   // 118：图标上沿刚好落在黑洞外缘(101)之下，既不压洞也不飘远
+    /* 判定区就是整个黑洞，所以按钮中心严格落在黑洞中心，不再往下让。 */
     var left = (cr.left - pr.left) + LAY.cx;
-    var top = (cr.top - pr.top) + LAY.cy + DROP;
+    var top = (cr.top - pr.top) + LAY.cy;
 
     btn.style.left = left.toFixed(1) + 'px';
     btn.style.top = top.toFixed(1) + 'px';
