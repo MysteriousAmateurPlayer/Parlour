@@ -2170,8 +2170,12 @@ a, button, summary, label, select,
 .recipe-specs dd { margin: 0; font-size: var(--step--1); color: var(--ink); }
 
 .recipe-layout { display: grid; gap: 2.5rem; }
+/* 两栏只在**确实有食材栏**时才用。
+   原来是无条件 grid-template-columns: 17rem 1fr ——
+   没写食材时 aside 不渲染，正文就成了第一个网格项，被塞进 17rem 那一窄栏里，
+   整篇挤在左边。所以模板会按有没有食材加 .recipe-layout--with-aside。 */
 @media (min-width: 56rem) {
-  .recipe-layout { grid-template-columns: 17rem minmax(0, 1fr); gap: 3.5rem; }
+  .recipe-layout--with-aside { grid-template-columns: 17rem minmax(0, 1fr); gap: 3.5rem; }
   .recipe-ingredients { position: sticky; top: calc(var(--header-h) + 2rem); align-self: start; }
 }
 .recipe-section__title {

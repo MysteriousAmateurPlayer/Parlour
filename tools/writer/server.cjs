@@ -74,7 +74,9 @@ const SPECIAL_FIELDS = {
     key: 'ingredients', label: '食材', type: 'ingredients', rows: 8,
       hint: '一组用一对方括号起头，下面每行写一样食材。例如：\n[主料]\n牛腩 700g\n番茄 3 个'
     },
-    { key: 'steps', label: '步骤', type: 'steps', rows: 7, hint: '一行一步，会自动编号成卡片' },
+    { key: 'steps', label: '步骤', type: 'steps', rows: 7,
+    hint: '一行一步，不用自己写 1. 2. 3. —— 页面上会自动编号。\n' +
+          '（万一写了，保存时也会自动去掉，不会出现双层编号。）' },
     { key: 'cover', label: '成品图（可留空）', type: 'image' },
     COMMON.draft, COMMON.filename
   ],
@@ -778,7 +780,12 @@ function dumpValue(out, key, value, indent) {
   if (arr) {
     if (!value.length) { out.push(`${pad}${key}: []`); return; }
     if (value.every((v) => typeof v !== 'object' || v === null)) {
-      out.push(`${pad}${key}: [${value.map((v) => quoteIfNeeded(v)).join(', ')}]`);
+      /* 纯值数组一律写成 **block 格式**（每行一条），不要写成 ["a", "b", "c"]。
+         原因：写作台自己的 parseYaml 是逐行解析的简易实现，不认 flow 数组 ——
+         一旦写成方括号形式，下次读回来整行会被当成**一个字符串**，
+         于是首页「关于我」的三段话会粘成一段，越存越糟。 */
+      out.push(`${pad}${key}:`);
+      for (const v of value) out.push(`${pad}  - ${quoteIfNeeded(v)}`);
       return;
     }
     out.push(`${pad}${key}:`);
@@ -918,6 +925,12 @@ function buildPost(sectionKey, payload) {
       const list = String(raw || '')
         .split(/\r?\n/)
         .map((s) => s.trim())
+        .filter(Boolean)
+        /* 剥掉用户自己写的前导列表标记（1. / 1、 / 1) / - / * / • ）。
+           页面里步骤是用 <ol> 自动编号的，若正文再带一遍编号，markdownify 之后
+           会变成「1. 1. 第一步」这种双层编号；而且下次读回编辑器时那些标记还在，
+           很容易被当成「系统塞进来的特殊语法」。统一在这里去掉，存储永远是纯文本。 */
+        .map((s) => s.replace(/^(?:\d+\s*[.、)）]|[-*+•])\s*/, ''))
         .filter(Boolean);
       if (list.length) data[f.key] = list;
       continue;

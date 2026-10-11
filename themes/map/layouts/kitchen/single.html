@@ -52,7 +52,7 @@
 </section>
 {{- end }}
 
-<div class="recipe-layout">
+<div class="recipe-layout{{ if $groups }} recipe-layout--with-aside{{ end }}">
       {{- if $groups }}
       <aside class="recipe-ingredients">
         <h2 class="recipe-section__title">{{ partial "t.html" (dict "key" "列表与文章.食材标题" "default" "食材") }}</h2>
