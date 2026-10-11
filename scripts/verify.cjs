@@ -42,11 +42,22 @@ console.log(`板块配置：共 ${list.length} 个（导航 ${navSections.length
 
 // ---------- 首页 ----------
 const home = read('index.html');
+// 现在 content 下可能一篇文章都没有（作者清空过示例文章），
+// 凡是「需要有文章才成立」的检查，在没文章时跳过而不是判失败。
+const POST_COUNT = ['about', 'blogs', 'fanworks', 'garden', 'kitchen', 'math', 'secrets']
+  .reduce((acc, sec) => {
+    const d = path.join(ROOT, 'content', sec);
+    if (!fs.existsSync(d)) return acc;
+    return acc + fs.readdirSync(d).filter((f) => f.endsWith('.md') && f !== '_index.md').length;
+  }, 0);
+const NO_POSTS = POST_COUNT === 0;
+const skipNote = NO_POSTS ? '（还没有文章，跳过）' : '';
+
 // 压缩后的 HTML 会把单词属性写成无引号（class=nav__link），先规范化再做正则提取
 const homeNorm = home.replace(/(\s[a-zA-Z_:][-a-zA-Z0-9_:.]*)=([^\s"'>]+)/g, '$1="$2"');
 check('首页有主视觉', home.includes('hero__name'));
 check('首页有五个房间区块', home.includes('band--sections'));
-check('首页有最新记录', home.includes('post-row__title'));
+check('首页有最新记录', NO_POSTS ? true : home.includes('post-row__title'), skipNote);
 check('首页有明暗切换按钮', home.includes('id="theme-toggle"'));
 check('首页未加 noindex', !home.includes('name="robots"'));
 
@@ -135,13 +146,18 @@ if (srcExists(recipeSample)) {
 }
 
 // ---------- 列表页形态（按板块类型） ----------
-if (srcExists('content/garden')) check('园艺年表结构', read('garden/index.html').includes('timeline__item'));
+if (srcExists('content/garden')) {
+  const gardenPosts = fs.readdirSync(path.join(ROOT, 'content', 'garden'))
+    .filter((f) => f.endsWith('.md') && f !== '_index.md').length;
+  check('园艺年表结构', gardenPosts === 0 || read('garden/index.html').includes('timeline__item'),
+    gardenPosts === 0 ? '（园艺下还没有文章，跳过）' : '');
+}
 if (srcExists('content/fanworks')) check('同人标签筛选', fs.existsSync(path.join(ROOT, 'content/fanworks')) &&
   (fs.readdirSync(path.join(ROOT, 'content/fanworks')).filter((f) => f.endsWith('.md') && f !== '_index.md').length < 2
     ? true : (read('fanworks/index.html').match(/filter-bar__btn/g) || []).length >= 2));
 
 // ---------- 标签 / 系列 ----------
-check('标签总览页', read('tags/index.html').includes('term-chip'));
+check('标签总览页', NO_POSTS ? true : read('tags/index.html').includes('term-chip'), skipNote);
 
 // ---------- 里版（如果还在） ----------
 const secretsCfg = sections.secrets;
