@@ -101,6 +101,15 @@ box-shadow:0 8px 26px rgba(34,31,28,.18);font-size:14px;line-height:1.65;white-s
 .status.show{display:block}
 .status.ok{border-color:#a9cfa9;background:#f4fbf4}
 .status.err{border-color:#e0b9b6;background:#fdf3f2}
+/* 状态浮层的关闭按钮 */
+.status{padding-right:44px}
+.status__x{position:absolute;top:6px;right:8px;width:26px;height:26px;padding:0;border:0;
+border-radius:4px;background:transparent;color:var(--ink-mute);font:20px/1 var(--sans);
+cursor:pointer;transition:.18s}
+.status__x:hover{background:var(--accent-soft);color:var(--ink)}
+.status__body{margin:0}
+.status.show{animation:statusIn .18s ease-out}
+@keyframes statusIn{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
 </style>
 </head>
 <body>
@@ -341,10 +350,26 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const post = async (path, body) => (await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) })).json();
 
+let statusTimer = null;
+
+function hideStatus() {
+  const el = $('status');
+  el.className = 'status';
+  el.innerHTML = '';
+  if (statusTimer) { clearTimeout(statusTimer); statusTimer = null; }
+}
+
 function setStatus(text, kind) {
   const el = $('status');
-  el.className = 'status show ' + (kind || 'info');
-  el.textContent = text;
+  const k = kind || 'info';
+  el.className = 'status show ' + k;
+  el.innerHTML = '<button class="status__x" type="button" title="关闭（Esc）" aria-label="关闭">×</button>' +
+                 '<div class="status__body"></div>';
+  el.querySelector('.status__body').textContent = text;
+  el.querySelector('.status__x').addEventListener('click', hideStatus);
+  if (statusTimer) { clearTimeout(statusTimer); statusTimer = null; }
+  // 成功与普通提示 6 秒后自己收起；出错的留着，等你处理完再手动关
+  if (k !== 'err') statusTimer = setTimeout(hideStatus, 6000);
 }
 
 /* ================= 启动 ================= */
@@ -375,6 +400,10 @@ async function boot() {
   $('btnAddFriend').addEventListener('click', () => { (SITE.friends = SITE.friends || []).push({ name: '', url: '', banner: '', note: '' }); renderFriendsTable(); });
   $('btnSaveCopy').addEventListener('click', () => saveCopyForm(false));
   $('btnSaveCopyPub').addEventListener('click', () => saveCopyForm(true));
+  // 提示浮层：按 Esc 关掉
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideStatus();
+  });
   // 站点设置的子导航：侧栏按钮 → 滚动到对应区块并短暂高亮
   document.querySelectorAll('.svlink').forEach(function (b) {
     b.addEventListener('click', function () {
