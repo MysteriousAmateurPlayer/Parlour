@@ -18,7 +18,7 @@ about:
   title: "关于我"
   subtitle: About
   portraitFallback: MAP
-  paragraphs: ["白天和人打交道，夜里和公式打交道。写代码、做题、种花、做饭，是我用来确认自己还活着的四件事。", "这个网站没有什么宏伟目标，只是想把散落各处的东西收拾到一处——这样若干年后回看，至少知道这些年时间去了哪里。"]
+  paragraphs: ["测试"]
   facts:
     - label: "常驻"
       value: "某座四季分明的城市"
