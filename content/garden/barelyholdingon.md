@@ -2,9 +2,11 @@
 title: "《极限绷住》带团体验"
 date: 2026-10-06
 description: "这谁绷得住"
-weather: "奶龙"
-tags: ["奶龙"]
-series: ["1920COC之旅"]
+weather: "到底咋了"
+tags:
+  - "奶龙"
+series:
+  - "1920COC之旅"
 draft: false
 ---
 
