@@ -12,7 +12,7 @@
 
 - name: "虹星的星虹巢"
   url: "https://arcarlight.github.io/BlogStand/"
-  banner: "/images/Nijiboshi-Sou-Banner-20048-hazd.png"
+  banner: /images/Nijiboshi-Sou-Banner-sctx.png
   note: "朋友的千禧风个人主页，宝可梦与笨蛋浓度100%"
 - name: "示例友链 B"
   url: "https://example.com"
