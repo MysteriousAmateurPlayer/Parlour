@@ -439,7 +439,8 @@ const SITE_HOME_FIELDS = [
   { group: '关于我（首页区块）', key: 'about.subtitle', label: '英文小标题', type: 'string' },
   { group: '关于我（首页区块）', key: 'about.portrait', label: '竖版照片', type: 'image', hint: '上传后会同时用在首页和自我介绍页；留空则显示字母方框' },
   { group: '关于我（首页区块）', key: 'about.portraitFallback', label: '没有照片时显示的字母', type: 'string' },
-  { group: '关于我（首页区块）', key: 'about.paragraphs', label: '段落', type: 'lines', hint: '一行一段' },
+  { group: '关于我（首页区块）', key: 'about.paragraphs', label: '段落', type: 'lines',
+    hint: '一行一段，不用在段尾写 \\。\n想在**一段内部**换行，把 \\ 写在那一行的中间；\n段尾的 \\ 会被自动去掉。' },
   { group: '关于我（首页区块）', key: 'about.facts', label: '速览', type: 'pairs', hint: '一行一条，写成「名目 | 内容」，例如：\n常驻 | 某座四季分明的城市' },
   { group: '最近的记录', key: 'latest.title', label: '标题', type: 'string' },
   { group: '最近的记录', key: 'latest.subtitle', label: '英文小标题', type: 'string' },
@@ -519,7 +520,14 @@ function saveHome(values) {
     const raw = values[f.key];
     if (raw === undefined) continue;
     if (f.type === 'lines') {
-      const list = String(raw).split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+      const list = String(raw)
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        /* 去掉段尾多余的 \ —— 每一行本来就会渲染成一个独立段落，
+           行尾的反斜杠后面没有换行符，markdown 不会把它当换行语法，
+           只会原样显示成一个「」。想在一段**内部**换行时，把 \ 写在中间就行。 */
+        .map((s) => s.replace(/\\+\s*$/, '').trim())
+        .filter(Boolean);
       setPath(home, f.key, list);
     } else if (f.type === 'pairs') {
       const list = String(raw).split(/\r?\n/).map((s) => s.trim()).filter(Boolean)

@@ -3,6 +3,9 @@ title: "另一个维度"
 description: "？？？？？"
 private: true
 secretsGate: true
+# 这个版块下的所有文章自动继承「不被搜索引擎收录」，新建时不用记得勾
+cascade:
+  private: true
 ---
 
 谜题好玩吗？\
