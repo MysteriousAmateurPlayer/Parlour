@@ -875,6 +875,7 @@ async function uploadFiles(fileList) {
        以前只找 [data-k]，所以友链上传头图后路径根本写不进去，还不报错 —— 图片传上去了、
        页面上却不显示。现在按 id 兜底，找不到就明确报错而不是静默失败。 */
     const el = document.querySelector(`[data-k="${imageTargetField}"]`) ||
+               document.querySelector(`[data-site="${imageTargetField}"]`) ||
                document.getElementById(imageTargetField);
     const target = imageTargetField;
     imageTargetField = null;

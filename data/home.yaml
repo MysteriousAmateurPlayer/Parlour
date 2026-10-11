@@ -28,7 +28,7 @@ about:
       value: "数学、写作、园艺"
     - label: "写信给我"
       value: map@example.com
-  portrait: ""
+  portrait: "/images/portrait.jpg"
 latest:
   title: "最近的记录"
   subtitle: Recent
