@@ -15,6 +15,11 @@ if (!base) {
 }
 
 const root = base.endsWith('/') ? base : base + '/';
+// 文章可能被作者删掉；探针先看源文件在不在
+const fs = require('fs');
+const path = require('path');
+const PROJ = path.join(__dirname, '..');
+const srcExists = (rel) => fs.existsSync(path.join(PROJ, 'content', rel));
 const url = (p) => new URL(p.replace(/^\//, ''), root).href;
 
 // Hugo 前端的 HTML 会省略可选引号（href=/x.css），先把属性值补回引号，
@@ -25,7 +30,7 @@ let fails = 0;
 let warns = 0;
 
 function line(status, label, extra) {
-  const tag = status === 'PASS' ? 'PASS' : status === 'WARN' ? 'WARN' : 'FAIL';
+  const tag = status === 'PASS' ? 'PASS' : status === 'WARN' ? 'WARN' : status === 'SKIP' ? 'SKIP' : 'FAIL';
   if (status === 'FAIL') fails++;
   if (status === 'WARN') warns++;
   console.log(`${tag}  ${label}${extra ? '  ' + extra : ''}`);
@@ -106,10 +111,13 @@ async function get(path, { timeout = 25000 } = {}) {
     ['自我介绍', '/about/'],
     ['同人创作列表', '/fanworks/'],
     ['数学列表', '/math/'],
-    ['一篇数学文章（含公式）', '/math/golden-ratio-continued-fraction/'],
+    // 文章可能被作者删掉了；只有源文件还在，才检查它是否可达
+  ...(fs.existsSync(path.join(PROJ, 'content', 'math', 'golden-ratio-continued-fraction.md'))
+      ? [['一篇数学文章（含公式）', '/math/golden-ratio-continued-fraction/']] : []),
     ['园艺年表', '/garden/'],
     ['食谱列表', '/kitchen/'],
-    ['一份食谱（含结构化数据）', '/kitchen/tomato-beef-brisket/'],
+    ...(fs.existsSync(path.join(PROJ, 'content', 'kitchen', 'tomato-beef-brisket.md'))
+      ? [['一份食谱（含结构化数据）', '/kitchen/tomato-beef-brisket/']] : []),
     ['标签总览', '/tags/'],
     ['里版入口', '/secrets/'],
     ['RSS 订阅', '/index.xml'],
@@ -142,14 +150,16 @@ async function get(path, { timeout = 25000 } = {}) {
   }
 
   // ---------- 7. 公式资源（只在数学页加载）----------
-  const math = await get('/math/golden-ratio-continued-fraction/');
-  if (math.ok && math.status === 200) {
-    line(math.text.includes('vendor/katex/katex.min.css') ? 'PASS' : 'FAIL', '数学页加载了 KaTeX');
-    const katex = await get('/vendor/katex/katex.min.css');
-    line(katex.ok && katex.status === 200 ? 'PASS' : 'FAIL', 'KaTeX 样式文件可达', `HTTP ${katex.status}`);
-    const font = await get('/vendor/katex/fonts/KaTeX_Main-Regular.woff2');
-    line(font.ok && font.status === 200 ? 'PASS' : 'FAIL', 'KaTeX 字体可达（公式才好看）', `HTTP ${font.status}`);
-  }
+if (srcExists('math/golden-ratio-continued-fraction.md')) {
+    const math = await get('/math/golden-ratio-continued-fraction/');
+    if (math.ok && math.status === 200) {
+      line(math.text.includes('vendor/katex/katex.min.css') ? 'PASS' : 'FAIL', '数学页加载了 KaTeX');
+      const katex = await get('/vendor/katex/katex.min.css');
+      line(katex.ok && katex.status === 200 ? 'PASS' : 'FAIL', 'KaTeX 样式文件可达', `HTTP ${katex.status}`);
+      const font = await get('/vendor/katex/fonts/KaTeX_Main-Regular.woff2');
+      line(font.ok && font.status === 200 ? 'PASS' : 'FAIL', 'KaTeX 字体可达（公式才好看）', `HTTP ${font.status}`);
+    }
+} else { line('SKIP', '公式渲染（KaTeX）', '（这篇示例文章已删除，跳过）'); }
 
   console.log('─'.repeat(60));
   if (fails === 0) {
