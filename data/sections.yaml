@@ -1,71 +1,70 @@
 about:
   title: "关于本站"
-  en: "About"
-  numeral: "I"
+  en: About
+  numeral: I
   accent: "#fff194"
-  icon: "user"
+  icon: user
   blurb: ""
   weight: 10
   nav: true
   home: true
-  # 首页已有单独的「关于本站」区块，所以不再出现在地球拼图里
   globe: false
 fanworks:
-  title: "东方二次同人创作"
-  en: "Fanworks"
-  numeral: "II"
+  title: "同人创作"
+  en: Fanworks
+  numeral: II
   accent: "#9acefe"
-  icon: "feather"
-  blurb: "东方二次同人STG创作的灵感解说与幕后故事"
+  icon: feather
+  blurb: "同人创作灵感解说与幕后故事"
   weight: 20
   nav: true
   home: true
 math:
   title: "弹幕与数学"
-  en: "Mathematics"
-  numeral: "III"
+  en: Mathematics
+  numeral: III
   accent: "#3d4a8a"
-  icon: "sigma"
-  blurb: "数学原理才是弹幕射击的基础噜"
+  icon: sigma
+  blurb: "这些能被整理成[理论]吗……"
   weight: 30
   nav: true
   home: true
 garden:
   title: "克苏鲁调查记录"
-  en: "Cthulhu"
-  numeral: "IV"
+  en: Cthulhu
+  numeral: IV
   accent: "#6fae8a"
-  icon: "yog"
-  blurb: "对不可名状之物的田野调查"
+  icon: user
+  blurb: "对不可名状之物的实地考察"
   weight: 40
   nav: true
   home: true
 kitchen:
   title: "烹饪食谱"
-  en: "Kitchen"
-  numeral: "V"
+  en: Kitchen
+  numeral: V
   accent: "#e6b065"
-  icon: "pot"
-  blurb: "人类需要甜点心"
+  icon: pot
+  blurb: "收集全世界的料理图鉴"
   weight: 50
   nav: true
   home: true
 secrets:
   title: "另一个维度"
   en: "Another Dimension"
-  numeral: "0"
+  numeral: 0
   accent: "#4a4a55"
-  icon: "orbit"
-  blurb: "心灵枷锁的另一侧"
+  icon: user
+  blurb: "需要暂时保密的档案们"
   weight: 90
-  nav: false
-  home: false
+  nav: true
+  home: true
 blogs:
   title: "随性笔记"
   en: ""
-  numeral: "VI"
+  numeral: VI
   accent: "#6b7a8a"
-  icon: "link"
+  icon: link
   blurb: "将奇迹化作日常"
   weight: 95
   nav: true

@@ -17,9 +17,9 @@ media:
   categories: [image]
 
 content:
-  # ---------------- 东方二次同人创作 ----------------
+  # ---------------- 同人创作 ----------------
   - name: fanworks
-    label: "东方二次同人创作"
+    label: "同人创作"
     type: collection
     path: content/fanworks
     exclude: [_index.md]
@@ -182,6 +182,9 @@ content:
         list: true
       - name: source
         label: "参考 / 来源"
+        type: string
+      - name: recipe
+        label: "配方列表（排在食材与做法之前的那张表）"
         type: string
       - name: ingredients
         label: "食材"

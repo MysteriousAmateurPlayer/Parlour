@@ -1125,19 +1125,25 @@ const server = http.createServer(async (req, res) => {
       const log = [];
 
       // ① 先在本地构建一次：模板/内容有错就当场拦住，不把坏版本推上去
-      //    --cleanDestinationDir：清掉上次的产物，避免开发服务器残留的 livereload.js 之类混进来
-      const build = await runCmd(hugoExe(), ['--source', ROOT, '--minify', '--gc', '--cleanDestinationDir'], 240000);
+      //    ⚠️ 刻意**不写 public/** —— 本地预览（hugo server）会一直占着 public 里的文件，
+      //       以前这里用 --cleanDestinationDir 去清 public，只要预览开着就会炸：
+      //         unlinkat …\public\tags\xxx: The directory is not empty
+      //       现在改成输出到 .tools/_publish（每次先删干净），与预览互不干扰。
+      const PUBDIR = path.join(ROOT, '.tools', '_publish');
+      try { fs.rmSync(PUBDIR, { recursive: true, force: true }); } catch (e) {}
+      const build = await runCmd(hugoExe(), ['--source', ROOT, '--minify', '--gc', '--destination', PUBDIR], 240000);
       if (!build.ok) {
         return json(res, 200, {
           ok: false,
           log: '本地构建失败，已中止推送（线上还是上一个好版本，没被弄坏）：\n\n' + build.out.trim(),
-          hint: '把上面的报错发我；也可以只点「保存」（不发布）先把内容留在本地。'
+          hint: '把上面的报错发我；也可以只点「保存」（不发布）先把内容留在本地。\n' +
+                '（如果报的是 unlinkat / 目录不是空的，那是本地预览占着文件，现在已改成不碰 public，重试即可。）'
         });
       }
       log.push('① 本地构建通过 ✓');
 
       // ② 站内链接体检（漏了 /仓库名/ 前缀的链接会被抓出来）
-      const links = await runCmd(process.execPath, [path.join(ROOT, 'scripts', 'check-links.cjs')], 180000);
+      const links = await runCmd(process.execPath, [path.join(ROOT, 'scripts', 'check-links.cjs'), PUBDIR], 180000);
       log.push('② 站内链接体检：' + (links.ok ? '全部通过 ✓' : '发现问题 ⚠'));
       if (!links.ok) log.push(links.out.trim().split('\n').slice(0, 12).join('\n'));
 
