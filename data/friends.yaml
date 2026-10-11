@@ -10,16 +10,14 @@
 #  想加几条就往下接几条，格式一样。
 # ============================================================
 
-- name: "示例友链 A"
-  url: "https://example.com"
+- name: "虹星的星虹巢"
+  url: "https://arcarlight.github.io/BlogStand/"
   banner: ""
-  note: "这里写一句话介绍"
-
+  note: "朋友的千禧风个人主页，宝可梦与笨蛋浓度100%"
 - name: "示例友链 B"
   url: "https://example.com"
   banner: ""
   note: "带 banner 的话，把图片放进 static/images/，再写 /images/文件名.jpg"
-
 - name: "示例友链 C"
   url: "https://example.com"
   banner: ""
