@@ -3,12 +3,11 @@
 #  icon 可选：mail / github / twitter / bilibili / pixiv / rss / link
 # ============================================================
 
-- name: 邮件
-  icon: mail
-  url: "mailto:map@example.com"
-  text: "map@example.com"
-
-- name: 哔哩哔哩
+- name: "哔哩哔哩"
   icon: bilibili
-  url: "https://space.bilibili.com/000000"
-  text: "MAP 的频道"
+  url: "https://space.bilibili.com/399237627"
+  text: "MAP的哔哩哔哩"
+- name: "Luastg交流群"
+  icon: key
+  url: ""
+  text: "Luastg交流群"
