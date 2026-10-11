@@ -14,11 +14,11 @@
   url: "https://arcarlight.github.io/BlogStand/"
   banner: /images/Nijiboshi-Sou-Banner-t9ur.png
   note: "朋友的千禧风个人主页，宝可梦与笨蛋浓度100%"
-- name: "示例友链 B"
-  url: "https://example.com"
+- name: "毒毒糖果铺"
+  url: "https://shema-sunf.github.io/about/"
+  banner: /images/friendlink_doku-8wff.png
+  note: "朋友的个人笔记，含有一些佛教艺术知识"
+- name: "图书复制人的哔哩哔哩"
+  url: "https://space.bilibili.com/8300428"
   banner: ""
-  note: "带 banner 的话，把图片放进 static/images/，再写 /images/文件名.jpg"
-- name: "示例友链 C"
-  url: "https://example.com"
-  banner: ""
-  note: ""
+  note: "朋友的B站主页，关注可获得云源历一手消息（他是主催！）~"
