@@ -869,10 +869,24 @@ async function uploadFiles(fileList) {
   }
   if (!urls.length) return;
   if (imageTargetField) {
-    const el = document.querySelector(`[data-k="${imageTargetField}"]`);
-    if (el) el.value = urls[0];
+    /* 目标输入框有三种命名方式，都要找得到：
+         · 文章表单 / 站点设置用 data-k="字段名"
+         · 友情链接表格用 data-f="banner" + id="friend-banner-N"（pickImage 传的是 id）
+       以前只找 [data-k]，所以友链上传头图后路径根本写不进去，还不报错 —— 图片传上去了、
+       页面上却不显示。现在按 id 兜底，找不到就明确报错而不是静默失败。 */
+    const el = document.querySelector(`[data-k="${imageTargetField}"]`) ||
+               document.getElementById(imageTargetField);
+    const target = imageTargetField;
     imageTargetField = null;
-    setStatus('封面图已设置：' + urls[0], 'ok');
+    if (el) {
+      el.value = urls[0];
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      setStatus('图片已填入「' + target + '」：' + urls[0] +
+                '\n（记得点这一块的「保存」或「保存并发布」才会写进文件）', 'ok');
+    } else {
+      setStatus('图片已上传到 ' + urls[0] + '，但没找到要填入的输入框（' + target +
+                '）。把这条消息发我。', 'err');
+    }
   } else {
     insertAtCursor(urls.map((u) => `\n![图片](${u})\n`).join(''));
     setStatus(`已上传 ${urls.length} 张图片，并插入到正文里（正文框里能看到 ![](…)，网站上会显示成图）。`, 'ok');
