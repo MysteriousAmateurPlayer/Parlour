@@ -52,13 +52,13 @@ kitchen:
 secrets:
   title: "另一个维度"
   en: "Another Dimension"
-  numeral: 0
+  numeral: "0"
   accent: "#4a4a55"
-  icon: user
+  icon: orbit
   blurb: "需要暂时保密的档案们"
   weight: 90
-  nav: true
-  home: true
+  nav: false
+  home: false
 blogs:
   title: "随性笔记"
   en: ""
