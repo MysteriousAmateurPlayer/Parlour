@@ -12,6 +12,8 @@ draft: false
 
 ## 原模组：https://www.dicecho.io/module/6a3a90836c8d9fa1af652d55
 
+![图片](/images/绷住-t6sf.png)
+
 改编参考：【【极限绷住P1】诡异的黄色大奶龙】 https://www.bilibili.com/video/BV1NjKV6hECT/?share_source=copy_web&vd_source=b0d70f8bddceb74fa61a6c0687e3fabe
 
 嘛，很久之前就在小红书刷到这个奶龙本了，这不得拿去整整亲友？\
