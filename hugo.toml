@@ -58,8 +58,10 @@ summaryLength = 72
     # 前端把选中的「月-日」拼成 M-D 再做哈希比对 —— 源码里看不到答案。
     # 重新生成：node -e "console.log(require('crypto').createHash('sha256').update('8-13').digest('hex'))"
     year = 2026
+  # 月份固定 —— 题目里直接写明，答题时只需要选「日」
+  month = 8
     answerHash = "cb4b2a415ad7421f32183d5d322e83439706693d0c03f3c6e8cb6d5687baf781"
-    question = "我第一次发布同人画作的日期，是 2026 年的哪一天？"
+    question = "我第一次发布同人画作的日期，是 2026 年 8 月的哪一天？"
     # 当月答错「超过」这个次数，本月就不能再试了（3 表示允许错 3 次）
     maxFails = 3
     hint = ""

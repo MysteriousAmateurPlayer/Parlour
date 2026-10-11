@@ -204,7 +204,6 @@
     paintFails();
     var locked = S.isLocked(maxFails);
     if (form) form.hidden = locked;
-    if (selMonth) selMonth.value = '';
     if (selDay) selDay.value = '';
     if (locked) setMsg(msg, '这个月你已经试过太多次了。下个月再来，星星会等你。', 'error');
     else setTimeout(function () { if (selMonth) selMonth.focus(); }, 60);
@@ -243,7 +242,8 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       if (S.isLocked(maxFails)) { paintFails(); setMsg(msg, '本月已经没有机会了。', 'error'); return; }
-      var m = selMonth ? selMonth.value : '';
+      // 月份固定（模板里已写明），从 modal 的 data-month 取
+    var m = modal.getAttribute('data-month') || (selMonth ? selMonth.value : '');
       var d = selDay ? selDay.value : '';
       if (!m || !d) { setMsg(msg, '月和日都要选。', 'error'); return; }
 
