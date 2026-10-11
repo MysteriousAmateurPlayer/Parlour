@@ -211,7 +211,8 @@ h2[id^="sv-"]{scroll-margin-top:80px}
       </div>
       <div id="siteHomeForm"></div>
       <div class="actions" style="margin:6px 0 30px">
-        <button class="btn primary" id="btnSaveHome">保存首页文案</button>
+        <button class="btn" id="btnSaveHome">保存首页文案</button>
+        <button class="btn primary" id="btnSaveHomePub">保存并发布</button>
       </div>
 
       <h2 id="sv-intro">② 板块介绍页</h2>
@@ -237,7 +238,8 @@ h2[id^="sv-"]{scroll-margin-top:80px}
         <div class="hint">支持 Markdown，也可以写站内链接如 <code>[数学](/math/)</code>。</div>
       </div>
       <div class="actions" style="margin-bottom:30px">
-        <button class="btn primary" id="btnSaveIntro">保存这一页</button>
+        <button class="btn" id="btnSaveIntro">保存这一页</button>
+        <button class="btn primary" id="btnSaveIntroPub">保存并发布</button>
         <span style="font-size:13px;color:var(--ink-mute)" id="introExtra"></span>
       </div>
 
@@ -251,7 +253,8 @@ h2[id^="sv-"]{scroll-margin-top:80px}
       </div>
       <div class="actions" style="margin:10px 0 30px">
         <button class="btn" id="btnAddSocial">＋ 添加一行</button>
-        <button class="btn primary" id="btnSaveSocials">保存联系方式</button>
+        <button class="btn" id="btnSaveSocials">保存联系方式</button>
+        <button class="btn primary" id="btnSaveSocialsPub">保存并发布</button>
       </div>
 
       <h2 id="sv-friends">④ 友情链接（页脚）</h2>
@@ -265,7 +268,8 @@ h2[id^="sv-"]{scroll-margin-top:80px}
       </div>
       <div class="actions" style="margin:10px 0 30px">
         <button class="btn" id="btnAddFriend">＋ 添加一行</button>
-        <button class="btn primary" id="btnSaveFriends">保存友情链接</button>
+        <button class="btn" id="btnSaveFriends">保存友情链接</button>
+        <button class="btn primary" id="btnSaveFriendsPub">保存并发布</button>
       </div>
 
       <h2 id="sv-copy">⑤ 界面文案</h2>
@@ -278,7 +282,8 @@ h2[id^="sv-"]{scroll-margin-top:80px}
       </div>
       <div id="copyForm"></div>
       <div class="actions" style="margin:10px 0 30px">
-        <button class="btn primary" id="btnSaveCopy">保存界面文案</button>
+        <button class="btn" id="btnSaveCopy">保存界面文案</button>
+        <button class="btn primary" id="btnSaveCopyPub">保存并发布</button>
       </div>
     </div>
 
@@ -286,11 +291,18 @@ h2[id^="sv-"]{scroll-margin-top:80px}
     <div id="viewSections" style="display:none">
       <h2>我的板块</h2>
       <div class="notice">
-        改完点每行的「保存」，然后回到「✍ 写作」点一次 <b>保存并发布</b>，网站上的导航和首页卡片就会跟着变。<br>
+        改完直接点下面的 <b>保存并发布到线上</b> 就行，它会先把每一行存好再推送。<br>
+        也可以只点某一行右边的「保存」先存到本机（还没上线）。<br>
         板块代号（左边灰字）是网址里的一段，例如 <code>/notes/</code>，只能用英文小写字母、数字和连字符。
       </div>
       <div style="overflow:auto">
         <table class="sec" id="secTable"></table>
+      </div>
+
+      <div class="actions" style="margin:14px 0 30px">
+        <button class="btn" id="btnSaveAllSections">先把所有改动存下来</button>
+        <button class="btn primary" id="btnPublishSections">保存并发布到线上</button>
+        <span style="font-size:13px;color:var(--ink-mute)">「保存并发布」会把每一行的改动一起存好，然后推送到 GitHub</span>
       </div>
 
       <h2 style="margin-top:28px">新增板块</h2>
@@ -341,13 +353,18 @@ async function boot() {
   $('btnViewWrite').addEventListener('click', () => switchView('write'));
   $('btnViewSite').addEventListener('click', () => switchView('site'));
   $('btnViewSections').addEventListener('click', () => switchView('sections'));
-  $('btnSaveHome').addEventListener('click', saveSiteHome);
-  $('btnSaveIntro').addEventListener('click', saveIntroPage);
-  $('btnSaveSocials').addEventListener('click', saveSocialsTable);
+  $('btnSaveHome').addEventListener('click', () => saveSiteHome(false));
+  $('btnSaveHomePub').addEventListener('click', () => saveSiteHome(true));
+  $('btnSaveIntro').addEventListener('click', () => saveIntroPage(false));
+  $('btnSaveIntroPub').addEventListener('click', () => saveIntroPage(true));
+  $('btnSaveSocials').addEventListener('click', () => saveSocialsTable(false));
+  $('btnSaveSocialsPub').addEventListener('click', () => saveSocialsTable(true));
   $('btnAddSocial').addEventListener('click', () => { (SITE.socials = SITE.socials || []).push({ name: '', icon: 'link', url: '', text: '' }); renderSocialsTable(); });
-  $('btnSaveFriends').addEventListener('click', saveFriendsTable);
+  $('btnSaveFriends').addEventListener('click', () => saveFriendsTable(false));
+  $('btnSaveFriendsPub').addEventListener('click', () => saveFriendsTable(true));
   $('btnAddFriend').addEventListener('click', () => { (SITE.friends = SITE.friends || []).push({ name: '', url: '', banner: '', note: '' }); renderFriendsTable(); });
-  $('btnSaveCopy').addEventListener('click', saveCopyForm);
+  $('btnSaveCopy').addEventListener('click', () => saveCopyForm(false));
+  $('btnSaveCopyPub').addEventListener('click', () => saveCopyForm(true));
   // 站点设置的子导航：侧栏按钮 → 滚动到对应区块并短暂高亮
   document.querySelectorAll('.svlink').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -367,6 +384,8 @@ async function boot() {
     if (b) insertMarkdown(b.dataset.md);
   });
   $('btnCreateSection').addEventListener('click', createSection);
+  $('btnSaveAllSections').addEventListener('click', () => saveAllSectionRows(false));
+  $('btnPublishSections').addEventListener('click', publishSections);
   bindImageDrop();
   if (META.sections.length) selectSection(META.sections[0].key);
   if (location.hash === '#sections') switchView('sections');
@@ -446,17 +465,18 @@ function loadIntroFields() {
   $('introExtra').textContent = extra.length ? `这个页面还有 ${extra.join('、')} 等设置，保存时会原样保留` : '';
 }
 
-async function saveSiteHome() {
+async function saveSiteHome(andPublish) {
   const values = {};
   document.querySelectorAll('[data-site]').forEach((el) => { values[el.dataset.site] = el.value; });
   const r = await post('/api/site/home', { values });
   if (r.error) return setStatus('保存失败：' + r.error, 'err');
   SITE = null;
   await renderSite(true);
-  setStatus('首页文案已保存。回到「✍ 写作」点一次「保存并发布」，网站上就更新了。', 'ok');
+  if (andPublish) return publishNow('首页文案已保存。');
+  setStatus('首页文案已保存。\n（还没发到线上。满意后点「保存并发布」）', 'ok');
 }
 
-async function saveIntroPage() {
+async function saveIntroPage(andPublish) {
   const key = $('introSection').value;
   const r = await post('/api/site/intro', {
     key, title: $('introTitle').value, description: $('introDesc').value, body: $('introBody').value
@@ -464,7 +484,9 @@ async function saveIntroPage() {
   if (r.error) return setStatus('保存失败：' + r.error, 'err');
   const s = SITE.sections.find((x) => x.key === key);
   if (s) s.intro = r.intro;
-  setStatus(`「${SITE.sections.find((x) => x.key === key).title}」的介绍页已保存。\n回到「✍ 写作」点一次「保存并发布」即可。`, 'ok');
+  const who = `「${SITE.sections.find((x) => x.key === key).title}」的介绍页已保存。`;
+  if (andPublish) return publishNow(who);
+  setStatus(who + '\n（还没发到线上。满意后点「保存并发布」）', 'ok');
 }
 
 function renderSocialsTable() {
@@ -483,7 +505,7 @@ function removeSocialRow(i) {
   renderSocialsTable();
 }
 
-async function saveSocialsTable() {
+async function saveSocialsTable(andPublish) {
   const items = [...document.querySelectorAll('#socialsTable tr[data-i]')].map((tr) => {
     const o = {};
     tr.querySelectorAll('[data-s]').forEach((el) => { o[el.dataset.s] = el.value; });
@@ -493,7 +515,8 @@ async function saveSocialsTable() {
   if (r.error) return setStatus('保存失败：' + r.error, 'err');
   SITE = null;
   await renderSite(true);
-  setStatus(`联系方式已保存（${r.count} 条）。回到「✍ 写作」点一次「保存并发布」即可。`, 'ok');
+  if (andPublish) return publishNow(`联系方式已保存（${r.count} 条）。`);
+  setStatus(`联系方式已保存（${r.count} 条）。\n（还没发到线上。满意后点「保存并发布」）`, 'ok');
 }
 
 function renderFriendsTable() {
@@ -513,7 +536,7 @@ function removeFriendRow(i) {
   renderFriendsTable();
 }
 
-async function saveFriendsTable() {
+async function saveFriendsTable(andPublish) {
   const items = [...document.querySelectorAll('#friendsTable tr[data-i]')].map((tr) => {
     const o = {};
     tr.querySelectorAll('[data-f]').forEach((el) => { o[el.dataset.f] = el.value; });
@@ -523,7 +546,8 @@ async function saveFriendsTable() {
   if (r.error) return setStatus('保存失败：' + r.error, 'err');
   SITE = null;
   await renderSite(true);
-  setStatus(`友情链接已保存（${r.count} 条）。回到「✍ 写作」点一次「保存并发布」即可。`, 'ok');
+  if (andPublish) return publishNow(`友情链接已保存（${r.count} 条）。`);
+  setStatus(`友情链接已保存（${r.count} 条）。\n（还没发到线上。满意后点「保存并发布」）`, 'ok');
 }
 
 function renderCopyForm() {
@@ -543,7 +567,7 @@ function renderCopyForm() {
   }).join('');
 }
 
-async function saveCopyForm() {
+async function saveCopyForm(andPublish) {
   const out = {};
   document.querySelectorAll('[data-copy-group]').forEach(function (el) {
     const g = el.dataset.copyGroup, k = el.dataset.copyKey;
@@ -553,7 +577,8 @@ async function saveCopyForm() {
   if (r.error) return setStatus('保存失败：' + r.error, 'err');
   SITE = null;
   await renderSite(true);
-  setStatus('界面文案已保存（' + r.count + ' 条）。回到「✍ 写作」点一次「保存并发布」即可。', 'ok');
+  if (andPublish) return publishNow('界面文案已保存（' + r.count + ' 条）。');
+  setStatus('界面文案已保存（' + r.count + ' 条）。\n（还没发到线上。满意后点「保存并发布」）', 'ok');
 }
 
 /* ================= 板块 ================= */
@@ -658,6 +683,14 @@ function collect() {
   return payload;
 }
 
+/* 只推送，不保存 —— 站点设置与板块管理各块的「保存并发布」复用它 */
+async function publishNow(what) {
+  setStatus('正在推送到 GitHub（最多重试 5 次）…', 'info');
+  const p = await post('/api/publish');
+  setStatus((what ? what + '\n\n' : '') + p.log + '\n\n' + p.hint, p.ok ? 'ok' : 'err');
+  return p.ok;
+}
+
 async function save(publish) {
   const payload = collect();
   const fname = document.querySelector('[data-k="__filename"]');
@@ -713,6 +746,31 @@ function renderSectionTable() {
     </tr>${rows}`;
 }
 
+/* 把表格里每一行的改动都存一遍（不推送） */
+async function saveAllSectionRows(quiet) {
+  const rows = [...document.querySelectorAll('#secTable tr[data-key]')];
+  let done = 0;
+  for (const tr of rows) {
+    const key = tr.dataset.key;
+    const patch = { key };
+    tr.querySelectorAll('[data-f]').forEach((el) => { patch[el.dataset.f] = el.value; });
+    const r = await post('/api/section/save', patch);
+    if (r.error) { setStatus('保存「' + key + '」失败：' + r.error, 'err'); return false; }
+    done++;
+  }
+  if (!quiet) setStatus('已保存 ' + done + ' 个板块的改动。\n（还没发到线上。满意后点「保存并发布到线上」）', 'ok');
+  return true;
+}
+
+async function publishSections() {
+  setStatus('正在保存所有改动…', 'info');
+  if (!(await saveAllSectionRows(true))) return;
+  META = null;
+  await loadMeta();
+  renderSectionTable();
+  await publishNow('板块改动已保存。');
+}
+
 async function saveSectionRow(key) {
   const tr = document.querySelector(`tr[data-key="${key}"]`);
   const patch = { key };
@@ -721,7 +779,7 @@ async function saveSectionRow(key) {
   if (r.error) return setStatus('保存板块失败：' + r.error, 'err');
   await loadMeta();
   renderSectionTable();
-  setStatus(`板块「${r.title}」已保存。\n回到「✍ 写作」点一次「保存并发布」，网站就会更新。`, 'ok');
+  setStatus(`板块「${r.title}」已保存。\n（还没发到线上。点下面的「保存并发布到线上」即可。）`, 'ok');
 }
 
 async function removeSection(key) {
@@ -735,7 +793,7 @@ async function removeSection(key) {
     if (CURRENT) { renderForm({}, ''); await refreshPostList(); }
   }
   renderSectionTable();
-  setStatus(`板块已删除（文件在 ${r.moved || '（本来就没有文件）'}）。\n回到「✍ 写作」点一次「保存并发布」即可。`, 'ok');
+  setStatus(`板块已删除（文件在 ${r.moved || '（本来就没有文件）'}）。\n（还没发到线上。点下面的「保存并发布到线上」即可。）`, 'ok');
 }
 
 async function createSection() {
@@ -747,7 +805,7 @@ async function createSection() {
   $('newKey').value = ''; $('newTitle').value = '';
   await loadMeta();
   renderSectionTable();
-  setStatus(`板块「${title}」已创建（网址会是 /${r.key}/）。\n回到「✍ 写作」点一次「保存并发布」就会出现在导航和首页。`, 'ok');
+  setStatus(`板块「${title}」已创建（网址会是 /${r.key}/）。\n（还没发到线上。点下面的「保存并发布到线上」就会出现在导航和首页。）`, 'ok');
 }
 
 /* ================= 图片：选择 / 拖拽 / 粘贴 ================= */
