@@ -1301,6 +1301,39 @@ a, button, summary, label, select,
 }
 
 /* --------------------------------------------------------------------------
+   烹饪文章 · 配方卡（排在食材与做法之前）
+   -------------------------------------------------------------------------- */
+.recipe-card {
+  margin: 0 0 clamp(1.6rem, 3vw, 2.4rem);
+  padding: clamp(1rem, 2.4vw, 1.5rem) clamp(1rem, 2.6vw, 1.7rem);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.recipe-card__list { list-style: none; margin: 0.55rem 0 0; padding: 0; }
+.recipe-card__list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.32rem 0;
+  border-bottom: 1px dashed var(--line);
+}
+.recipe-card__list li:last-child { border-bottom: 0; }
+.recipe-card__name { font-family: var(--font-serif); font-size: 0.96rem; }
+.recipe-card__dots {
+  flex: 1;
+  min-width: 1.5rem;
+  border-bottom: 1px dotted var(--line-strong);
+  transform: translateY(-0.22em);
+}
+.recipe-card__amount {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.recipe-card__servings { margin: 0.7rem 0 0; font-size: 0.76rem; color: var(--ink-mute); }
+
+/* --------------------------------------------------------------------------
    页脚 · 友情链接（与导航、联系方式并排，排在它们左边）
    -------------------------------------------------------------------------- */
 .site-footer__friends { min-width: 0; }

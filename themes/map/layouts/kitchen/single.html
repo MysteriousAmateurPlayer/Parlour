@@ -4,6 +4,7 @@
 {{- $cook := .Params.cook_time | default 0 -}}
 {{- $total := add $prep $cook -}}
 {{- $groups := .Params.ingredients | default slice -}}
+{{- $recipe := .Params.recipe | default slice -}}
 {{- $steps := .Params.steps | default slice -}}
 
 {{- /* 扁平化食材清单，供结构化数据使用 */ -}}
@@ -35,7 +36,23 @@
   <div class="wrap wrap--narrow">
     {{ partial "recipe-specs.html" . }}
 
-    <div class="recipe-layout">
+    {{- if $recipe }}
+<section class="recipe-card">
+  <h2 class="recipe-section__title">{{ partial "t.html" (dict "key" "列表与文章.配方标题" "default" "配方") }}</h2>
+  <ul class="recipe-card__list">
+    {{- range $recipe }}
+    {{- if reflect.IsMap . }}
+    <li><span class="recipe-card__name">{{ .name }}</span><span class="recipe-card__dots"></span><span class="recipe-card__amount">{{ .amount }}</span></li>
+    {{- else }}
+    <li><span class="recipe-card__name">{{ . }}</span></li>
+    {{- end }}
+    {{- end }}
+  </ul>
+  {{- with .Params.servings }}<p class="recipe-card__servings">约 {{ . }} 人份</p>{{ end }}
+</section>
+{{- end }}
+
+<div class="recipe-layout">
       {{- if $groups }}
       <aside class="recipe-ingredients">
         <h2 class="recipe-section__title">{{ partial "t.html" (dict "key" "列表与文章.食材标题" "default" "食材") }}</h2>

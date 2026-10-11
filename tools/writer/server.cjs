@@ -66,7 +66,12 @@ const SPECIAL_FIELDS = {
     { key: 'difficulty', label: '难度', type: 'select', options: ['简单', '中等', '麻烦'] },
     COMMON.tags, COMMON.series, COMMON.source,
     {
-      key: 'ingredients', label: '食材', type: 'ingredients', rows: 8,
+      key: 'recipe', label: '配方列表（排在食材与做法之前的那张表）', type: 'recipe', rows: 6,
+    hint: '一行一样，写成「食材 | 用量」。例：\n低筋面粉 | 120g\n细砂糖 | 80g\n无盐黄油 | 100g\n\n' +
+          '这张表会排在「食材」与「做法」之前，做成一栏对齐的配方卡；留空就不显示。'
+  },
+  {
+    key: 'ingredients', label: '食材', type: 'ingredients', rows: 8,
       hint: '一组用一对方括号起头，下面每行写一样食材。例如：\n[主料]\n牛腩 700g\n番茄 3 个'
     },
     { key: 'steps', label: '步骤', type: 'steps', rows: 7, hint: '一行一步，会自动编号成卡片' },
@@ -878,6 +883,20 @@ function buildPost(sectionKey, payload) {
         .split(/[,，]/)
         .map((s) => s.trim())
         .filter(Boolean);
+      if (list.length) data[f.key] = list;
+      continue;
+    }
+    if (f.type === 'recipe') {
+      const list = String(raw || '')
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const i = line.indexOf('|');
+          return i === -1 ? { name: line, amount: '' }
+                          : { name: line.slice(0, i).trim(), amount: line.slice(i + 1).trim() };
+        })
+        .filter((x) => x.name);
       if (list.length) data[f.key] = list;
       continue;
     }

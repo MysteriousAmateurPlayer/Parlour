@@ -609,7 +609,14 @@ function renderForm(data, body) {
     else if (f.type === 'select') input = `<select data-k="${f.key}">${f.options.map((o) => `<option ${v === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
     else if (f.type === 'number') input = `<input type="number" data-k="${f.key}" value="${v == null ? '' : esc(v)}">`;
     else if (f.type === 'date') input = `<input type="date" data-k="${f.key}" value="${esc(v || '')}">`;
-    else if (f.type === 'ingredients') input = `<textarea rows="${f.rows || 7}" data-k="${f.key}" placeholder="[主料]&#10;牛腩 700g&#10;番茄 3 个">${esc(ingredientsToText(v))}</textarea>`;
+    else if (f.type === 'recipe') {
+    const arr = Array.isArray(v) ? v : [];
+    const rows = arr.map((x) => (x && typeof x === 'object')
+      ? ((x.name || '') + ' | ' + (x.amount || ''))
+      : String(x)).join('\n');
+    input = `<textarea rows="${f.rows || 6}" data-k="${f.key}" placeholder="低筋面粉 | 120g&#10;细砂糖 | 80g">${esc(rows)}</textarea>`;
+  }
+  else if (f.type === 'ingredients') input = `<textarea rows="${f.rows || 7}" data-k="${f.key}" placeholder="[主料]&#10;牛腩 700g&#10;番茄 3 个">${esc(ingredientsToText(v))}</textarea>`;
     else if (f.type === 'steps') input = `<textarea rows="${f.rows || 6}" data-k="${f.key}" placeholder="第一步写在这里">${esc(Array.isArray(v) ? v.join('\n') : (v || ''))}</textarea>`;
     else if (f.type === 'image') input = `<div class="row"><input type="text" data-k="${f.key}" value="${esc(v || '')}" placeholder="/images/xxx.jpg" style="flex:1;min-width:200px"><button class="btn" onclick="pickImage('${f.key}')">上传</button></div>`;
     else if (f.type === 'tags') input = `<input type="text" data-k="${f.key}" value="${esc(Array.isArray(v) ? v.join(', ') : (v || ''))}" placeholder="${esc(f.placeholder || '')}">`;
