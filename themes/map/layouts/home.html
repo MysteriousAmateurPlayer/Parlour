@@ -29,7 +29,7 @@
     <div class="about-preview__text">
       {{ partial "section-head.html" (dict "kicker" $about.subtitle "title" $about.title) }}
       {{- range $about.paragraphs }}
-      <p class="reveal">{{ . }}</p>
+      <p class="reveal">{{ . | markdownify }}</p>
       {{- end }}
 
       {{- with $about.facts }}
